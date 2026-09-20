@@ -1,0 +1,8 @@
+{
+  "name": "HotpotSort.Session",
+  "references": [
+    "HotpotSort.Contracts"
+  ],
+  "autoReferenced": false,
+  "noEngineReferences": true
+}
