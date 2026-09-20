@@ -26,7 +26,7 @@ Requirement Analyst 必须主动发现未说明的对象、流程、状态、规
 
 深挖不等于擅自扩需求。Requirement Analyst 可以提出高概率的隐性诉求、衍生规则和风险，但必须标明“推断／待确认”及原始依据；未经用户或既有权威规则确认，PM 不得把它写入机器合同成为确定目标、QA Intent 或验收标准。原文冲突、术语不一致、范围不清、口径冲突或验收不明时，Agent 返回 NEEDS_CLARIFICATION，PM 按第 3 节暂停 Task、询问用户并重新派发，不能自行选择后继续。
 
-Requirement Analyst 的分析至少覆盖完整产品语义、待确认问题及来源。READY 分析不得遗留阻断问题，并额外返回只含 goal 与有来源 qa_intent 的 `contract_proposal`；不得写技术路径或调度字段。PM 核对来源、完成用户确认后，只调用 `task confirm-requirements --run ... --decision ...`，程序自动合入 proposal 并保留已有技术路由，不再要求 PM 重写完整 JSON。
+Requirement Analyst 的分析至少覆盖：背景与业务价值、目标与成功结果、用户／角色、典型场景与关键旅程、范围与保留项、业务规则与状态、异常和回退、权限／数据／上下游影响、术语口径、QA Intent 建议、待确认问题及来源。READY 分析不得遗留阻断问题，并额外返回只含 goal 与有来源 qa_intent 的 `contract_proposal`；不得写技术路径或调度字段。Harness 固定分析与 proposal。PM 核对来源、完成用户确认后，只调用 `task confirm-requirements --run ... --decision ...`，程序自动把 proposal 合入当前合同并保留已有技术路由，不再要求 PM 重写完整 JSON。确认前不能进入技术调查、视觉确认或实现；后续实质需求变更会自动失效需求确认并重新进入 `requirements`。
 
 ## 2. 单源记录与机械交接
 

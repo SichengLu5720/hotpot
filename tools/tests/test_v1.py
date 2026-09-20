@@ -19,7 +19,7 @@ sys.path.insert(0, str(ROOT / "tools"))
 from harnesslib.common import *
 from harnesslib import engine as en, models as mo, workspace as ws, release as rel, manifest as mf
 
-SEED_IGNORE = shutil.ignore_patterns(".git", "__pycache__", "*.pyc", ".venv", "venv", "node_modules")
+SEED_IGNORE = shutil.ignore_patterns(".git", "__pycache__", "*.pyc", ".venv", "venv", "node_modules", "bin", "obj", "dist")
 
 
 def cli(root, *args):
@@ -239,11 +239,13 @@ class TaskTests(RepoTest):
         run=en.dispatch(r,d,"requirements")
         proposal={"goal":"Confirmed synthetic product definition",
                   "qa_intent":[{"id":"AC-1","text":"Synthetic result","source":"confirmed synthetic fixture"}]}
-        en.accept(r,d,self.handoff(run,{"requirements_analysis":self.requirement_payload(),"contract_proposal":proposal}))
+        en.accept(r,d,self.handoff(run,{"requirements_analysis":self.requirement_payload(),
+                                       "contract_proposal":proposal}))
         self.assertEqual(en.task_plan(r,load(r,d))["next"],[])
         self.assertIn("confirm",en.task_plan(r,load(r,d))["waiting"])
         out=en.confirm_requirements(r,d,run["run_id"],"confirmed synthetic product definition")
         self.assertTrue(out["confirmed"]);self.assertEqual(en.task_plan(r,load(r,d))["waiting"],{"user_approval":["build"]})
+        self.assertEqual(load(r,d)["contract"]["goal"],proposal["goal"])
     def test_requirement_proposal_cannot_change_technical_routing(self):
         r,d,_=self.create();c=en.starter_contract();c["goal"]="Raw request";c["owners"]["code_builder"]=["game"]
         en.update_contract(r,d,c,"record raw request");run=en.dispatch(r,d,"requirements")

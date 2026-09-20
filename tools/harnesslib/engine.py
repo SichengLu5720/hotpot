@@ -290,40 +290,57 @@ def confirm_requirements(root, doc, run_id, decision):
     with lock(root, doc):
         s = load(root, doc); identity(root, s)
         require(s["kind"] == "task" and s["status"] not in ("BLOCKED", "CANCELLED"), "Task not confirmable")
-        string(decision, "user decision reference"); require(not active(s), "Settle active work before confirming requirements")
+        string(decision, "user decision reference")
+        require(not active(s), "Settle active work before confirming requirements")
         require(s.get("completed", {}).get("requirements") == run_id, "Run is not the current accepted requirements result")
-        r = s["runs"].get(run_id, {}); require(r.get("status") == "ACCEPTED", "Requirements run is not accepted")
+        r = s["runs"].get(run_id, {})
+        require(r.get("status") == "ACCEPTED", "Requirements run is not accepted")
         if s.get("requirements_confirmation"):
             require(s["requirements_confirmation"].get("run_id") == run_id and
                     s["requirements_confirmation"].get("contract_digest") == digest(s["contract"]),
                     "A different requirements result is already confirmed")
             return {"changed": False, "confirmed": True, "idempotent": True,
                     "task_revision": s["task_revision"], "requirements_run": run_id}
-        proposal = r.get("payload", {}).get("contract_proposal"); _validate_requirement_proposal(proposal)
-        contract = copy.deepcopy(s["contract"]); contract.update(copy.deepcopy(proposal)); validate_contract(root, contract, ready=True)
+        proposal = r.get("payload", {}).get("contract_proposal")
+        _validate_requirement_proposal(proposal)
+        contract = copy.deepcopy(s["contract"])
+        contract.update(copy.deepcopy(proposal))
+        validate_contract(root, contract, ready=True)
         changed = digest(contract) != digest(s["contract"])
         if changed:
-            s["task_revision"] += 1; s["contract"] = contract; s["approvals"] = {}; s["completed"] = {"requirements": run_id}
+            s["task_revision"] += 1
+            s["contract"] = contract
+            s["approvals"] = {}
+            s["completed"] = {"requirements": run_id}
             event(s, "contract_changed", revision=s["task_revision"], decision=decision,
                   invalidation="accepted Analyst product proposal promoted; technical routing fields preserved")
         proposal_artifacts = [a["artifact_id"] for a in r.get("artifacts", [])]
-        s["requirements_confirmation"] = {"run_id": run_id, "analysis_artifacts": proposal_artifacts,
-            "task_revision": s["task_revision"], "contract_digest": digest(s["contract"]), "decision": decision, "at": now()}
-        s["status"] = "DRAFT"; event(s, "requirements_confirmed", run_id=run_id, decision=decision, method="analyst_contract_proposal")
+        s["requirements_confirmation"] = {
+            "run_id": run_id, "analysis_artifacts": proposal_artifacts,
+            "task_revision": s["task_revision"], "contract_digest": digest(s["contract"]),
+            "decision": decision, "at": now(),
+        }
+        s["status"] = "DRAFT"
+        event(s, "requirements_confirmed", run_id=run_id, decision=decision,
+              method="analyst_contract_proposal")
         refresh(root, s); save(root, doc, s)
-        return {"changed": changed, "confirmed": True, "task_revision": s["task_revision"], "requirements_run": run_id}
+        return {"changed": changed, "confirmed": True, "task_revision": s["task_revision"],
+                "requirements_run": run_id}
 
 
 def _validate_requirement_proposal(proposal):
     require(isinstance(proposal, dict) and set(proposal) == REQUIREMENT_PROPOSAL_FIELDS,
             "contract_proposal must contain goal and qa_intent only")
     string(proposal["goal"], "proposed goal")
-    require(isinstance(proposal["qa_intent"], list) and proposal["qa_intent"], "contract_proposal needs sourced QA Intent")
+    require(isinstance(proposal["qa_intent"], list) and proposal["qa_intent"],
+            "contract_proposal needs sourced QA Intent")
     ids = []
     for item in proposal["qa_intent"]:
-        require(isinstance(item, dict) and set(item) == {"id", "text", "source"}, "Proposed Intent has id, text, source only")
+        require(isinstance(item, dict) and set(item) == {"id", "text", "source"},
+                "Proposed Intent has id, text, source only")
         string(item["text"], "proposed intent text"); string(item["source"], "proposed intent source")
-        require(re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]{0,63}", item.get("id", "")), "Invalid proposed intent id")
+        require(re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]{0,63}", item.get("id", "")),
+                "Invalid proposed intent id")
         ids.append(item["id"])
     require(len(ids) == len(set(ids)), "Duplicate proposed QA Intent ids")
 

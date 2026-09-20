@@ -1,22 +1,20 @@
-test_cross_origin_post_rejected (test_v1.DashboardTests.test_cross_origin_post_rejected) ... ok
-test_no_file_or_command_endpoint (test_v1.DashboardTests.test_no_file_or_command_endpoint) ... ok
-test_preview_apply_requires_confirmation (test_v1.DashboardTests.test_preview_apply_requires_confirmation) ... ok
-test_static_ui_headers_and_syntax (test_v1.DashboardTests.test_static_ui_headers_and_syntax) ... ok
-test_status_matrix (test_v1.DashboardTests.test_status_matrix) ... ok
-test_token_required (test_v1.DashboardTests.test_token_required) ... ok
 test_apply_and_rollback (test_v1.ModelTests.test_apply_and_rollback) ... ok
 test_config_change_does_not_rewrite_active_snapshot (test_v1.ModelTests.test_config_change_does_not_rewrite_active_snapshot) ... ok
 test_disabled_role_blocks_dispatch (test_v1.ModelTests.test_disabled_role_blocks_dispatch) ... ok
 test_interrupted_transaction_recovery (test_v1.ModelTests.test_interrupted_transaction_recovery) ... ok
 test_manual_drift_needs_explicit_reconcile (test_v1.ModelTests.test_manual_drift_needs_explicit_reconcile) ... ok
+test_native_dashboard_agent_update (test_v1.ModelTests.test_native_dashboard_agent_update) ... ok
 test_preview_is_read_only (test_v1.ModelTests.test_preview_is_read_only) ... ok
 test_rollback_preserves_instructions (test_v1.ModelTests.test_rollback_preserves_instructions) ... ok
 test_stale_preview (test_v1.ModelTests.test_stale_preview) ... ok
 test_unknown_actual_is_not_target (test_v1.ModelTests.test_unknown_actual_is_not_target) ... ok
-test_four_roles_and_single_designer (test_v1.PackageTests.test_four_roles_and_single_designer) ... ok
 test_model_defaults_honest (test_v1.PackageTests.test_model_defaults_honest) ... ok
+test_native_dashboard_is_the_only_dashboard (test_v1.PackageTests.test_native_dashboard_is_the_only_dashboard) ... ok
 test_no_old_executable_entrypoints (test_v1.PackageTests.test_no_old_executable_entrypoints) ... ok
-test_qa_responsibility_split_without_new_role_or_mode (test_v1.PackageTests.test_qa_responsibility_split_without_new_role_or_mode) ... ok
+test_pm_entry_and_five_bounded_workers (test_v1.PackageTests.test_pm_entry_and_five_bounded_workers) ... ok
+test_qa_responsibility_split_unchanged_by_requirement_role (test_v1.PackageTests.test_qa_responsibility_split_unchanged_by_requirement_role) ... ok
+test_requirement_policy_and_template_are_present (test_v1.PackageTests.test_requirement_policy_and_template_are_present) ... ok
+test_self_test_seed_excludes_host_git_metadata (test_v1.PackageTests.test_self_test_seed_excludes_host_git_metadata) ... ok
 test_six_task_states (test_v1.PackageTests.test_six_task_states) ... ok
 test_templates_and_cli (test_v1.PackageTests.test_templates_and_cli) ... ok
 test_builder_cannot_change_designer_assertions (test_v1.QATests.test_builder_cannot_change_designer_assertions) ... ok
@@ -53,9 +51,12 @@ test_designer_not_mandatory (test_v1.TaskTests.test_designer_not_mandatory) ... 
 test_designer_when_requested (test_v1.TaskTests.test_designer_when_requested) ... ok
 test_duplicate_accept_is_idempotent (test_v1.TaskTests.test_duplicate_accept_is_idempotent) ... ok
 test_empty_task_not_dispatchable (test_v1.TaskTests.test_empty_task_not_dispatchable) ... ok
+test_later_contract_change_invalidates_requirement_confirmation (test_v1.TaskTests.test_later_contract_change_invalidates_requirement_confirmation) ... ok
 test_notes_do_not_invalidate_dispatch (test_v1.TaskTests.test_notes_do_not_invalidate_dispatch) ... ok
 test_overlapping_owners_rejected (test_v1.TaskTests.test_overlapping_owners_rejected) ... ok
 test_parallel_accept_does_not_revoke_other (test_v1.TaskTests.test_parallel_accept_does_not_revoke_other) ... ok
+test_requirement_analysis_and_pm_confirmation_are_mandatory (test_v1.TaskTests.test_requirement_analysis_and_pm_confirmation_are_mandatory) ... ok
+test_requirement_proposal_cannot_change_technical_routing (test_v1.TaskTests.test_requirement_proposal_cannot_change_technical_routing) ... ok
 test_resume_new_run_old_return_rejected (test_v1.TaskTests.test_resume_new_run_old_return_rejected) ... ok
 test_scope_escape_rejected (test_v1.TaskTests.test_scope_escape_rejected) ... ok
 test_screen_preview_requires_composition_source (test_v1.TaskTests.test_screen_preview_requires_composition_source) ... ok
@@ -72,6 +73,6 @@ test_unregistered_workspace (test_v1.WorkspaceTests.test_unregistered_workspace)
 test_wrong_branch (test_v1.WorkspaceTests.test_wrong_branch) ... ok
 
 ----------------------------------------------------------------------
-Ran 72 tests in 222.803s
+Ran 73 tests in 275.109s
 
 OK

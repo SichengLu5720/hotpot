@@ -51,9 +51,9 @@ Task Markdown 只允许一个 `harness-state` JSON 块。`contract` 是确认需
 }
 ```
 
-必需 payload：Task 的 requirements → `requirements_analysis`；designer → `interface_notes`；Release 的 interfaces → `qa_plan`（内联对象）；design → `visual_mapping`；code/release_fix → `implementation_facts`；art → `assets`；integration → `binding_notes`；qa_scripts → `qa_execution`（执行清单相对路径）；qa_report → `report`。
+必需 payload：Task 的 requirements → `requirements_analysis` + `contract_proposal`；designer → `interface_notes`；Release 的 interfaces → `qa_plan`（内联对象）；design → `visual_mapping`；code/release_fix → `implementation_facts`；art → `assets`；integration → `binding_notes`；qa_scripts → `qa_execution`（执行清单相对路径）；qa_report → `report`。
 
-`requirements_analysis` 包含 background、product_value 两段文字，以及 users、goals、scenarios、journey、rules、states、boundaries、ambiguities、options、derived_points、success_criteria、recommended_qa_intent、source_map、pending_questions 数组。READY 时 pending_questions 必须为空且 source_map 非空；存在会改变产品定义的问题时用 NEEDS_CLARIFICATION，不得自行选择。程序把 READY payload 固定成 `.harness/requirements/<TASK-ID>/<run_id>.md`，但 PM 仍须再次 `task contract` 才能确认最终合同。
+`requirements_analysis` 包含 background、product_value 两段文字，以及 users、goals、scenarios、journey、rules、states、boundaries、ambiguities、options、derived_points、success_criteria、recommended_qa_intent、source_map、pending_questions 数组。READY 时 pending_questions 必须为空且 source_map 非空。`contract_proposal` 只允许 goal 与 qa_intent；qa_intent 每项只含 id/text/source。程序固定分析和 proposal，PM 用 `task confirm-requirements` 引用 run 并自动合并，不再提交第二份完整合同。
 
 `design` 中，screen/major 需要 kind=`preview` 和 `editable_source` 或 `composition_recipe` 的文件；有正式资产时每个 asset_contract ID 都要对应 concept 文件：
 

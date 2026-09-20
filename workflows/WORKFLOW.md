@@ -26,9 +26,9 @@ Code ║ Art（仅拥有路径不重叠时）
 READY_FOR_RELEASE（不代表已运行游戏 QA）
 ```
 
-PM 的正常流程不会从用户一句话直接跳到实现。PM 建立独立工作区、登记原始请求和材料后，先派发 `requirements` 给只读 Requirement Analyst。Agent 逐段读完输入，补齐产品背景、用户、场景、关键旅程、规则、异常、回退和成功结果；多义请求至少列出两种解释，多种合理产品定义比较后再确认。推断和建议留在分析文档与 Task 待确认区，只有 PM 与用户已确认的内容才进入机器合同。
+PM 是唯一常驻入口，但只承担轻量路由，不持续运行需求深挖。正常流程不会从用户一句话直接跳到实现：PM 建立独立工作区、登记原始请求和材料后，按需派发一个 `requirements` run 给只读 Requirement Analyst。Agent 逐段读完输入，补齐产品背景、用户、场景、关键旅程、规则、异常、回退和成功结果；多义请求至少列出两种解释，多种合理产品定义比较后再确认。推断和建议留在分析文档与 Task 待确认区，只有 PM 与用户已确认的内容才进入机器合同。
 
-Requirement Analyst 返回 READY 后，Harness 固定 `.harness/requirements/<TASK-ID>/<run_id>.md`，但 Task 仍停在合同确认门。PM 核对来源、处理用户决定，再用 `task contract` 写入最终合同；该调用把确认绑定到分析 run、合同摘要和 task_revision。之后才可进入 Designer 技术调查、Design-Art 视觉确认和 Code Builder 实现。后续实质需求变更会清除该确认并重新要求 `requirements`，不会拿旧分析默认为新需求背书。
+Requirement Analyst 返回 READY 或 NEEDS_CLARIFICATION 后，该子任务立即结束，不轮询、不驻留。READY 时 Harness 固定 `.harness/requirements/<TASK-ID>/<run_id>.md` 与 `<run_id>.contract.json`，但 Task 仍停在合同确认门。proposal 只包含产品 goal 与有来源 QA Intent，技术路由字段沿用 Task 草案。PM 核对来源、处理用户决定后调用 `task confirm-requirements`；程序自动合并 proposal 并把确认绑定到分析 run、合同摘要和 task_revision，PM 不再重写完整合同。
 
 ### 一个机械交接循环
 
@@ -48,7 +48,7 @@ Task 阶段 Designer 交接不以完整 QA Plan 为输出，只返回所需接�
 python tools/harness.py task contract --doc tasks/TASK-001-volume-settings.md --input /path/to/draft-contract.json --decision "登记原始请求与材料"
 python tools/harness.py dispatch --doc tasks/TASK-001-volume-settings.md --step requirements
 python tools/harness.py accept --doc tasks/TASK-001-volume-settings.md --handoff /path/to/requirements-handoff.json
-# PM 处理确认后；即使合同文字未改，也要再次调用以固定确认：
+# PM 处理确认后，只引用已接收的 Analyst run：
 python tools/harness.py task confirm-requirements --doc tasks/TASK-001-volume-settings.md --run <requirements-run-id> --decision "用户确认后的产品定义引用"
 python tools/harness.py dispatch --doc tasks/TASK-001-volume-settings.md --step code
 python tools/harness.py check --doc tasks/TASK-001-volume-settings.md --run <run_id>
@@ -110,6 +110,6 @@ python tools/harness.py release scope --doc versions/v0.1.0.md --path ExistingTe
 
 ## 成本边界
 
-所有新需求固定经过一次 Requirement Analyst；正常代码 Task 仍不需要 Feature Designer、Visual、Reporter 或 Monitor 的固定调用，Feature Designer 的必经 QA 计划发生在正式 Release。PM 可使用低算力模型做来源核对、用户沟通和状态协调，需求深挖由独立高推理档 Agent 承担；实际模型价格与可用性仍由宿主确认。
+所有新需求至少经过一个有界的 Requirement Analyst run；只有真实歧义或产品定义变化才重新派发。正常代码 Task 仍不需要 Feature Designer、Visual、Reporter 或 Monitor 的固定调用，Feature Designer 的必经 QA 计划发生在正式 Release。PM 使用低算力模型常驻做来源核对、用户沟通和状态协调，需求深挖由按需高推理档 Agent 承担；实际模型价格与可用性仍由宿主确认。
 
 QA_BACKLOG 和派发 context 都是从固定源生成的短输入，不重复读全部历史。它们仍需消耗实际上下文，不能宣称“零成本”。模型成本、游戏启动次数和返工量是否降低需要真实项目数据；本包不内置未测的节省百分比。

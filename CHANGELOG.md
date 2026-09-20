@@ -7,7 +7,8 @@
 - 新增只读 `requirement_analyst`：完整研读全部输入，负责产品语义深挖、多义解释、场景／状态／边界推演、方案比较和有来源的 QA Intent 建议。
 - 新增可配置的 `pm_coordinator` 低算力常驻入口；只负责登记、路由、用户决定、合同和状态协调。
 - Requirement Analyst 只在新需求、真实歧义或产品定义变化时按需运行；每个 run 交接后结束，不形成高算力常驻主入口或后台循环。
-- 新 Task 必须先完成 `requirements`；程序固定分析文档，PM 再次 `task contract` 后才开放技术、视觉和实现步骤。后续实质合同变更自动使需求确认失效。
+- 新 Task 必须先完成 `requirements`；程序固定分析文档与合同 proposal，PM 按 run 确认后才开放技术、视觉和实现步骤。后续实质合同变更自动使需求确认失效。
+- Requirement Analyst READY 时同时输出只含 goal/qa_intent 的 `contract_proposal`；PM 改用 `task confirm-requirements` 按 run 确认，程序自动合并，避免低算力 PM 重写完整合同。
 - Requirement Analyst 不替代 Feature Designer：前者只做产品需求，后者继续按需技术调查并负责正式 Release 的 QA Plan。
 
 ### QA 职责重新划分

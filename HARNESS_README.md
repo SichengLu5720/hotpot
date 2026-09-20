@@ -51,7 +51,7 @@ Task 的原始请求／合同草案从输入 JSON 录入；`examples/contract.ex
 python tools/harness.py task contract --doc tasks/TASK-001-volume-settings.md --input /path/to/draft-contract.json --decision "登记原始请求与全部材料"
 ```
 
-首次 `task contract` 登记原始请求／草案后，必须先完成需求分析，再用同一命令确认最终合同：
+首次 `task contract` 只登记原始请求和少量技术路由草案。Requirement Analyst 负责生成产品合同 proposal；PM 不再提交第二份完整合同，只按 run 记录用户确认：
 
 ```bash
 python tools/harness.py dispatch --doc tasks/TASK-001-volume-settings.md --step requirements
@@ -59,7 +59,7 @@ python tools/harness.py accept --doc tasks/TASK-001-volume-settings.md --handoff
 python tools/harness.py task confirm-requirements --doc tasks/TASK-001-volume-settings.md --run <requirements-run-id> --decision "用户确认后的产品定义引用"
 ```
 
-第二次调用会把确认绑定到 Requirement Analyst run、合同摘要和 task_revision；没有该绑定，技术、视觉、实现和构建批准都不会开放。需求实质变化后必须重新分析。`models.toml` 默认把 PM 放在 `economy/low`、Requirement Analyst 放在 `quality/high`；空 model 仍表示继承宿主，实际模型可用性由宿主确认。
+Analyst handoff 同时给出完整分析和只含 goal/qa_intent 的 `contract_proposal`；程序生成只读 proposal 文件。确认命令自动合入 proposal，保留现有技术路径、owners、视觉和资产调度字段，并把确认绑定到 run、合同摘要和 task_revision。没有该绑定，后续步骤不会开放。需求实质变化后必须重新分析。
 
 主流程见 `workflows/WORKFLOW.md`，数据格式与完整 handoff 见 `workflows/FORMATS.md`。`dispatch` 会返回精简派发 context，不需要每个子代理重读全部 Task 历史。
 
@@ -127,7 +127,7 @@ dotnet build tools/native-dashboard/HarnessModelDashboard.csproj -c Release
 ```text
 AGENTS.md                   人工维护的唯一流程政策
 models.toml                 目标模型配置
-.codex/agents/              4 个核心角色 + 默认关闭的 qa_reporter
+.codex/agents/              常驻 PM + 4 个按需核心角色 + 默认关闭的 qa_reporter
 HarnessModelDashboard.exe  Windows 原生开发看板
 reusable/                   原生看板的组件接入素材与共享实现
 workflows/                  交接说明与数据格式
