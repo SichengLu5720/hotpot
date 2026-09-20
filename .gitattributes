@@ -1,0 +1,11 @@
+# Accepted TASK-003 artifacts are byte-addressed by the harness. Preserve the
+# reviewed Windows line endings instead of applying core.autocrlf on commit.
+build/wechat/** -text
+Unity/Assets/HotpotSort/Editor/WeChatBuild/** -text
+Unity/Assets/HotpotSort/Runtime/Bootstrap/** -text
+Unity/Assets/HotpotSort/Runtime/Platform/** -text
+Unity/Assets/HotpotSort/Runtime/Session/** -text
+Unity/Assets/HotpotSort/Scenes/Boot.unity -text
+Unity/Assets/HotpotSort/Scenes/Boot.unity.meta -text
+Unity/Packages/** -text
+Unity/ProjectSettings/** -text
