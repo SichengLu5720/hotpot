@@ -1,0 +1,201 @@
+[
+  {
+    "path": ".harness/references/prototype-v0.1/HotpotSort_Prototype_v0.1/qa/browser_mobile.png",
+    "sha256": "4031796a369527fc187de46d1183b79093c62687fade5e6599aa6d5ba7ba5e24",
+    "bytes": 631109,
+    "width": 780,
+    "height": 1688,
+    "format": "PNG"
+  },
+  {
+    "path": ".harness/previews/TASK-002/v001/compose.py",
+    "sha256": "6f31142a826194fac98c283ca67d08bde4d9862b794e9dada94ce882bed6ec8f",
+    "bytes": 7311
+  },
+  {
+    "path": ".harness/references/TASK-002/review-board-reference.png",
+    "sha256": "0ae0a819c838183b0b2e7d6e4bfdeffae727c95c62dee837df3bb35f6c2529f8",
+    "bytes": 1285387,
+    "width": 2186,
+    "height": 1645,
+    "format": "PNG"
+  },
+  {
+    "path": ".harness/previews/TASK-002/v003/compose.py",
+    "sha256": "baf627a47802e998684cacff37e81724323aff8bc5fe59d10ff27b02171e625b",
+    "bytes": 6795
+  },
+  {
+    "path": ".harness/previews/TASK-002/v003/layout-spec.json",
+    "sha256": "d5946bda5fcd67d392549b77dbd20a3c52d706d013cec4c6da45ffbb0411d78f",
+    "bytes": 761
+  },
+  {
+    "path": ".harness/previews/TASK-002/v003/entry-320x693.png",
+    "sha256": "361b4fb932975c19234f7be720dd34969c5622bbb21651503214121dd8b1a0d1",
+    "bytes": 96200,
+    "width": 320,
+    "height": 693,
+    "format": "PNG"
+  },
+  {
+    "path": ".harness/previews/TASK-002/v003/entry-390x844.png",
+    "sha256": "04c1084b753df0680904ec6ca6fd1f94b62768562e356c7a07eb363135625b7f",
+    "bytes": 103093,
+    "width": 390,
+    "height": 844,
+    "format": "PNG"
+  },
+  {
+    "path": ".harness/previews/TASK-002/v003/entry-700x1000.png",
+    "sha256": "a15912b914fe27ec196c77022a1660ea706abebb7de2083da547993b2b4fab39",
+    "bytes": 161243,
+    "width": 700,
+    "height": 1000,
+    "format": "PNG"
+  },
+  {
+    "path": ".harness/previews/TASK-002/v003/entry-layout-review-board.png",
+    "sha256": "16572f9fea49de14f0229151c3a8803299df2ed5bb2903d2d7703065d2f0aa06",
+    "bytes": 870032,
+    "width": 2186,
+    "height": 1645,
+    "format": "PNG"
+  },
+  {
+    "path": ".harness/references/prototype-v0.1/HotpotSort_Prototype_v0.1/Unity/Assets/HotpotSort/Resources/Hotpot/food_00.png",
+    "sha256": "0beb6a4df89b27cf3abec4bbf636ff03538ee5f81a9245daa2a7edf9e36075bc",
+    "bytes": 7183,
+    "width": 128,
+    "height": 128,
+    "format": "PNG"
+  },
+  {
+    "path": ".harness/references/prototype-v0.1/HotpotSort_Prototype_v0.1/Unity/Assets/HotpotSort/Resources/Hotpot/food_01.png",
+    "sha256": "6fbb315bdfbf1db1a1fe2fdb83c68831ed958461e12cc879260b7ba861e08e79",
+    "bytes": 8493,
+    "width": 128,
+    "height": 128,
+    "format": "PNG"
+  },
+  {
+    "path": ".harness/references/prototype-v0.1/HotpotSort_Prototype_v0.1/Unity/Assets/HotpotSort/Resources/Hotpot/food_02.png",
+    "sha256": "c386eae16fa591c9af607854a317050434bf25d4c2c33fcca6b0eb25391f0e4e",
+    "bytes": 6291,
+    "width": 128,
+    "height": 128,
+    "format": "PNG"
+  },
+  {
+    "path": ".harness/references/prototype-v0.1/HotpotSort_Prototype_v0.1/Unity/Assets/HotpotSort/Resources/Hotpot/food_03.png",
+    "sha256": "f387e5aebd3a3dc73a4af9bc8ed5139eaa43f1a59aff18992b975a6e36255d4a",
+    "bytes": 7284,
+    "width": 128,
+    "height": 128,
+    "format": "PNG"
+  },
+  {
+    "path": ".harness/references/prototype-v0.1/HotpotSort_Prototype_v0.1/Unity/Assets/HotpotSort/Resources/Hotpot/food_04.png",
+    "sha256": "a72d49cbba152498fc10a211b34de47d559c4cd9e6ea9fabdcda822a797999cd",
+    "bytes": 6873,
+    "width": 128,
+    "height": 128,
+    "format": "PNG"
+  },
+  {
+    "path": ".harness/references/prototype-v0.1/HotpotSort_Prototype_v0.1/Unity/Assets/HotpotSort/Resources/Hotpot/food_05.png",
+    "sha256": "594033016f51cdb74b9f1968136edab924b00cb9264285e70b122c5ca312f2ec",
+    "bytes": 5399,
+    "width": 128,
+    "height": 128,
+    "format": "PNG"
+  },
+  {
+    "path": ".harness/references/prototype-v0.1/HotpotSort_Prototype_v0.1/Unity/Assets/HotpotSort/Resources/Hotpot/food_06.png",
+    "sha256": "3453d0b4d5523bf300cc536e45a4fe5b74a406dd0b0761a7530c8ae904e22526",
+    "bytes": 8084,
+    "width": 128,
+    "height": 128,
+    "format": "PNG"
+  },
+  {
+    "path": ".harness/references/prototype-v0.1/HotpotSort_Prototype_v0.1/Unity/Assets/HotpotSort/Resources/Hotpot/food_07.png",
+    "sha256": "975e2efc8431933d5ff306da4cb303624a749270f8f32e653de19dd752a08549",
+    "bytes": 5902,
+    "width": 128,
+    "height": 128,
+    "format": "PNG"
+  },
+  {
+    "path": ".harness/references/prototype-v0.1/HotpotSort_Prototype_v0.1/Unity/Assets/HotpotSort/Resources/Hotpot/food_08.png",
+    "sha256": "8cd7dc9cf9baa8ec3649d0780e6f1f6de3b3bc04dc326def3a2984fe9dc0522d",
+    "bytes": 5682,
+    "width": 128,
+    "height": 128,
+    "format": "PNG"
+  },
+  {
+    "path": ".harness/references/prototype-v0.1/HotpotSort_Prototype_v0.1/Unity/Assets/HotpotSort/Resources/Hotpot/food_09.png",
+    "sha256": "30bac979677c27b7a4d56820188fd343317e242f78603e5d1e07faebe17b2c9c",
+    "bytes": 4981,
+    "width": 128,
+    "height": 128,
+    "format": "PNG"
+  },
+  {
+    "path": ".harness/references/prototype-v0.1/HotpotSort_Prototype_v0.1/Unity/Assets/HotpotSort/Resources/Hotpot/food_10.png",
+    "sha256": "b93b65efe233391f271db4706eab52d0d0d4599b443cbca687a33813cccebe66",
+    "bytes": 6482,
+    "width": 128,
+    "height": 128,
+    "format": "PNG"
+  },
+  {
+    "path": ".harness/references/prototype-v0.1/HotpotSort_Prototype_v0.1/Unity/Assets/HotpotSort/Resources/Hotpot/food_11.png",
+    "sha256": "45bc2df15f9b0713e66ec6337ae52f656323a1300233bae47ec1088ea83672c5",
+    "bytes": 5287,
+    "width": 128,
+    "height": 128,
+    "format": "PNG"
+  },
+  {
+    "path": ".harness/references/prototype-v0.1/HotpotSort_Prototype_v0.1/Unity/Assets/HotpotSort/Resources/Hotpot/food_12.png",
+    "sha256": "5eb5d998e8f72ac723fe6f07c55cceca30018dc4d0efa13d5659c9361ade10ac",
+    "bytes": 5671,
+    "width": 128,
+    "height": 128,
+    "format": "PNG"
+  },
+  {
+    "path": ".harness/references/prototype-v0.1/HotpotSort_Prototype_v0.1/Unity/Assets/HotpotSort/Resources/Hotpot/food_13.png",
+    "sha256": "49bb9d34442c30a55bcd01e83e335f3a0050b38a03fb9d782f5a309259207d4f",
+    "bytes": 5758,
+    "width": 128,
+    "height": 128,
+    "format": "PNG"
+  },
+  {
+    "path": ".harness/references/prototype-v0.1/HotpotSort_Prototype_v0.1/Unity/Assets/HotpotSort/Resources/Hotpot/food_14.png",
+    "sha256": "82ea9f941de9f42dc345b15f375bd1c7bed98a65af6254b8fd7bf48f5ddb45eb",
+    "bytes": 9964,
+    "width": 128,
+    "height": 128,
+    "format": "PNG"
+  },
+  {
+    "path": ".harness/references/prototype-v0.1/HotpotSort_Prototype_v0.1/Unity/Assets/HotpotSort/Resources/Hotpot/food_15.png",
+    "sha256": "1e38a195ec019899fc29b19853bf01fa707b71258d16a5769ac498878b8b3f8c",
+    "bytes": 5234,
+    "width": 128,
+    "height": 128,
+    "format": "PNG"
+  },
+  {
+    "path": ".harness/references/prototype-v0.1/HotpotSort_Prototype_v0.1/Unity/Assets/HotpotSort/Resources/Hotpot/plate.png",
+    "sha256": "a4e6bb0f78d38585367eb551931fd0d10aa2b251d70d937e17d6b5e0d6201bdb",
+    "bytes": 17377,
+    "width": 128,
+    "height": 128,
+    "format": "PNG"
+  }
+]
