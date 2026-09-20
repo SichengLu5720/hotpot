@@ -30,6 +30,7 @@ namespace HotpotSort.Session
         public PauseReasons Pauses { get; private set; }
         public ResolvedChallenge Resolved { get; private set; }
         public GameSnapshot Snapshot { get; private set; }
+        public Viewport CurrentViewport => viewport;
         public string Error { get; private set; }
         public bool IsBusy => busy;
         public double ActiveSeconds => accumulated + (counting ? Math.Max(0, clock.Seconds - runningSince) : 0);
@@ -124,10 +125,10 @@ namespace HotpotSort.Session
         }
         private void OnLifecycle(PlatformLifecycle state)
         { SetPause(PauseReasons.Background, state != PlatformLifecycle.Foreground); }
-        private void OnViewport(Viewport value) { viewport = value; view?.SetViewport(value); }
+        private void OnViewport(Viewport value) { viewport = value; view?.SetViewport(value); Notify(); }
         public void Retry()
         {
-            if (disposed || busy || Resolved == null || session == null) return;
+            if (disposed || busy || Resolved == null) return;
             busy = true; Error = null;
             var previous = Resolved;
             var c = previous.Context;

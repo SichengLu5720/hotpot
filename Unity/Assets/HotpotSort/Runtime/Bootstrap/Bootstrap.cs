@@ -50,7 +50,7 @@ namespace HotpotSort.Bootstrap
                     new TimeResolver(composition.TrustedTime, new DeviceTimeProvider()), new UnityClock(),
                     platform, composition.ContentVersion, composition.ConfigurationDigest);
                 composition.BindSessionObservation(Controller);
-                await Controller.StartTodayAsync();
+                // The approved entry button owns StartToday. Initialization does not create a daily session.
                 Status = Controller.Error ?? "ready";
             }
             catch (Exception ex) { Status = ex.GetType().Name + ": " + ex.Message; Debug.LogError(Status); Controller?.Dispose(); Controller = null; platform?.Dispose(); }
