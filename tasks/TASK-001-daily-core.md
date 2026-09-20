@@ -77,6 +77,192 @@
       },
       "summary": "Read-only interface investigation completed. Harness check was ACTIVE at task revision 2. Determinism and implementation interfaces are fixed below; no product ambiguity remains, no files were modified, and no game QA was run.",
       "artifacts": []
+    },
+    "run-37afd97ea0a545f0": {
+      "run_id": "run-37afd97ea0a545f0",
+      "step": "code",
+      "role": "code_builder",
+      "status": "ACCEPTED",
+      "created_at": "2026-09-20T09:18:52.929336+00:00",
+      "inputs": {
+        "task_revision": 2,
+        "contract_digest": "b745952fb8082122c33803b99d70bd658461ed434eeb353ca8ed28c1f8846e57"
+      },
+      "model_target": {
+        "model": "gpt-6-astra",
+        "effort": "low",
+        "enabled": true,
+        "config_digest": "28a8c3d034818ad41a01baf3f947b864e50cba7de4512f06354977085cc0f02e",
+        "actual": "unknown"
+      },
+      "model_observed": null,
+      "allowed_paths": [
+        "Unity/Assets/HotpotSort/Runtime/Core",
+        "Unity/Assets/HotpotSort/Runtime/Determinism",
+        "Unity/Assets/HotpotSort/Runtime/Replay",
+        "Unity/Assets/HotpotSort/Content/Daily",
+        "Unity/Assets/HotpotSort/Editor/ContentImport"
+      ],
+      "stop_confirmed": true,
+      "approved_inputs": {
+        "build": {
+          "task_revision": 2,
+          "contract_digest": "b745952fb8082122c33803b99d70bd658461ed434eeb353ca8ed28c1f8846e57",
+          "decision": "User explicitly authorized TASK-001 implementation with 实行task1 and confirmed the remaining recommendations with 执行; build scope is the registered revision 2 code-only contract and accepted Designer interface notes.",
+          "artifacts": []
+        }
+      },
+      "handoff_digest": "3e23ff0b9064e96024e93fb61e45b265c61aa26414b164c51089e6c361a6f329",
+      "accepted_at": "2026-09-20T09:38:20.168591+00:00",
+      "payload": {
+        "implementation_facts": {
+          "commit": "89cd9c71f6cc941de7e16cd1ab3e93264d977b46",
+          "branch": "task/TASK-001-daily-core",
+          "changed_files": 48,
+          "ownership": "All committed files are within the five registered Code Builder paths; PM-owned task state remains outside the implementation commit.",
+          "entrypoints": [
+            "DailyContent.Load(json, expectedDigest)",
+            "DailySessionFactory(content, catalog).ConfigurationDigest",
+            "DailySessionFactory.CreateDailySession(context)",
+            "DailySessionFactory.CreateFixtureSession(context, fixture)",
+            "DailySession.Tap(TapCommand)",
+            "DailySession.Supply(SupplyObservation)",
+            "DailySession.Pause(ulong) / Resume(ulong)",
+            "DailySession.Snapshot / StateHash / CoreEventsJson / DiagnosticsJson / StatisticsJson",
+            "DailySession.InspectDirector(slotId)",
+            "DailySession.NextPresentation(bound) / PresentationRngJson",
+            "DailySession.ExportReplay()",
+            "DailyReplay.Run(factory, ReplayPackage)",
+            "DailyContentImporter.Import(sourceBytes, weightsBytes)",
+            "DailyContentBuildGuard.OnPreprocessBuild"
+          ],
+          "versions": [
+            "daily_core_1.0.0",
+            "daily_content_v1",
+            "daily_state_v1",
+            "daily_event_v1",
+            "daily_replay_v1",
+            "canonical_json_v1",
+            "PCG32_v1",
+            "SHA256_U64BE_v1",
+            "director_v1_approx_d",
+            "daily_importer_v1_decimal100"
+          ],
+          "behavior": [
+            "No input-time lock and no fixed chain-count limit.",
+            "Overflow tap is accepted=true and counts as a player tap while preserving the source item and processed count.",
+            "Initialization spawns no plates; each allowed Supply commits exactly one Pending head.",
+            "Reservation uses only Pending, ActiveAvailable and Buffer; whole-plate scan includes all non-target items on the final matching plate.",
+            "Replay validates recorded plate and item IDs without re-solving physics.",
+            "Sessions are isolated and do not use persistence, platform clocks, or static mutable session state."
+          ],
+          "content": {
+            "plates": 50,
+            "items": 183,
+            "kinds": 16,
+            "weight_rows": 20,
+            "output_sha256": "e6612cb54b548b81aabef9bc376441682ff0157b556b5a6258cba4c7057e5d08",
+            "source_preservation": "Original JSON bytes are preserved and local Git attributes prevent line-ending conversion from changing source digests."
+          },
+          "validation": [
+            "Harness check returned ACTIVE with matching revision and run.",
+            "dotnet build CompileAndImport.csproj completed with 0 warnings and 0 errors.",
+            "Content import completed and verified source hashes, 50/183/16 counts, 20 rows, integer conversion, and two fixed samples.",
+            "git diff --cached --check passed before commit.",
+            "All 48 committed files were verified inside owned paths."
+          ],
+          "known_errors": [],
+          "limits": [
+            "Integration must provide 16 complete IngredientEntry catalog records; this task does not invent art resources.",
+            "TASK-003 must use factory.ConfigurationDigest when constructing ChallengeContext.",
+            "Logical duration boundaries are injected ticks; a host displaying seconds must define the unit.",
+            "Bootstrap, scenes, WeChat platform integration, and parent-directory Unity metadata are outside this task.",
+            "Generated diagnostic bin/obj output was moved into the owned hidden .build directory after automatic approval rejected deletion."
+          ],
+          "untested": [
+            "Unity 2022.3 compilation and content build callback",
+            "gameplay and replay execution",
+            "formal QA and long simulations",
+            "Android, WeChat mini-game, and real-device experience"
+          ],
+          "integration_guide": "Unity/Assets/HotpotSort/Runtime/Core/README.md"
+        }
+      },
+      "summary": "TASK-001 implemented and committed: fixed C content, exact weight import, PCG32 streams, inventory/orders/buffer, complete Director, transactions, snapshots, canonical hashing, replay, and isolated fixture construction. Public Contracts were preserved and game QA was not run.",
+      "artifacts": [
+        {
+          "path": "Unity/Assets/HotpotSort/Runtime/Core/README.md",
+          "sha256": "be84fde378d0a96872685cda6375305c0fd91c81813072826839eae5cb2d02e7",
+          "bytes": 8983,
+          "artifact_id": "artifact-0f84bd2267014715",
+          "kind": "file",
+          "run_id": "run-37afd97ea0a545f0",
+          "task_revision": 2
+        },
+        {
+          "path": "Unity/Assets/HotpotSort/Runtime/Core/DailySession.cs",
+          "sha256": "cbec5c6710694a9026bca928f4857fbf0c8e70d2eacd8d0fe7d54ca1e9e61387",
+          "bytes": 27923,
+          "artifact_id": "artifact-c238b5cee9784db6",
+          "kind": "file",
+          "run_id": "run-37afd97ea0a545f0",
+          "task_revision": 2
+        },
+        {
+          "path": "Unity/Assets/HotpotSort/Runtime/Core/DailyDirector.cs",
+          "sha256": "8598043172d11815e5ec8e96b7152543a5658cff9dfd567559d84a9529fb0b30",
+          "bytes": 7463,
+          "artifact_id": "artifact-7f9ea59b145645e0",
+          "kind": "file",
+          "run_id": "run-37afd97ea0a545f0",
+          "task_revision": 2
+        },
+        {
+          "path": "Unity/Assets/HotpotSort/Runtime/Determinism/Pcg32.cs",
+          "sha256": "62be6b150d54f4e994a2f467815a61fb5cf99b1af88a3c9cdcd4d039501a058a",
+          "bytes": 3011,
+          "artifact_id": "artifact-8fe2f09b6649409e",
+          "kind": "file",
+          "run_id": "run-37afd97ea0a545f0",
+          "task_revision": 2
+        },
+        {
+          "path": "Unity/Assets/HotpotSort/Runtime/Replay/DailyReplay.cs",
+          "sha256": "8da7a6d02b1a153e731761259104e537c7a078a1dc23dfe6c89eebff48ed2d27",
+          "bytes": 5752,
+          "artifact_id": "artifact-bd187ca8a7b74963",
+          "kind": "file",
+          "run_id": "run-37afd97ea0a545f0",
+          "task_revision": 2
+        },
+        {
+          "path": "Unity/Assets/HotpotSort/Content/Daily/daily_core_1.0.0.json",
+          "sha256": "e6612cb54b548b81aabef9bc376441682ff0157b556b5a6258cba4c7057e5d08",
+          "bytes": 3887,
+          "artifact_id": "artifact-0393ffe737e14fd0",
+          "kind": "file",
+          "run_id": "run-37afd97ea0a545f0",
+          "task_revision": 2
+        },
+        {
+          "path": "Unity/Assets/HotpotSort/Content/Daily/import-manifest.json",
+          "sha256": "94bdbcccfc0b76848d103c162bee9ac714a47ff006acf30faf088fd6c01891f2",
+          "bytes": 463,
+          "artifact_id": "artifact-08424f6dfd9d428f",
+          "kind": "file",
+          "run_id": "run-37afd97ea0a545f0",
+          "task_revision": 2
+        },
+        {
+          "path": "Unity/Assets/HotpotSort/Editor/ContentImport/DailyContentImporter.cs",
+          "sha256": "1b3e75544d5055facab90f65d67bbd51210f037a5051b4c3a63b700e029f4775",
+          "bytes": 2463,
+          "artifact_id": "artifact-25f476819a6c41b6",
+          "kind": "file",
+          "run_id": "run-37afd97ea0a545f0",
+          "task_revision": 2
+        }
+      ]
     }
   },
   "history": [
@@ -109,10 +295,21 @@
         "build"
       ],
       "decision": "User explicitly authorized TASK-001 implementation with 实行task1 and confirmed the remaining recommendations with 执行; build scope is the registered revision 2 code-only contract and accepted Designer interface notes."
+    },
+    {
+      "at": "2026-09-20T09:18:52.944417+00:00",
+      "event": "dispatched",
+      "run_id": "run-37afd97ea0a545f0",
+      "step": "code"
+    },
+    {
+      "at": "2026-09-20T09:38:20.178546+00:00",
+      "event": "accepted",
+      "run_id": "run-37afd97ea0a545f0"
     }
   ],
   "task_revision": 2,
-  "status": "READY",
+  "status": "READY_FOR_RELEASE",
   "contract": {
     "goal": "Implement a Unity-independent deterministic Daily Challenge gameplay core for fixed skeleton C. Given the same ChallengeContext, versioned content, accepted inputs, supply commits, and logical boundaries, it must reproduce the same mapping, events, replay hash, and final state. The implementation includes content import, PCG32 streams, inventory, orders, buffer, Director, transactions, snapshots, diagnostics, and replay. It excludes Unity scenes, visual assets, physics, WeChat SDK integration, publication, and release QA.",
     "qa_intent": [
@@ -324,9 +521,83 @@
       "artifacts": []
     }
   },
-  "artifacts": {},
+  "artifacts": {
+    "artifact-0f84bd2267014715": {
+      "path": "Unity/Assets/HotpotSort/Runtime/Core/README.md",
+      "sha256": "be84fde378d0a96872685cda6375305c0fd91c81813072826839eae5cb2d02e7",
+      "bytes": 8983,
+      "artifact_id": "artifact-0f84bd2267014715",
+      "kind": "file",
+      "run_id": "run-37afd97ea0a545f0",
+      "task_revision": 2
+    },
+    "artifact-c238b5cee9784db6": {
+      "path": "Unity/Assets/HotpotSort/Runtime/Core/DailySession.cs",
+      "sha256": "cbec5c6710694a9026bca928f4857fbf0c8e70d2eacd8d0fe7d54ca1e9e61387",
+      "bytes": 27923,
+      "artifact_id": "artifact-c238b5cee9784db6",
+      "kind": "file",
+      "run_id": "run-37afd97ea0a545f0",
+      "task_revision": 2
+    },
+    "artifact-7f9ea59b145645e0": {
+      "path": "Unity/Assets/HotpotSort/Runtime/Core/DailyDirector.cs",
+      "sha256": "8598043172d11815e5ec8e96b7152543a5658cff9dfd567559d84a9529fb0b30",
+      "bytes": 7463,
+      "artifact_id": "artifact-7f9ea59b145645e0",
+      "kind": "file",
+      "run_id": "run-37afd97ea0a545f0",
+      "task_revision": 2
+    },
+    "artifact-8fe2f09b6649409e": {
+      "path": "Unity/Assets/HotpotSort/Runtime/Determinism/Pcg32.cs",
+      "sha256": "62be6b150d54f4e994a2f467815a61fb5cf99b1af88a3c9cdcd4d039501a058a",
+      "bytes": 3011,
+      "artifact_id": "artifact-8fe2f09b6649409e",
+      "kind": "file",
+      "run_id": "run-37afd97ea0a545f0",
+      "task_revision": 2
+    },
+    "artifact-bd187ca8a7b74963": {
+      "path": "Unity/Assets/HotpotSort/Runtime/Replay/DailyReplay.cs",
+      "sha256": "8da7a6d02b1a153e731761259104e537c7a078a1dc23dfe6c89eebff48ed2d27",
+      "bytes": 5752,
+      "artifact_id": "artifact-bd187ca8a7b74963",
+      "kind": "file",
+      "run_id": "run-37afd97ea0a545f0",
+      "task_revision": 2
+    },
+    "artifact-0393ffe737e14fd0": {
+      "path": "Unity/Assets/HotpotSort/Content/Daily/daily_core_1.0.0.json",
+      "sha256": "e6612cb54b548b81aabef9bc376441682ff0157b556b5a6258cba4c7057e5d08",
+      "bytes": 3887,
+      "artifact_id": "artifact-0393ffe737e14fd0",
+      "kind": "file",
+      "run_id": "run-37afd97ea0a545f0",
+      "task_revision": 2
+    },
+    "artifact-08424f6dfd9d428f": {
+      "path": "Unity/Assets/HotpotSort/Content/Daily/import-manifest.json",
+      "sha256": "94bdbcccfc0b76848d103c162bee9ac714a47ff006acf30faf088fd6c01891f2",
+      "bytes": 463,
+      "artifact_id": "artifact-08424f6dfd9d428f",
+      "kind": "file",
+      "run_id": "run-37afd97ea0a545f0",
+      "task_revision": 2
+    },
+    "artifact-25f476819a6c41b6": {
+      "path": "Unity/Assets/HotpotSort/Editor/ContentImport/DailyContentImporter.cs",
+      "sha256": "1b3e75544d5055facab90f65d67bbd51210f037a5051b4c3a63b700e029f4775",
+      "bytes": 2463,
+      "artifact_id": "artifact-25f476819a6c41b6",
+      "kind": "file",
+      "run_id": "run-37afd97ea0a545f0",
+      "task_revision": 2
+    }
+  },
   "completed": {
-    "designer": "run-c7e69831ca2d40ff"
+    "designer": "run-c7e69831ca2d40ff",
+    "code": "run-37afd97ea0a545f0"
   },
   "block": null
 }
@@ -627,3 +898,5 @@ QA 计划不在本 Task 再复制一份。Builder 不擅自放宽断言、删减
 需求范围、验收含义、接口合同、资产规格或写入边界改变时，通过 `task contract` 更新机器合同与 task_revision；本表只解释原因和影响，不手工推进修订。仅追加日志或非语义实现事实不制造新需求版本。
 
 重要限制和决定必须进入对应合同区，不能只藏在随手备注、聊天历史或交接日志中。
+
+## PM 实现接收记录（2026-09-20）`TASK-001` revision 2 已接收 Code Builder 提交 `89cd9c71f6cc941de7e16cd1ab3e93264d977b46`，机器状态为 `READY_FOR_RELEASE`。实现包括固定 C 内容与精确权重导入、版本化 PCG32 三流、库存/订单/暂存、Director、Tap/Supply/Pause/Resume、不可变快照、canonical hash、统计及 replay。用户决定已落实：无 0.20 秒输入锁，无 65 次或其他固定连锁上限；溢出点击 accepted=true 且不扣原盘库存。纯 C# 编译与内容导入检查通过；游戏 QA、Unity 2022.3、微信/Android 和真机验证均未运行。集成入口见 `Unity/Assets/HotpotSort/Runtime/Core/README.md`。
