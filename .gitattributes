@@ -1,0 +1,10 @@
+# Approved TASK-002 artifacts are byte-addressed by the harness. Preserve the
+# reviewed Windows line endings instead of applying core.autocrlf on commit.
+.harness/previews/TASK-002/** -text
+Unity/Assets/HotpotSort/Art/ImportMetadata/** -text
+Unity/Assets/HotpotSort/Resources/Hotpot/** -text
+Unity/Assets/HotpotSort/Runtime/Presentation/** -text
+Unity/Assets/HotpotSort/Runtime/UnityPhysics/** -text
+Unity/Assets/HotpotSort/Scenes/Gameplay.unity -text
+Unity/Assets/HotpotSort/Scenes/Gameplay.unity.meta -text
+Unity/Assets/HotpotSort/UI/** -text
