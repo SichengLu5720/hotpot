@@ -1,0 +1,108 @@
+{
+  "text_layers": [
+    {
+      "viewport_width": 390,
+      "text": "开始下火锅"
+    },
+    {
+      "viewport_width": 320,
+      "text": "开始下火锅"
+    },
+    {
+      "viewport_width": 700,
+      "text": "开始下火锅"
+    }
+  ],
+  "removed_shapes": [
+    {
+      "viewport_width": 390,
+      "bounds": [
+        16,
+        39,
+        374,
+        95
+      ],
+      "fill": "#e5ead7"
+    },
+    {
+      "viewport_width": 390,
+      "bounds": [
+        16,
+        324,
+        95,
+        434
+      ],
+      "fill": "#e9eddb"
+    },
+    {
+      "viewport_width": 390,
+      "bounds": [
+        295,
+        324,
+        374,
+        434
+      ],
+      "fill": "#e9eddb"
+    },
+    {
+      "viewport_width": 320,
+      "bounds": [
+        16,
+        49,
+        304,
+        105
+      ],
+      "fill": "#e5ead7"
+    },
+    {
+      "viewport_width": 320,
+      "bounds": [
+        22,
+        416,
+        154,
+        501
+      ],
+      "fill": "#e9eddb"
+    },
+    {
+      "viewport_width": 320,
+      "bounds": [
+        166,
+        416,
+        298,
+        501
+      ],
+      "fill": "#e9eddb"
+    },
+    {
+      "viewport_width": 700,
+      "bounds": [
+        32,
+        45,
+        668,
+        109
+      ],
+      "fill": "#e5ead7"
+    },
+    {
+      "viewport_width": 700,
+      "bounds": [
+        32,
+        391,
+        154,
+        513
+      ],
+      "fill": "#e9eddb"
+    },
+    {
+      "viewport_width": 700,
+      "bounds": [
+        546,
+        391,
+        668,
+        513
+      ],
+      "fill": "#e9eddb"
+    }
+  ]
+}

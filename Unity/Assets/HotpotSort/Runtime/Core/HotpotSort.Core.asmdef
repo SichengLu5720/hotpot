@@ -1,0 +1,1 @@
+{"name":"HotpotSort.Core","rootNamespace":"HotpotSort.Core","references":["HotpotSort.Contracts","HotpotSort.Determinism"],"autoReferenced":false,"noEngineReferences":true}

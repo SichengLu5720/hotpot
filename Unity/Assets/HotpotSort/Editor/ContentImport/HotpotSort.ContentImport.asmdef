@@ -1,0 +1,1 @@
+{"name":"HotpotSort.ContentImport","rootNamespace":"HotpotSort.ContentImport","references":["HotpotSort.Core","HotpotSort.Determinism"],"includePlatforms":["Editor"],"autoReferenced":false}

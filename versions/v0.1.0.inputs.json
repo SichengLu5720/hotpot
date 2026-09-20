@@ -1,0 +1,17 @@
+[
+  {
+    "id": "TASK-001",
+    "commit": "147b3d861cac6ac9521d9f1b3ddffebd6ee58aeb",
+    "document": "tasks/TASK-001-daily-core.md"
+  },
+  {
+    "id": "TASK-002",
+    "commit": "1bbe3d7a1433f6a4003d214bfbe0ed0b0543e46b",
+    "document": "tasks/TASK-002-unity-playview.md"
+  },
+  {
+    "id": "TASK-003",
+    "commit": "c9e69bd3a1f3c528ebb5c8dbf1a34c0051088217",
+    "document": "tasks/TASK-003-wechat-session.md"
+  }
+]
