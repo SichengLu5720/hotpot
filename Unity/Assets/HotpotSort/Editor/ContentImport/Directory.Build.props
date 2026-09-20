@@ -1,0 +1,7 @@
+<Project>
+  <PropertyGroup>
+    <!-- Unity ignores dot directories; never expose diagnostic DLLs as game assets. -->
+    <BaseIntermediateOutputPath>$(MSBuildThisFileDirectory).build/obj/</BaseIntermediateOutputPath>
+    <BaseOutputPath>$(MSBuildThisFileDirectory).build/bin/</BaseOutputPath>
+  </PropertyGroup>
+</Project>
