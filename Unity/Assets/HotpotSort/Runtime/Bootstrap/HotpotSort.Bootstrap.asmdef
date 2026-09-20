@@ -1,0 +1,6 @@
+{
+  "name": "HotpotSort.Bootstrap",
+  "rootNamespace": "HotpotSort.Bootstrap",
+  "references": ["HotpotSort.Contracts"],
+  "autoReferenced": false
+}
