@@ -1,6 +1,0 @@
-{
-  "status": "NOT_RUN",
-  "reason": "playwright Python package is not installed in the validation runtime",
-  "fallback": "Dashboard HTTP, security headers, four-role matrix, preview/apply, and static-resource behavior passed in the standard unittest suite; app.js passed node --check",
-  "method_requested": "tools/tests/browser_check.py offline Chromium frontend with Python backend bridge"
-}

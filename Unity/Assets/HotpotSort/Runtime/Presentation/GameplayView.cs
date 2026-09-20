@@ -17,6 +17,7 @@ namespace HotpotSort.Presentation
         public long LastEventSequence { get; private set; }
         public string LastTransactionId { get; private set; }
         public PlatePresentationWorld World { get; private set; }
+        private GameplayFeedback feedback;
         private IPresentationPort port;
         private RectTransform canvasRoot, content;
         private readonly Texture2D[] foods = new Texture2D[16];
@@ -51,6 +52,8 @@ namespace HotpotSort.Presentation
             background.anchorMin=Vector2.zero; background.anchorMax=Vector2.one; background.offsetMin=background.offsetMax=Vector2.zero;
             content = Node(canvasRoot,"SafeContent",new Rect());
             World = gameObject.AddComponent<PlatePresentationWorld>();
+            feedback = gameObject.AddComponent<GameplayFeedback>();
+            feedback.Initialize(canvasRoot, root.GetComponent<Canvas>());
             if (!FindObjectOfType<EventSystem>())
             { var events = new GameObject("ViewEventSystem",typeof(EventSystem),typeof(StandaloneInputModule)); events.transform.SetParent(transform,false); }
             viewport = Screen.safeArea;
@@ -69,7 +72,7 @@ namespace HotpotSort.Presentation
         public void SetForeground(bool value) { foreground = value; UpdateSimulation(); }
         public void Hide(bool hidden) { canvasRoot.gameObject.SetActive(!hidden); UpdateSimulation(); }
         private void UpdateSimulation() { World.SetSimulating(foreground && canvasRoot.gameObject.activeInHierarchy && LastSnapshot.phase==ViewPhase.Running); }
-        public void ResetView() { pending.Clear(); LastEventSequence=0; LastTransactionId=null; World.Clear(); LastSnapshot=new ViewSnapshot { phase=ViewPhase.Entry }; Render(); }
+        public void ResetView() { pending.Clear(); LastEventSequence=0; LastTransactionId=null; feedback.ResetFeedback(); World.Clear(); LastSnapshot=new ViewSnapshot { phase=ViewPhase.Entry }; Render(); }
         public void ShowError(string message)
         { LastSnapshot = new ViewSnapshot { sessionId=LastSnapshot?.sessionId, phase=ViewPhase.Aborted, message=message }; World.Clear(); Render(); }
         public void DestroyView() { Destroy(gameObject); }
@@ -79,6 +82,8 @@ namespace HotpotSort.Presentation
             var s = update.snapshot;
             if (LastSnapshot != null && LastSnapshot.sessionId == s.sessionId && s.revision < LastSnapshot.revision) return;
             if (LastSnapshot == null || LastSnapshot.sessionId != s.sessionId) { pending.Clear(); LastEventSequence=0; }
+            var previous = LastSnapshot;
+            feedback.Apply(update, previous);
             foreach (var e in update.events ?? new ViewEvent[0]) if (e.sequence > LastEventSequence)
             { LastEventSequence=e.sequence; LastTransactionId=e.transactionId; }
             LastEventSequence = Math.Max(LastEventSequence,s.eventSeq);
@@ -131,7 +136,7 @@ namespace HotpotSort.Presentation
             var value = new ViewSupplyObservation { spaceAvailable=World.SpaceAvailable(center,radius),x=center.x,y=center.y,radius=radius,snapshotRevision=LastSnapshot.revision };
             port?.ObserveSupply(value); return value;
         }
-        private void Action(ViewAction action) { ActionRequested?.Invoke(action); port?.SessionAction(action); }
+        private void Action(ViewAction action) { feedback.Button(); ActionRequested?.Invoke(action); port?.SessionAction(action); }
         private void Render()
         {
             if (!content) return;

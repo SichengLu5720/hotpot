@@ -9,6 +9,7 @@ from . import models
 
 TASK_STATES = ("DRAFT", "READY", "BUILDING", "BLOCKED", "READY_FOR_RELEASE", "CANCELLED")
 STEPS = {
+    "requirements": {"role": "requirement_analyst", "requires": ["draft request and source material"], "output": "requirements_analysis"},
     "designer": {"role": "feature_designer", "requires": [], "output": "interface_notes"},
     "design": {"role": "design_art_agent", "requires": ["designer when requested"], "output": "visual_mapping"},
     "code": {"role": "code_builder", "requires": ["build authorization"], "output": "implementation_facts"},
@@ -19,6 +20,13 @@ STEPS = {
     "qa_scripts": {"role": "code_builder", "requires": ["accepted Designer QA plan"], "output": "qa_execution"},
     "qa_report": {"role": "qa_reporter", "requires": ["runner results"], "output": "report"},
 }
+
+REQUIREMENT_ANALYSIS_FIELDS = {
+    "background", "product_value", "users", "goals", "scenarios", "journey", "rules", "states",
+    "boundaries", "ambiguities", "options", "derived_points", "success_criteria",
+    "recommended_qa_intent", "source_map", "pending_questions",
+}
+REQUIREMENT_PROPOSAL_FIELDS = {"goal", "qa_intent"}
 
 
 def starter_contract():
@@ -37,7 +45,7 @@ def initialize(root, plan):
          "base_commit": plan["base_commit"], "runs": {}, "history": []}
     if s["kind"] == "task":
         s.update(task_revision=1, status="DRAFT", contract=starter_contract(), approvals={},
-                 artifacts={}, completed={}, block=None)
+                 artifacts={}, completed={}, requirements_confirmation=None, block=None)
     else:
         s.update(status="PREPARING", inputs=[], input_digest=None, integrated_commit=None,
                  prepared=False, qa_plan_handoff=None, script_handoff=None, authorization=None, results=[],
@@ -157,11 +165,28 @@ def task_plan(root, s):
     if s["status"] in ("BLOCKED", "CANCELLED"):
         return {"status": s["status"], "next": [], "waiting": s.get("block")}
     try:
-        validate_contract(root, s["contract"], ready=True)
+        validate_contract(root, s["contract"], ready=False)
         check_inputs(root, s)
     except HarnessError as e:
         return {"status": s["status"], "next": [], "waiting": str(e)}
-    if s["contract"]["technical_design_required"] and not done(s, "designer"):
+    if not s["contract"]["goal"].strip():
+        return {"status": s["status"], "next": [], "waiting": "PM must record the raw request or draft product goal"}
+    if not done(s, "requirements"):
+        candidates = ["requirements"]
+    elif not s.get("requirements_confirmation") or \
+            s["requirements_confirmation"].get("contract_digest") != digest(s["contract"]) or \
+            s["requirements_confirmation"].get("task_revision") != s["task_revision"]:
+        return {"status": s["status"], "next": [],
+                "waiting": "PM must confirm the Requirement Analyst proposal through task confirm-requirements"}
+    else:
+        try:
+            validate_contract(root, s["contract"], ready=True)
+        except HarnessError as e:
+            return {"status": s["status"], "next": [], "waiting": str(e)}
+        candidates = None
+    if candidates is not None:
+        pass
+    elif s["contract"]["technical_design_required"] and not done(s, "designer"):
         candidates = ["designer"]
     elif visual_scopes(s) and not done(s, "design"):
         candidates = ["design"]
@@ -219,18 +244,88 @@ def update_contract(root, doc, contract, decision):
         require(all(r.get("stop_confirmed", True) for r in s["runs"].values() if r["status"] == "REVOKED"),
                 "Old jobs have not been confirmed stopped")
         string(decision, "decision/source")
-        if digest(contract) == digest(s["contract"]):
-            return {"changed": False, "task_revision": s["task_revision"]}
+        confirming = done(s, "requirements") and not s.get("requirements_confirmation")
+        changed = digest(contract) != digest(s["contract"])
+        if confirming:
+            validate_contract(root, contract, ready=True)
+            if changed:
+                s["task_revision"] += 1
+                s["contract"] = copy.deepcopy(contract)
+                s["approvals"] = {}
+                # The accepted analysis is deliberately consumed by this one finalization. Later edits invalidate it.
+                s["completed"] = {"requirements": s["completed"]["requirements"]}
+                event(s, "contract_changed", revision=s["task_revision"], decision=decision,
+                      invalidation="pre-build draft finalized from accepted requirement analysis")
+            run_id = s["completed"]["requirements"]
+            analysis_artifacts = [a["artifact_id"] for a in s["runs"][run_id].get("artifacts", [])]
+            s["requirements_confirmation"] = {
+                "run_id": run_id, "analysis_artifacts": analysis_artifacts,
+                "task_revision": s["task_revision"], "contract_digest": digest(s["contract"]),
+                "decision": decision, "at": now(),
+            }
+            if s["status"] != "BLOCKED":
+                s["status"] = "DRAFT"
+            event(s, "requirements_confirmed", run_id=run_id, decision=decision)
+            refresh(root, s)
+            save(root, doc, s)
+            return {"changed": changed, "confirmed": True, "task_revision": s["task_revision"],
+                    "requirements_run": run_id}
+        if not changed:
+            return {"changed": False, "confirmed": bool(s.get("requirements_confirmation")),
+                    "task_revision": s["task_revision"]}
         s["task_revision"] += 1
         s["contract"] = copy.deepcopy(contract)
         # Conservative invalidation for semantic contract edits; notes and receipts do not trigger it.
-        s["approvals"] = {}; s["completed"] = {}
+        s["approvals"] = {}; s["completed"] = {}; s["requirements_confirmation"] = None
         if s["status"] != "BLOCKED":
             s["status"] = "DRAFT"
         event(s, "contract_changed", revision=s["task_revision"], decision=decision,
-              invalidation="all dependent task completions; unchanged history/artifacts retained")
+              invalidation="requirement analysis and all dependent task completions; history/artifacts retained")
         save(root, doc, s)
         return {"changed": True, "task_revision": s["task_revision"], "approval": "required again"}
+
+
+def confirm_requirements(root, doc, run_id, decision):
+    """Promote the accepted Analyst product proposal; PM supplies only the decision reference."""
+    with lock(root, doc):
+        s = load(root, doc); identity(root, s)
+        require(s["kind"] == "task" and s["status"] not in ("BLOCKED", "CANCELLED"), "Task not confirmable")
+        string(decision, "user decision reference"); require(not active(s), "Settle active work before confirming requirements")
+        require(s.get("completed", {}).get("requirements") == run_id, "Run is not the current accepted requirements result")
+        r = s["runs"].get(run_id, {}); require(r.get("status") == "ACCEPTED", "Requirements run is not accepted")
+        if s.get("requirements_confirmation"):
+            require(s["requirements_confirmation"].get("run_id") == run_id and
+                    s["requirements_confirmation"].get("contract_digest") == digest(s["contract"]),
+                    "A different requirements result is already confirmed")
+            return {"changed": False, "confirmed": True, "idempotent": True,
+                    "task_revision": s["task_revision"], "requirements_run": run_id}
+        proposal = r.get("payload", {}).get("contract_proposal"); _validate_requirement_proposal(proposal)
+        contract = copy.deepcopy(s["contract"]); contract.update(copy.deepcopy(proposal)); validate_contract(root, contract, ready=True)
+        changed = digest(contract) != digest(s["contract"])
+        if changed:
+            s["task_revision"] += 1; s["contract"] = contract; s["approvals"] = {}; s["completed"] = {"requirements": run_id}
+            event(s, "contract_changed", revision=s["task_revision"], decision=decision,
+                  invalidation="accepted Analyst product proposal promoted; technical routing fields preserved")
+        proposal_artifacts = [a["artifact_id"] for a in r.get("artifacts", [])]
+        s["requirements_confirmation"] = {"run_id": run_id, "analysis_artifacts": proposal_artifacts,
+            "task_revision": s["task_revision"], "contract_digest": digest(s["contract"]), "decision": decision, "at": now()}
+        s["status"] = "DRAFT"; event(s, "requirements_confirmed", run_id=run_id, decision=decision, method="analyst_contract_proposal")
+        refresh(root, s); save(root, doc, s)
+        return {"changed": changed, "confirmed": True, "task_revision": s["task_revision"], "requirements_run": run_id}
+
+
+def _validate_requirement_proposal(proposal):
+    require(isinstance(proposal, dict) and set(proposal) == REQUIREMENT_PROPOSAL_FIELDS,
+            "contract_proposal must contain goal and qa_intent only")
+    string(proposal["goal"], "proposed goal")
+    require(isinstance(proposal["qa_intent"], list) and proposal["qa_intent"], "contract_proposal needs sourced QA Intent")
+    ids = []
+    for item in proposal["qa_intent"]:
+        require(isinstance(item, dict) and set(item) == {"id", "text", "source"}, "Proposed Intent has id, text, source only")
+        string(item["text"], "proposed intent text"); string(item["source"], "proposed intent source")
+        require(re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]{0,63}", item.get("id", "")), "Invalid proposed intent id")
+        ids.append(item["id"])
+    require(len(ids) == len(set(ids)), "Duplicate proposed QA Intent ids")
 
 
 def approve(root, doc, scopes, artifacts, decision):
@@ -239,6 +334,9 @@ def approve(root, doc, scopes, artifacts, decision):
         require(s["kind"] == "task" and s["status"] not in ("BLOCKED", "CANCELLED"), "Task not approvable")
         require(not active(s), "Do not alter approval records during active work; pause and settle first")
         validate_contract(root, s["contract"], ready=True)
+        require(s.get("requirements_confirmation") and
+                s["requirements_confirmation"].get("contract_digest") == digest(s["contract"]),
+                "Requirement analysis has not been confirmed for this contract")
         string(decision, "actual user decision reference")
         require(scopes and set(scopes) <= {"preview", "concept", "build"}, "Invalid approval scope")
         require(not s["contract"]["technical_design_required"] or done(s, "designer"), "Designer handoff missing")
@@ -272,7 +370,7 @@ def snapshot_identity(s):
 
 
 def allowed_paths(s, step):
-    if step in ("designer", "interfaces", "qa_report"):
+    if step in ("requirements", "designer", "interfaces", "qa_report"):
         return []
     if s["kind"] == "release":
         if step == "release_fix":
@@ -288,7 +386,8 @@ def allowed_paths(s, step):
 def context_packet(s, step):
     """Derived handoff context, not another editable state document; excludes full history."""
     if s["kind"] == "task":
-        needed = {"designer": [], "design": ["designer"], "code": ["designer", "design"],
+        needed = {"requirements": [], "designer": ["requirements"], "design": ["requirements", "designer"],
+                  "code": ["requirements", "designer", "design"],
                   "art": ["design"], "integration": ["code", "art"]}.get(step, [])
         return {"task_revision": s["task_revision"], "contract": s["contract"],
                 "approved_artifacts": {a: s["artifacts"][a] for ap in s["approvals"].values() for a in ap.get("artifacts", [])},
@@ -331,7 +430,7 @@ def dispatch(root, doc, step):
         save(root, doc, s)
         return {"document": doc, "workspace": str(root), "id": s["id"], **r,
                 "context": context_packet(s, step),
-                "host_action_required": "PM starts the registered agent; this command does not spawn a process"}
+                "host_action_required": "PM starts this registered run on demand; end the child agent after its handoff. This command does not spawn or poll a process"}
 
 
 def check_run(root, s, run_id):
@@ -370,6 +469,17 @@ def accept(root, doc, handoff):
         string(handoff.get("summary"), "handoff summary")
         payload = handoff.get("payload", {})
         require(isinstance(payload, dict) and STEPS[r["step"]]["output"] in payload, "Missing required step output")
+        if r["step"] == "requirements":
+            analysis = payload["requirements_analysis"]
+            require(isinstance(analysis, dict) and set(analysis) == REQUIREMENT_ANALYSIS_FIELDS,
+                    "Requirement analysis fields do not match the documented schema")
+            require(isinstance(analysis["background"], str) and analysis["background"].strip(), "background is required")
+            require(isinstance(analysis["product_value"], str) and analysis["product_value"].strip(), "product_value is required")
+            for key in REQUIREMENT_ANALYSIS_FIELDS - {"background", "product_value"}:
+                require(isinstance(analysis[key], list), f"{key} must be a list")
+            require(analysis["source_map"], "Requirement analysis needs source mapping")
+            require(not analysis["pending_questions"], "READY analysis cannot contain pending questions; clarify first")
+            _validate_requirement_proposal(payload.get("contract_proposal"))
         artifacts = []
         for item in handoff.get("artifacts", []):
             path = item.get("path", "")
@@ -377,6 +487,18 @@ def accept(root, doc, handoff):
             artifacts.append(record_file(root, path, artifact_id=uid("artifact"), kind=item.get("kind", "file"),
                                          run_id=run_id, task_revision=s.get("task_revision")))
         if s["kind"] == "task":
+            if r["step"] == "requirements":
+                path = f".harness/requirements/{s['id']}/{run_id}.md"
+                lines = [f"# Requirement Analysis — {s['id']}", "",
+                         f"- Run: `{run_id}`", f"- Task revision reviewed: `{s['task_revision']}`", "",
+                         "```json", dump(payload["requirements_analysis"]).rstrip(), "```", ""]
+                atomic_text(safe_path(root, path), "\n".join(lines))
+                artifacts.append(record_file(root, path, artifact_id=uid("artifact"), kind="requirement_analysis",
+                                             run_id=run_id, task_revision=s.get("task_revision")))
+                proposal_path = f".harness/requirements/{s['id']}/{run_id}.contract.json"
+                atomic_text(safe_path(root, proposal_path), dump(payload["contract_proposal"]))
+                artifacts.append(record_file(root, proposal_path, artifact_id=uid("artifact"), kind="contract_proposal",
+                                             run_id=run_id, task_revision=s.get("task_revision")))
             if r["step"] == "design":
                 require(all(any(x["kind"] == scope for x in artifacts) for scope in visual_scopes(s)),
                         "Visual handoff must include the required full preview and asset concepts")

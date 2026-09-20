@@ -22,6 +22,8 @@ internal sealed class DashboardForm : Form
     private const string InheritModel = "继承宿主";
     private static readonly (string Key, string Name)[] Agents =
     [
+        ("pm_coordinator", "PM Coordinator"),
+        ("requirement_analyst", "Requirement Analyst"),
         ("feature_designer", "Feature Designer"),
         ("design_art_agent", "Design-Art"),
         ("code_builder", "Code Builder"),
@@ -133,7 +135,7 @@ internal sealed class DashboardForm : Form
 
         var title = new Label
         {
-            Text = "Subagent 模型设置",
+            Text = "Agent 模型设置",
             Font = new Font("Microsoft YaHei UI", 13.5F, FontStyle.Bold),
             AutoSize = true,
             Location = new Point(24, 20)
@@ -142,7 +144,7 @@ internal sealed class DashboardForm : Form
 
         var subtitle = new Label
         {
-            Text = "保存后仅影响新派发的 Subagent",
+            Text = "PM 是低算力常驻入口；Requirement Analyst 仅按需短时派发",
             ForeColor = Color.FromArgb(104, 110, 120),
             AutoSize = true,
             Location = new Point(26, 52)
@@ -153,7 +155,7 @@ internal sealed class DashboardForm : Form
         {
             Text = "模型配置",
             Location = new Point(20, 82),
-            Size = new Size(720, 230),
+            Size = new Size(720, 308),
             Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right
         };
         Controls.Add(group);
@@ -161,9 +163,9 @@ internal sealed class DashboardForm : Form
         var table = new TableLayoutPanel
         {
             Location = new Point(14, 26),
-            Size = new Size(692, 188),
+            Size = new Size(692, 266),
             ColumnCount = 3,
-            RowCount = 5,
+            RowCount = Agents.Length + 1,
             CellBorderStyle = TableLayoutPanelCellBorderStyle.Single,
             BackColor = Color.White,
             GrowStyle = TableLayoutPanelGrowStyle.FixedSize
@@ -172,7 +174,7 @@ internal sealed class DashboardForm : Form
         table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
         table.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 150));
         table.RowStyles.Add(new RowStyle(SizeType.Absolute, 31));
-        for (var row = 1; row < 5; row++)
+        for (var row = 1; row <= Agents.Length; row++)
             table.RowStyles.Add(new RowStyle(SizeType.Absolute, 38));
         group.Controls.Add(table);
 

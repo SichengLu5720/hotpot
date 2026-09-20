@@ -10,12 +10,16 @@ from .common import (HarnessError, require, dump, digest, sha, safe_path, atomic
                      lock, json_read, uid, now, parse_doc)
 
 ROLES = {
+    "pm_coordinator": "pm-coordinator.toml",
+    "requirement_analyst": "requirement-analyst.toml",
     "feature_designer": "feature-designer.toml",
     "design_art_agent": "design-art-agent.toml",
     "code_builder": "code-builder.toml",
     "qa_reporter": "qa-reporter.toml",
 }
 ROLE_PRESENTATION = {
+    "pm_coordinator": {"display_name": "PM Coordinator", "caption": "常驻低算力入口 · 路由 · 指派 · 状态协调"},
+    "requirement_analyst": {"display_name": "Requirement Analyst", "caption": "只读需求研读 · 产品语义 · 歧义与方案比较"},
     "feature_designer": {"display_name": "Feature Designer", "caption": "技术设计 · QA 计划/用例/断言/接口需求"},
     "design_art_agent": {"display_name": "Design-Art", "caption": "实机预览 · 资产概念 · 正式资产"},
     "code_builder": {"display_name": "Code Builder", "caption": "功能实现 · 最终绑定 · 按计划编写测试脚本"},
@@ -35,7 +39,7 @@ def read_config(text):
     require(set(c) == {"schema_version", "active_profile", "profiles", "agents"}, "Unexpected/missing model config keys")
     require(c["schema_version"] == 1, "Unsupported models schema")
     require(c["active_profile"] in c["profiles"], "Unknown active profile")
-    require(set(c["agents"]) == set(ROLES), "Model config must list the four supported subagents")
+    require(set(c["agents"]) == set(ROLES), "Model config must list every supported subagent")
     require(c["profiles"] and len(c["profiles"]) <= 20, "Need 1-20 profiles")
     for key, p in c["profiles"].items():
         require(re.fullmatch(r"[a-z][a-z0-9_-]{0,31}", key), "Invalid profile name")
@@ -221,9 +225,9 @@ def apply(root, text, etag, *, reconcile=False):
 
 
 def update_agents(root, updates, etag):
-    """Apply the compact native dashboard's per-agent model and effort fields."""
+    """Apply the native dashboard's per-agent model and effort fields."""
     require(isinstance(updates, dict) and set(updates) == set(ROLES),
-            "Native dashboard must provide exactly the four supported subagents")
+            "Native dashboard must provide every supported subagent")
     with lock(root, "models"):
         check_pending(root)
         current = status(root)
@@ -235,8 +239,6 @@ def update_agents(root, updates, etag):
             require(isinstance(value, dict) and set(value) == {"model", "effort"},
                     f"Invalid native dashboard fields for {role}")
             _values(value)
-            # The compact UI edits explicit role overrides so its visible values are
-            # exactly the values used for the next dispatch.
             config["agents"][role]["profile"] = ""
             config["agents"][role]["model"] = value["model"]
             config["agents"][role]["effort"] = value["effort"]

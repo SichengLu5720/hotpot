@@ -12,14 +12,14 @@ import tempfile
 import threading
 import tomllib
 import unittest
-import urllib.request
-import urllib.error
 
 sys.dont_write_bytecode = True
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools"))
 from harnesslib.common import *
-from harnesslib import engine as en, models as mo, workspace as ws, release as rel, manifest as mf, dashboard as db
+from harnesslib import engine as en, models as mo, workspace as ws, release as rel, manifest as mf
+
+SEED_IGNORE = shutil.ignore_patterns(".git", "__pycache__", "*.pyc", ".venv", "venv", "node_modules")
 
 
 def cli(root, *args):
@@ -28,37 +28,73 @@ def cli(root, *args):
 
 
 class PackageTests(unittest.TestCase):
-    def test_four_roles_and_single_designer(self):
+    def test_pm_entry_and_five_bounded_workers(self):
         files = sorted((ROOT/".codex/agents").glob("*.toml"))
-        self.assertEqual(len(files),4)
+        self.assertEqual(len(files),6)
         roles = {tomllib.loads(p.read_text(encoding="utf-8"))["name"] for p in files}
         self.assertEqual(roles,set(mo.ROLES))
         designer = tomllib.loads((ROOT/".codex/agents/feature-designer.toml").read_text(encoding="utf-8"))
+        analyst = tomllib.loads((ROOT/".codex/agents/requirement-analyst.toml").read_text(encoding="utf-8"))
+        pm = tomllib.loads((ROOT/".codex/agents/pm-coordinator.toml").read_text(encoding="utf-8"))
         self.assertEqual(designer["sandbox_mode"],"read-only")
+        self.assertEqual(analyst["sandbox_mode"],"read-only")
         self.assertFalse(designer["agents"]["enabled"])
+        self.assertFalse(analyst["agents"]["enabled"])
+        self.assertTrue(pm["agents"]["enabled"])
+        self.assertEqual(pm["model_reasoning_effort"],"low")
     def test_no_old_executable_entrypoints(self):
         self.assertFalse((ROOT/"tools/harness_gate.py").exists())
         self.assertFalse((ROOT/"tools/harness_workflow.py").exists())
         self.assertFalse((ROOT/".codex/agents/workflow-monitor.toml").exists())
+    def test_native_dashboard_is_the_only_dashboard(self):
+        self.assertTrue((ROOT/"HarnessModelDashboard.exe").is_file())
+        program=(ROOT/"tools/native-dashboard/Program.cs").read_text(encoding="utf-8")
+        self.assertIn('(\"pm_coordinator\", \"PM Coordinator\")',program)
+        self.assertIn('(\"requirement_analyst\", \"Requirement Analyst\")',program)
+        self.assertIn("PM 是低算力常驻入口",program)
+        self.assertFalse((ROOT/"tools/harnesslib/dashboard.py").exists())
+        self.assertFalse((ROOT/"tools/harnesslib/web").exists())
+        self.assertFalse((ROOT/"tools/tests/browser_check.py").exists())
+        self.assertNotIn("dashboard",cli(ROOT,"--help").stdout)
     def test_six_task_states(self):
         self.assertEqual(len(en.TASK_STATES),6)
         self.assertNotIn("Verified",en.TASK_STATES)
-    def test_qa_responsibility_split_without_new_role_or_mode(self):
+    def test_qa_responsibility_split_unchanged_by_requirement_role(self):
+        self.assertEqual(en.STEPS["requirements"]["role"],"requirement_analyst")
+        self.assertEqual(en.STEPS["requirements"]["output"],"requirements_analysis")
         self.assertEqual(en.STEPS["interfaces"]["role"],"feature_designer")
         self.assertEqual(en.STEPS["interfaces"]["output"],"qa_plan")
         self.assertEqual(en.STEPS["qa_scripts"]["role"],"code_builder")
         self.assertEqual(en.STEPS["qa_scripts"]["output"],"qa_execution")
-        self.assertEqual(len(mo.ROLES),4)
+        self.assertEqual(len(mo.ROLES),6)
         self.assertEqual(set(mo.ROLE_PRESENTATION),set(mo.ROLES))
+        self.assertNotIn("pm_coordinator",{step["role"] for step in en.STEPS.values()})
+    def test_requirement_policy_and_template_are_present(self):
+        policy=(ROOT/"AGENTS.md").read_text(encoding="utf-8")
+        template=(ROOT/"tasks/_TEMPLATE.md").read_text(encoding="utf-8")
+        workflow=(ROOT/"workflows/WORKFLOW.md").read_text(encoding="utf-8")
+        self.assertIn("Requirement Analyst 与 PM 的需求闭环（强制前置）",policy)
+        self.assertIn("多义解释与产品方案比较",template)
+        self.assertLess(workflow.index("Requirement Analyst：完整研读"),workflow.index("PM confirm-requirements"))
     def test_model_defaults_honest(self):
         s=mo.status(ROOT)
         self.assertTrue(all(r["synced"] for r in s["rows"]))
         self.assertTrue(all(r["target"]["model"] is None for r in s["rows"]))
         self.assertFalse(s["config"]["agents"]["qa_reporter"]["enabled"])
+        rows={r["role"]:r for r in s["rows"]}
+        self.assertEqual(rows["pm_coordinator"]["target"]["effort"],"low")
+        self.assertEqual(rows["requirement_analyst"]["target"]["effort"],"high")
     def test_templates_and_cli(self):
         for p in (ROOT/"tasks/_TEMPLATE.md",ROOT/"versions/_TEMPLATE.md"):
             parse_doc(p.read_text(encoding="utf-8"))
         self.assertEqual(cli(ROOT,"--help").returncode,0)
+    def test_self_test_seed_excludes_host_git_metadata(self):
+        with tempfile.TemporaryDirectory(prefix="harness-seed-ignore-") as d:
+            src=Path(d)/"source";dst=Path(d)/"copy";(src/".git").mkdir(parents=True)
+            (src/".git/config").write_text("synthetic host metadata",encoding="utf-8")
+            (src/"keep.txt").write_text("keep",encoding="utf-8")
+            shutil.copytree(src,dst,ignore=SEED_IGNORE)
+            self.assertTrue((dst/"keep.txt").is_file());self.assertFalse((dst/".git").exists())
 
 
 class RepoTest(unittest.TestCase):
@@ -67,7 +103,7 @@ class RepoTest(unittest.TestCase):
         cls.seedtmp=tempfile.TemporaryDirectory(prefix="harness-v1-seed-",ignore_cleanup_errors=(os.name=="nt"))
         cls.addClassCleanup(cls.seedtmp.cleanup)
         cls.seed=Path(cls.seedtmp.name)/"seed"
-        shutil.copytree(ROOT,cls.seed,ignore=shutil.ignore_patterns("__pycache__","*.pyc"))
+        shutil.copytree(ROOT,cls.seed,ignore=SEED_IGNORE)
         for args in [("init","-b","main"),("config","user.email","test@example.invalid"),("config","user.name","Harness Test"),
                      ("config","commit.gpgsign","false"),("add","."),("commit","-m","synthetic harness baseline")]:
             ws.git(cls.seed,*args)
@@ -89,7 +125,25 @@ class RepoTest(unittest.TestCase):
             c["owners"]["design_art_agent"]=["assets"]
             c["asset_contract"]=[{"id":"icon","purpose":"synthetic icon","width":2,"height":2}]
         en.update_contract(root,doc,c,"synthetic decision")
+        self.analyze(root,doc,c)
         return c
+    def requirement_payload(self):
+        return {"background":"Synthetic background","product_value":"Synthetic product value",
+                "users":["synthetic user"],"goals":["value is observable"],"scenarios":["synthetic scenario"],
+                "journey":["open","observe"],"rules":["use sourced expectation"],
+                "states":["ready"],"boundaries":["synthetic scope"],"ambiguities":[],"options":[],
+                "derived_points":[],"success_criteria":["intent can be checked"],
+                "recommended_qa_intent":["AC-1"],"source_map":[{"claim":"goal","source":"synthetic fixture"}],
+                "pending_questions":[]}
+    def contract_proposal(self,contract):
+        return {"goal":contract["goal"],"qa_intent":copy.deepcopy(contract["qa_intent"])}
+    def analyze(self,root,doc,contract):
+        run=en.dispatch(root,doc,"requirements")
+        out=en.accept(root,doc,self.handoff(run,{"requirements_analysis":self.requirement_payload(),
+                                                "contract_proposal":self.contract_proposal(contract)}))
+        self.assertTrue(out["artifacts"] and out["artifacts"][0]["kind"]=="requirement_analysis")
+        self.assertEqual(out["artifacts"][1]["kind"],"contract_proposal")
+        en.confirm_requirements(root,doc,run["run_id"],"synthetic confirmed product definition")
     def handoff(self,r,payload,artifacts=None,status="READY"):
         return {"run_id":r["run_id"],"role":r["role"],"status":status,"summary":"synthetic result", "payload":payload,
                 "artifacts":artifacts or [],"game_qa":"NOT_RUN"}
@@ -177,6 +231,30 @@ class TaskTests(RepoTest):
     def test_build_needs_authorization(self):
         r,d,_=self.create();self.contract(r,d)
         with self.assertRaises(HarnessError):en.dispatch(r,d,"code")
+    def test_requirement_analysis_and_pm_confirmation_are_mandatory(self):
+        r,d,_=self.create();c=en.starter_contract();c["goal"]="Raw synthetic request"
+        c["owners"]["code_builder"]=["game"]
+        en.update_contract(r,d,c,"record raw request")
+        self.assertEqual(en.task_plan(r,load(r,d))["next"],["requirements"])
+        run=en.dispatch(r,d,"requirements")
+        proposal={"goal":"Confirmed synthetic product definition",
+                  "qa_intent":[{"id":"AC-1","text":"Synthetic result","source":"confirmed synthetic fixture"}]}
+        en.accept(r,d,self.handoff(run,{"requirements_analysis":self.requirement_payload(),"contract_proposal":proposal}))
+        self.assertEqual(en.task_plan(r,load(r,d))["next"],[])
+        self.assertIn("confirm",en.task_plan(r,load(r,d))["waiting"])
+        out=en.confirm_requirements(r,d,run["run_id"],"confirmed synthetic product definition")
+        self.assertTrue(out["confirmed"]);self.assertEqual(en.task_plan(r,load(r,d))["waiting"],{"user_approval":["build"]})
+    def test_requirement_proposal_cannot_change_technical_routing(self):
+        r,d,_=self.create();c=en.starter_contract();c["goal"]="Raw request";c["owners"]["code_builder"]=["game"]
+        en.update_contract(r,d,c,"record raw request");run=en.dispatch(r,d,"requirements")
+        bad={"goal":"Confirmed","qa_intent":[{"id":"AC-1","text":"Expected","source":"fixture"}],"needs_code":False}
+        with self.assertRaises(HarnessError):
+            en.accept(r,d,self.handoff(run,{"requirements_analysis":self.requirement_payload(),"contract_proposal":bad}))
+    def test_later_contract_change_invalidates_requirement_confirmation(self):
+        r,d=self.ready();c=load(r,d)["contract"];c["goal"]="Materially changed request"
+        en.update_contract(r,d,c,"synthetic material change")
+        s=load(r,d);self.assertIsNone(s["requirements_confirmation"])
+        self.assertEqual(en.task_plan(r,s)["next"],["requirements"])
     def test_designer_not_mandatory(self):
         r,d=self.ready();self.assertEqual(en.task_plan(r,load(r,d))["next"],["code"])
     def test_designer_when_requested(self):
@@ -248,6 +326,7 @@ class TaskTests(RepoTest):
         ref=".harness/references/TASK-001/base.txt";atomic_text(r/ref,"synthetic reference, not game image")
         c["visual_impact"]="screen";c["references"]=[record_file(r,ref)]
         en.update_contract(r,d,c,"synthetic visual change")
+        self.analyze(r,d,c)
         run=en.dispatch(r,d,"design");out=".harness/previews/TASK-001/preview.txt";atomic_text(r/out,"synthetic preview")
         with self.assertRaises(HarnessError):en.accept(r,d,self.handoff(run,{"visual_mapping":{}},[{"path":out,"kind":"preview"}]))
     def test_art_concepts_must_cover_every_asset(self):
@@ -274,10 +353,10 @@ class ModelTests(RepoTest):
         status=mo.status(self.repo)
         updates={row["role"]:{"model":row["target"]["model"] or "","effort":row["target"]["effort"] or ""}
                  for row in status["rows"]}
-        updates["code_builder"]={"model":"synthetic-native-model","effort":"high"}
+        updates["requirement_analyst"]={"model":"synthetic-requirement-model","effort":"high"}
         result=mo.update_agents(self.repo,updates,status["etag"])
-        row=next(x for x in mo.status(self.repo)["rows"] if x["role"]=="code_builder")
-        self.assertEqual(row["target"],{"model":"synthetic-native-model","effort":"high","enabled":True})
+        row=next(x for x in mo.status(self.repo)["rows"] if x["role"]=="requirement_analyst")
+        self.assertEqual(row["target"],{"model":"synthetic-requirement-model","effort":"high","enabled":True})
         self.assertEqual(result["status"],"applied")
     def test_stale_preview(self):
         text=self.change();p=mo.preview(self.repo,text);f=self.repo/".codex/agents/code-builder.toml";f.write_text(f.read_text(encoding="utf-8")+"\n# external edit\n",encoding="utf-8")
@@ -420,40 +499,5 @@ class QATests(RepoTest):
         r,d,p=self.release_world();before=load(r,d)["qa_plan_handoff"]
         out=rel.reopen_scripts(r,d,"synthetic adapter bug")
         self.assertTrue(out["qa_plan_preserved"]);self.assertEqual(load(r,d)["qa_plan_handoff"],before)
-
-class DashboardTests(RepoTest):
-    def setUp(self):
-        super().setUp();self.httpd,self.token=db.server(self.repo,0);self.base=f"http://127.0.0.1:{self.httpd.server_port}"
-        self.thread=threading.Thread(target=self.httpd.serve_forever,daemon=True);self.thread.start()
-        self.addCleanup(self.httpd.server_close);self.addCleanup(self.httpd.shutdown)
-    def request(self,path,data=None,token=True,origin=None):
-        headers={"X-Harness-Token":self.token} if token else {}
-        if data is not None:headers.update({"Content-Type":"application/json","Origin":origin or self.base})
-        req=urllib.request.Request(self.base+path,data=None if data is None else json.dumps(data).encode(),headers=headers)
-        try:
-            with urllib.request.urlopen(req,timeout=5) as r:return r.status,r.read()
-        except urllib.error.HTTPError as e:return e.code,e.read()
-    def test_status_matrix(self):
-        code,b=self.request('/api/status');self.assertEqual(code,200);rows=json.loads(b)["rows"];self.assertEqual(len(rows),4)
-        designer=next(x for x in rows if x["role"]=="feature_designer")
-        self.assertEqual(designer["display_name"],"Feature Designer")
-        self.assertEqual(designer["backend_binding"]["config_key"],"agents.feature_designer")
-        self.assertEqual(designer["backend_binding"]["agent_file"],".codex/agents/feature-designer.toml")
-        self.assertEqual(designer["backend_binding"]["dispatch_steps"],["designer","interfaces"])
-    def test_token_required(self):self.assertEqual(self.request('/api/status',token=False)[0],400)
-    def test_cross_origin_post_rejected(self):
-        c=mo.status(self.repo)["config"];self.assertEqual(self.request('/api/preview',{"config":c},origin='https://example.invalid')[0],400)
-    def test_no_file_or_command_endpoint(self):
-        self.assertEqual(self.request('/../../models.toml')[0],404)
-        self.assertEqual(self.request('/api/exec',{"command":"echo forbidden"})[0],404)
-    def test_preview_apply_requires_confirmation(self):
-        c=mo.status(self.repo)["config"];c["active_profile"]="quality"
-        code,b=self.request('/api/preview',{"config":c});self.assertEqual(code,200)
-        payload={"config":c,"etag":json.loads(b)["etag"]}
-        self.assertEqual(self.request('/api/apply',payload)[0],400)
-        payload["confirmed"]=True;self.assertEqual(self.request('/api/apply',payload)[0],200)
-    def test_static_ui_headers_and_syntax(self):
-        with urllib.request.urlopen(self.base,timeout=5) as r:
-            self.assertIn("frame-ancestors 'none'",r.headers['Content-Security-Policy']);self.assertIn(b"Subagent",r.read())
 
 if __name__ == '__main__':unittest.main()

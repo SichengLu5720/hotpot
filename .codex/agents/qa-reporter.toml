@@ -1,6 +1,6 @@
 # BEGIN HARNESS MODEL
 model = "gpt-5.6-luna"
-model_reasoning_effort = "medium"
+model_reasoning_effort = "low"
 # END HARNESS MODEL
 name = "qa_reporter"
 description = "可选的只读 QA 结果归类；普通 Runner 决定结果，本角色不操作游戏。"

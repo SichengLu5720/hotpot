@@ -32,6 +32,7 @@ def parser():
             q.add_argument("--model", required=True); q.add_argument("--effort", default=None); q.add_argument("--evidence", required=True)
     task = sub.add_parser("task").add_subparsers(dest="operation", required=True)
     tc = task.add_parser("contract"); tc.add_argument("--doc", required=True); tc.add_argument("--input", type=Path, required=True); tc.add_argument("--decision", required=True)
+    tf = task.add_parser("confirm-requirements"); tf.add_argument("--doc", required=True); tf.add_argument("--run", required=True); tf.add_argument("--decision", required=True)
     tn = task.add_parser("note"); tn.add_argument("--doc", required=True); tn.add_argument("--text", required=True)
     rel = sub.add_parser("release").add_subparsers(dest="operation", required=True)
     for op in ("prepare", "authorize", "reopen-scripts", "complete", "fix-request", "scope"):
@@ -53,7 +54,6 @@ def parser():
         if op == "apply": m.add_argument("--etag", required=True)
     mr = ms.add_parser("rollback"); mr.add_argument("--transaction", required=True); mr.add_argument("--apply", action="store_true")
     ms.add_parser("recover")
-    db = sub.add_parser("dashboard"); db.add_argument("--port", type=int, default=8765)
     sub.add_parser("workflow-table", help="Generate human-readable task states and step table from implementation")
     return p
 
@@ -62,9 +62,6 @@ def route(a):
     root = a.repo.resolve(); cmd = a.command
     if cmd == "workspace":
         return workspace.main(["--repo", str(root), *a.arguments]), True
-    if cmd == "dashboard":
-        from harnesslib.dashboard import serve
-        serve(root, a.port); return None, False
     if cmd == "workflow-table":
         return {"task_states": engine.TASK_STATES, "steps": engine.STEPS}, False
     if cmd == "models":
@@ -85,6 +82,8 @@ def route(a):
     if cmd == "task":
         if a.operation == "contract":
             return engine.update_contract(root, a.doc, json_read(a.input), a.decision), False
+        if a.operation == "confirm-requirements":
+            return engine.confirm_requirements(root, a.doc, a.run, a.decision), False
         with lock(root, a.doc):
             s = load(root, a.doc); identity(root, s)
             require("```harness-state" not in a.text, "Do not put another machine block in notes")

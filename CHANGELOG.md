@@ -2,6 +2,14 @@
 
 ## 1.1 — 2026-09-20
 
+### Requirement Analyst 与低算力 PM 分工
+
+- 新增只读 `requirement_analyst`：完整研读全部输入，负责产品语义深挖、多义解释、场景／状态／边界推演、方案比较和有来源的 QA Intent 建议。
+- 新增可配置的 `pm_coordinator` 低算力常驻入口；只负责登记、路由、用户决定、合同和状态协调。
+- Requirement Analyst 只在新需求、真实歧义或产品定义变化时按需运行；每个 run 交接后结束，不形成高算力常驻主入口或后台循环。
+- 新 Task 必须先完成 `requirements`；程序固定分析文档，PM 再次 `task contract` 后才开放技术、视觉和实现步骤。后续实质合同变更自动使需求确认失效。
+- Requirement Analyst 不替代 Feature Designer：前者只做产品需求，后者继续按需技术调查并负责正式 Release 的 QA Plan。
+
 ### QA 职责重新划分
 
 - PM 继续只汇总并核对有来源的 QA Intent，不另立验收标准。
@@ -14,7 +22,7 @@
 - Designer Plan 与 Builder Execution 分离固定摘要；execution 必须绑定 plan digest。
 - Builder execution 的 check 集合和各组 assertion IDs 必须与 Designer Plan 完全一致。
 - `release reopen-scripts` 只重开 Builder 脚本交接并保留 Designer Plan，防止脚本维修顺带改变标准。
-- 沿用现有四份 Agent 配置、六个 Task 主状态和现有 release 步骤；没有新增 Agent 或工作模式。
+- QA 重分工仍沿用原有 release 步骤；本次仅新增 Requirement Analyst 和 Task 前置 `requirements` 步骤，没有新增 QA Agent、Runner 模型或工作模式。
 
 ### 升级说明
 
@@ -24,9 +32,15 @@ v1.0 活动 release 的单体 Builder plan 不自动转换为 Designer 授权。
 
 将精简机器模板替换为完整的需求、QA Intent、技术接口、隔离并行、视觉资产、批准与 Release Handoff 工作表，同时保留唯一 `harness-state` 块。状态、合同、批准、run 与 task_revision 仍只由机器块和统一入口维护；正文是可读起草区/索引，不能成为第二份流程真源。
 
-### 看板名称与后端绑定
+### 原生看板统一
 
-看板更名为 **Subagent 配置与后端绑定看板**。角色友好名称和说明改由 Python 后端提供，不再硬编码在前端；每行明确展示不可变 role key、`models.toml` 配置键、Agent TOML 路径及实际可派发步骤。后端绑定从 `models.ROLES` 与 `engine.STEPS` 生成，避免只改前端名称而仍指向旧角色。
+- 删除 HTML/HTTP 看板、静态网页、浏览器测试及 `dashboard --port` 命令，只保留 Windows 原生 `HarnessModelDashboard.exe`。
+- 原生模型配置页显示 PM Coordinator、Requirement Analyst 与既有角色共六行，默认 PM `economy/low`、Analyst `quality/high`。
+- 保存通过 `models update-agents` 的 etag 与配置事务同步六份 Agent TOML；原生看板仍保留组件接入、排行榜和开发者控制台页面。
+
+### 安装环境自检
+
+测试夹具复制时明确排除宿主 `.git`、Python 虚拟环境、`node_modules` 和缓存目录，避免 Harness 安装在现有 Git 仓库根目录时把宿主仓库元数据复制进测试种子。已在含 `.git` 的模拟安装根目录验证 Task workspace 创建。
 
 ## 1.0 — 2026-09-20
 
@@ -39,7 +53,7 @@ PM 维护 Task 内轻量 QA Intent；版本阶段由程序生成单份带来源 
 ### 工作流减法
 
 - 公开入口统一为 tools/harness.py，Gate、Workflow、Workspace 合入内部模块。不是把所有逻辑塞进一个大文件。
-- 删除固定 Workflow Monitor 和独立 Release QA Builder 配置，四份子代理配置 = 三个核心角色 + 可选 Reporter。
+- 删除固定 Workflow Monitor 和独立 Release QA Builder 配置；当前五份子代理配置 = 四个核心角色 + 可选 Reporter。
 - 六个 Task 主状态，批准和执行结果不再膨胀成额外状态。
 - PM 不再手抄 in_flight/dispatch_epoch；程序持久化 run_id 和身份，幂等接收、加锁写入、拒绝撤销/旧输入。
 - 派发给精简 context，不包含全 Task 历史。
@@ -49,7 +63,7 @@ PM 维护 Task 内轻量 QA Intent；版本阶段由程序生成单份带来源 
 
 - 一个普通 Runner，固定候选/脚本、逐断言报告、缺失/零执行拒绝、部分复测覆盖汇总、人工项待评、证据摘要。
 - 单源 models.toml，同步器带 diff / etag / Apply / 事务恢复 / 回滚；保留未受管的角色指令。
-- 本地 Subagent Model Dashboard：档位、单角色覆盖、启停、批量草稿、目标/原生/观测区分。不访问模型或收费接口。
+- Windows 原生 Harness 开发看板：五个 Subagent 模型设置、组件接入、排行榜和开发者控制台。不访问模型或收费接口。
 
 ### 仍保留
 

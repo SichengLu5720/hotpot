@@ -84,7 +84,7 @@ namespace HotpotSort.UnityPhysics
                     if(animate && p.motion!=null && p.motion.hasSpawnPosition)start=new Vector2(p.motion.spawnX,p.motion.spawnY);
                     node.transform.position=Physical(start);
                     var rb=node.AddComponent<Rigidbody2D>(); rb.bodyType=RigidbodyType2D.Dynamic;
-                    rb.gravityScale=0; rb.freezeRotation=true; rb.drag=.25f; rb.interpolation=RigidbodyInterpolation2D.None;
+                    rb.gravityScale=0; rb.freezeRotation=true; rb.linearDamping=.25f; rb.interpolation=RigidbodyInterpolation2D.None;
                     rb.collisionDetectionMode=CollisionDetectionMode2D.Continuous; rb.simulated=simulating;
                     var rim=node.AddComponent<CircleCollider2D>(); rim.radius=p.radius*Units; rim.sharedMaterial=material;
                     body=new PlateBody { node=node,rigidbody=rb,rim=rim,correctionRevision=correction };
@@ -93,7 +93,7 @@ namespace HotpotSort.UnityPhysics
                 else if(body.data.x!=p.x || body.data.y!=p.y || body.correctionRevision!=correction)
                 {
                     body.rigidbody.position=Physical(new Vector2(p.x,p.y));
-                    body.rigidbody.velocity=Vector2.zero; body.rigidbody.angularVelocity=0;
+                    body.rigidbody.linearVelocity=Vector2.zero; body.rigidbody.angularVelocity=0;
                     body.correctionRevision=correction;
                 }
                 body.data=p; drawOrder.Add(body); body.rim.radius=p.radius*Units;

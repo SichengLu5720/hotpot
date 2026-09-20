@@ -5,7 +5,13 @@
 ## Task
 
 ```text
-PM 建立独立工作区 + 确认合同 / QA Intent
+低算力 PM 常驻入口：登记原始请求、全部需求输入与来源
+        ↓
+按需 Requirement Analyst：完整研读并返回一次结果后结束
+        ↓
+PM 核对来源；真实歧义向用户确认
+        ↓
+PM confirm-requirements：按 run 确认，程序自动合并 goal / QA Intent
         ↓
 [有需要] Designer 技术调查、查询接口
         ↓
@@ -20,19 +26,30 @@ Code ║ Art（仅拥有路径不重叠时）
 READY_FOR_RELEASE（不代表已运行游戏 QA）
 ```
 
+PM 的正常流程不会从用户一句话直接跳到实现。PM 建立独立工作区、登记原始请求和材料后，先派发 `requirements` 给只读 Requirement Analyst。Agent 逐段读完输入，补齐产品背景、用户、场景、关键旅程、规则、异常、回退和成功结果；多义请求至少列出两种解释，多种合理产品定义比较后再确认。推断和建议留在分析文档与 Task 待确认区，只有 PM 与用户已确认的内容才进入机器合同。
+
+Requirement Analyst 返回 READY 后，Harness 固定 `.harness/requirements/<TASK-ID>/<run_id>.md`，但 Task 仍停在合同确认门。PM 核对来源、处理用户决定，再用 `task contract` 写入最终合同；该调用把确认绑定到分析 run、合同摘要和 task_revision。之后才可进入 Designer 技术调查、Design-Art 视觉确认和 Code Builder 实现。后续实质需求变更会清除该确认并重新要求 `requirements`，不会拿旧分析默认为新需求背书。
+
 ### 一个机械交接循环
 
-1. `plan --doc ...` 读取现有事实给下一步。
+1. `plan --doc ...` 读取现有事实给下一步；新 Task 会先给出 `requirements`，需求确认后才给技术／视觉／实现步骤。
 2. PM 使用 `dispatch --doc ... --step ...`；工具一次写入运行记录，返回 run_id、角色、允许路径、模型目标快照和短 context。
-3. PM 在宿主中启动对应角色，原样传递派发身份/context。子代理开始/恢复/重要写入前 `check --doc ... --run ...`。
+3. PM 在宿主中按需启动对应角色，原样传递派发身份/context。子代理开始/恢复/重要写入前 `check --doc ... --run ...`，交接后结束；禁止空闲轮询或常驻循环。
 4. 子代理只向 PM 返回 handoff。PM 保存为短临时 JSON，通过 `accept --doc ... --handoff ...` 校验并登记。临时 handoff 不是第二份 Task 真源，不再手填 in_flight。
 5. 如需用户决策，PM 记录具体决定后再推进。命令成功不等于获得宿主/用户授权。
 
 Task 阶段 Designer 交接不以完整 QA Plan 为输出，只返回所需接口的查询结果、参数、返回值、来源和缺口；Builder 使用这些信息实施。技术方案按需，不能因为“每 Task 都要 QA”在功能开发期多开一次 Designer。正式 Release 阶段则由同一个只读 Designer 统一确定 QA Plan。
 
+需求分析交接和技术 Designer 交接不是同一职责：Requirement Analyst 只分析产品定义，不查代码方案；Feature Designer 只在需求已确认后按需调查技术结构，并在正式 Release 统一确定 QA Plan。
+
 ### 命令片段
 
 ```bash
+python tools/harness.py task contract --doc tasks/TASK-001-volume-settings.md --input /path/to/draft-contract.json --decision "登记原始请求与材料"
+python tools/harness.py dispatch --doc tasks/TASK-001-volume-settings.md --step requirements
+python tools/harness.py accept --doc tasks/TASK-001-volume-settings.md --handoff /path/to/requirements-handoff.json
+# PM 处理确认后；即使合同文字未改，也要再次调用以固定确认：
+python tools/harness.py task confirm-requirements --doc tasks/TASK-001-volume-settings.md --run <requirements-run-id> --decision "用户确认后的产品定义引用"
 python tools/harness.py dispatch --doc tasks/TASK-001-volume-settings.md --step code
 python tools/harness.py check --doc tasks/TASK-001-volume-settings.md --run <run_id>
 python tools/harness.py accept --doc tasks/TASK-001-volume-settings.md --handoff /path/to/handoff.json
@@ -93,6 +110,6 @@ python tools/harness.py release scope --doc versions/v0.1.0.md --path ExistingTe
 
 ## 成本边界
 
-正常代码 Task 不需要 Designer、Visual、Reporter 或 Monitor 的固定调用；Designer 的必经 QA 计划发生在正式 Release。程序判断下一步、管理 run_id、生成文件摘要和基础报告；模型处理需求、实现与必要的未知问题。
+所有新需求固定经过一次 Requirement Analyst；正常代码 Task 仍不需要 Feature Designer、Visual、Reporter 或 Monitor 的固定调用，Feature Designer 的必经 QA 计划发生在正式 Release。PM 可使用低算力模型做来源核对、用户沟通和状态协调，需求深挖由独立高推理档 Agent 承担；实际模型价格与可用性仍由宿主确认。
 
 QA_BACKLOG 和派发 context 都是从固定源生成的短输入，不重复读全部历史。它们仍需消耗实际上下文，不能宣称“零成本”。模型成本、游戏启动次数和返工量是否降低需要真实项目数据；本包不内置未测的节省百分比。
