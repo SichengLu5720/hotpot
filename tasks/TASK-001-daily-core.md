@@ -12,7 +12,73 @@
   "workspace": "C:\\Users\\charlielu\\Documents\\ChatGPT\\下锅喽-worktrees\\TASK-001-daily-core",
   "branch": "task/TASK-001-daily-core",
   "base_commit": "2eef7ee6133f7839a632ee8d8d864779281a1107",
-  "runs": {},
+  "runs": {
+    "run-c7e69831ca2d40ff": {
+      "run_id": "run-c7e69831ca2d40ff",
+      "step": "designer",
+      "role": "feature_designer",
+      "status": "ACCEPTED",
+      "created_at": "2026-09-20T09:14:27.960538+00:00",
+      "inputs": {
+        "task_revision": 2,
+        "contract_digest": "b745952fb8082122c33803b99d70bd658461ed434eeb353ca8ed28c1f8846e57"
+      },
+      "model_target": {
+        "model": "gpt-6-astra",
+        "effort": "low",
+        "enabled": true,
+        "config_digest": "28a8c3d034818ad41a01baf3f947b864e50cba7de4512f06354977085cc0f02e",
+        "actual": "unknown"
+      },
+      "model_observed": null,
+      "allowed_paths": [],
+      "stop_confirmed": true,
+      "approved_inputs": {},
+      "handoff_digest": "0f295bf4c14882693b3fbaf79e57323c9cba29e65e8c0e48422159ed5f7316af",
+      "accepted_at": "2026-09-20T09:18:32.299140+00:00",
+      "payload": {
+        "interface_notes": [
+          {
+            "id": "IN-001",
+            "name": "Compatibility boundary",
+            "requirements": "Retain existing ChallengeContext, IGameSession, IGameSessionFactory, GameSnapshot, GameEventBatch, ReplayPackage and public Contracts. Implement Daily-specific Tap/Supply DTOs and versioned JSON under owned Runtime/Core paths. Resolving remains internal. Old XorShift32, mutable collections, and old full-buffer failure behavior are not reused."
+          },
+          {
+            "id": "IN-002",
+            "name": "Content import",
+            "requirements": "Import fixed skeleton C and exactly 20 Difficulty 3 rows. Convert decimal weights by exact decimal multiplication by 100; reject non-integral conversion. Preserve source hash, importer version and profile. Runtime content has no Difficulty branch. Assign plate IDs from source order and item IDs 1..183 by plate/source index; kinds are A..P. Reject missing, duplicate, negative, all-zero, digest, count and ID errors."
+          },
+          {
+            "id": "IN-003",
+            "name": "Seed and PCG32_v1",
+            "requirements": "dailySeed = first UInt64 big-endian of SHA256(UTF8 without BOM of HOT_POT_DAILY|ChallengeId|ContentVersion). Derive each stream from SHA256(UInt64BE(dailySeed) + UTF8('|MappingRng'|'|DirectorRng'|'|PresentationRng')), first UInt64 big-endian. PCG32 XSH-RR 64/32 uses multiplier 6364136223846793005, initstate=streamSeed, initseq=54, standard two-step seeding, public drawIndex=0 after seeding. NextBounded uses threshold=unchecked(0u-bound)%bound and counts every raw draw including rejection. NextBounded(1) consumes a draw. Normal weighted Director consumes category then candidate draws; deterministic fallbacks consume only documented tie-pool draws. Opening selection consumes none. Map stable ingredient IDs with descending Fisher-Yates. Expose algorithm version, state, inc, drawIndex and Director raw/bounded values; reject unknown versions."
+          },
+          {
+            "id": "IN-004",
+            "name": "Reservations and whole-plate cost",
+            "requirements": "External pool is Pending, ActiveAvailable and Buffer only. Reserve other orders' unmet items by slotId, then Buffer index, Active plateId/source index, Pending queue/source index. Never move items during reservation. Candidate legality, b, v and scan use the same reservation view. b is unreserved matching Buffer; v is unreserved matching ActiveAvailable and ignores occlusion. If scanning Pending, finish the whole plate that supplies the final needed target and count every non-target item on all scanned plates, including the rest of the final plate and non-target items reserved for other orders. Only an empty strict legal pool enables duplicate relaxation; strict out-of-band candidates use MinCostOutsideBands. Log reservation item IDs and all cost inputs."
+          },
+          {
+            "id": "IN-005",
+            "name": "Session, Tap and Supply",
+            "requirements": "DailySessionFactory creates fresh isolated sessions. TapCommand includes itemId, inputSeq, logicalBoundary and hitAccepted. SupplyObservation includes observationSeq, logicalBoundary, canSpawn and cooldownReady. Boundaries are non-negative monotonic injected integers serialized as decimal strings; no wall clock or input lock. Tap transactions synchronously reserve, route, settle and chain under internal Resolving, then publish immutable results. Overflow remains accepted=true and Failed, increments player taps, does not remove or process the item, and releases Reserved before close. Supply commits exactly one Pending head per allowed call and records plate/item IDs; it never drains from one permission. Initialization does not spawn without an observation. No 0.20-second lock and no fixed chain guard."
+          },
+          {
+            "id": "IN-006",
+            "name": "Canonical state, events and hash",
+            "requirements": "Use daily_state_v1, daily_event_v1 and canonical_json_v1: UTF8 without BOM/whitespace, ordinal object-property ordering, contractual array order, integers/booleans/strings/null only, rational progress, decimal strings for UInt64, stable escaping, lowercase SHA256. Core hash includes content and algorithm identity, dailySeed, mapping, state, Pending/Active/item locations, fixed buffer, four order slots, completed and core statistics, deterministic failure identity, Mapping/Director RNG state/inc/drawIndex, transactionId and eventSeq. Exclude sessionId, retryIndex, timeSource, platform/build/time, Presentation RNG, animation/coordinates, rejected diagnostics, external input/observation sequence and hash field. Core eventSeq starts at 1; rejections do not consume it. TransactionClosed hashAfter is the closed stable state."
+          },
+          {
+            "id": "IN-007",
+            "name": "Replay and constructability",
+            "requirements": "daily_replay_v1 records context, configuration hashes, algorithm versions, initial hash, accepted taps, actual SupplyCommit records, effective Pause/Resume boundaries and post-commit hashes, plus separate diagnostics. Replay creates a fresh object, validates identities, applies records in order, uses an internal supply replay path that verifies exact queue head and item IDs, never re-solves physics, and reports the first mismatch. Unknown versions, digest mismatch, illegal supply order, non-reproducible tap or hash mismatch are failures. Export is in-memory; persistence belongs to the caller."
+          }
+        ]
+      },
+      "summary": "Read-only interface investigation completed. Harness check was ACTIVE at task revision 2. Determinism and implementation interfaces are fixed below; no product ambiguity remains, no files were modified, and no game QA was run.",
+      "artifacts": []
+    }
+  },
   "history": [
     {
       "at": "2026-09-20T09:12:45.042217+00:00",
@@ -24,10 +90,29 @@
       "revision": 2,
       "decision": "User authorized TASK-001 implementation and confirmed Q-A01 through Q-A04 by saying execute; Q-A05 and Q-A06 remove the two protections.",
       "invalidation": "all dependent task completions; unchanged history/artifacts retained"
+    },
+    {
+      "at": "2026-09-20T09:14:27.974808+00:00",
+      "event": "dispatched",
+      "run_id": "run-c7e69831ca2d40ff",
+      "step": "designer"
+    },
+    {
+      "at": "2026-09-20T09:18:32.311141+00:00",
+      "event": "accepted",
+      "run_id": "run-c7e69831ca2d40ff"
+    },
+    {
+      "at": "2026-09-20T09:18:38.650089+00:00",
+      "event": "approved",
+      "scopes": [
+        "build"
+      ],
+      "decision": "User explicitly authorized TASK-001 implementation with 实行task1 and confirmed the remaining recommendations with 执行; build scope is the registered revision 2 code-only contract and accepted Designer interface notes."
     }
   ],
   "task_revision": 2,
-  "status": "DRAFT",
+  "status": "READY",
   "contract": {
     "goal": "Implement a Unity-independent deterministic Daily Challenge gameplay core for fixed skeleton C. Given the same ChallengeContext, versioned content, accepted inputs, supply commits, and logical boundaries, it must reproduce the same mapping, events, replay hash, and final state. The implementation includes content import, PCG32 streams, inventory, orders, buffer, Director, transactions, snapshots, diagnostics, and replay. It excludes Unity scenes, visual assets, physics, WeChat SDK integration, publication, and release QA.",
     "qa_intent": [
@@ -231,9 +316,18 @@
       "decision": "No image or external content generation is authorized or required for this code-only task."
     }
   },
-  "approvals": {},
+  "approvals": {
+    "build": {
+      "task_revision": 2,
+      "contract_digest": "b745952fb8082122c33803b99d70bd658461ed434eeb353ca8ed28c1f8846e57",
+      "decision": "User explicitly authorized TASK-001 implementation with 实行task1 and confirmed the remaining recommendations with 执行; build scope is the registered revision 2 code-only contract and accepted Designer interface notes.",
+      "artifacts": []
+    }
+  },
   "artifacts": {},
-  "completed": {},
+  "completed": {
+    "designer": "run-c7e69831ca2d40ff"
+  },
   "block": null
 }
 ```
