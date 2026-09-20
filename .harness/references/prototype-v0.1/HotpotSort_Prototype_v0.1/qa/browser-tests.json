@@ -1,0 +1,108 @@
+{
+  "browser": "144.0.7559.96",
+  "mode": "headless Chromium; standalone HTML injected with set_content (file/localhost navigation restricted in environment)",
+  "passed": 15,
+  "failed": 0,
+  "results": [
+    {
+      "name": "desktop boots with two goals, five buffer cells and gated supply",
+      "passed": true,
+      "details": {
+        "active": 15,
+        "pending": 18
+      }
+    },
+    {
+      "name": "pause freezes simulation and resume continues",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "real pointer click transfers matching ingredient to target",
+      "passed": true,
+      "details": {
+        "x": 309.78164772039435,
+        "y": 811.0111131015324,
+        "id": 1
+      }
+    },
+    {
+      "name": "restart clears gameplay state and keeps seed",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "rapid duplicate pointer input does not duplicate items",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "settings can select skeleton B and seed 13",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "debug overlay and model/world audits work",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "five real nonmatching clicks reach explicit failure screen",
+      "passed": true,
+      "details": {
+        "reason": "buffer-full-after-settlement",
+        "moves": 5
+      }
+    },
+    {
+      "name": "full skeleton A reaches victory using gated supply and pointer events",
+      "passed": true,
+      "details": {
+        "completed": 123,
+        "moves": 123,
+        "seed": 7
+      }
+    },
+    {
+      "name": "browser exports a real JSON replay download",
+      "passed": true,
+      "details": {
+        "file": "hotpot-A-seed7-won.json",
+        "commands": 156
+      }
+    },
+    {
+      "name": "desktop screenshot produced from running game",
+      "passed": true,
+      "details": "qa/browser_game.png"
+    },
+    {
+      "name": "390x844 touch viewport: scaled hit-test, visible board, no overflow",
+      "passed": true,
+      "details": {
+        "x": 0,
+        "y": 4.140625,
+        "width": 390,
+        "height": 835.703125
+      }
+    },
+    {
+      "name": "mobile pause and resume reachable from in-game HUD",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "no uncaught browser errors",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "offline bundle emits no external network requests",
+      "passed": true,
+      "details": null
+    }
+  ],
+  "uncaughtErrors": [],
+  "requests": [],
+  "scope": "Browser execution only, not Unity Editor or physical Android/iOS device validation."
+}

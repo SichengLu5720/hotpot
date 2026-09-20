@@ -1,0 +1,8453 @@
+{
+  "schemaVersion": 1,
+  "version": "0.1.0",
+  "level": "A",
+  "seed": 7,
+  "failOnFull": true,
+  "commands": [
+    {
+      "type": "spawn"
+    },
+    {
+      "type": "spawn"
+    },
+    {
+      "type": "spawn"
+    },
+    {
+      "type": "spawn"
+    },
+    {
+      "type": "spawn"
+    },
+    {
+      "type": "spawn"
+    },
+    {
+      "type": "spawn"
+    },
+    {
+      "type": "spawn"
+    },
+    {
+      "type": "spawn"
+    },
+    {
+      "type": "spawn"
+    },
+    {
+      "type": "spawn"
+    },
+    {
+      "type": "spawn"
+    },
+    {
+      "type": "spawn"
+    },
+    {
+      "type": "spawn"
+    },
+    {
+      "type": "spawn"
+    },
+    {
+      "type": "tap",
+      "id": 8
+    },
+    {
+      "type": "tap",
+      "id": 9
+    },
+    {
+      "type": "tap",
+      "id": 10
+    },
+    {
+      "type": "tap",
+      "id": 11
+    },
+    {
+      "type": "tap",
+      "id": 39
+    },
+    {
+      "type": "tap",
+      "id": 12
+    },
+    {
+      "type": "tap",
+      "id": 13
+    },
+    {
+      "type": "tap",
+      "id": 19
+    },
+    {
+      "type": "tap",
+      "id": 3
+    },
+    {
+      "type": "tap",
+      "id": 6
+    },
+    {
+      "type": "tap",
+      "id": 7
+    },
+    {
+      "type": "tap",
+      "id": 17
+    },
+    {
+      "type": "tap",
+      "id": 14
+    },
+    {
+      "type": "tap",
+      "id": 4
+    },
+    {
+      "type": "tap",
+      "id": 5
+    },
+    {
+      "type": "tap",
+      "id": 1
+    },
+    {
+      "type": "tap",
+      "id": 20
+    },
+    {
+      "type": "tap",
+      "id": 23
+    },
+    {
+      "type": "tap",
+      "id": 2
+    },
+    {
+      "type": "spawn"
+    },
+    {
+      "type": "spawn"
+    },
+    {
+      "type": "spawn"
+    },
+    {
+      "type": "tap",
+      "id": 26
+    },
+    {
+      "type": "tap",
+      "id": 51
+    },
+    {
+      "type": "spawn"
+    },
+    {
+      "type": "tap",
+      "id": 54
+    },
+    {
+      "type": "tap",
+      "id": 55
+    },
+    {
+      "type": "tap",
+      "id": 21
+    },
+    {
+      "type": "spawn"
+    },
+    {
+      "type": "spawn"
+    },
+    {
+      "type": "tap",
+      "id": 15
+    },
+    {
+      "type": "tap",
+      "id": 25
+    },
+    {
+      "type": "tap",
+      "id": 57
+    },
+    {
+      "type": "tap",
+      "id": 35
+    },
+    {
+      "type": "tap",
+      "id": 36
+    },
+    {
+      "type": "tap",
+      "id": 29
+    },
+    {
+      "type": "tap",
+      "id": 31
+    },
+    {
+      "type": "tap",
+      "id": 22
+    },
+    {
+      "type": "tap",
+      "id": 52
+    },
+    {
+      "type": "tap",
+      "id": 59
+    },
+    {
+      "type": "tap",
+      "id": 60
+    },
+    {
+      "type": "tap",
+      "id": 62
+    },
+    {
+      "type": "tap",
+      "id": 28
+    },
+    {
+      "type": "tap",
+      "id": 32
+    },
+    {
+      "type": "tap",
+      "id": 74
+    },
+    {
+      "type": "tap",
+      "id": 68
+    },
+    {
+      "type": "tap",
+      "id": 69
+    },
+    {
+      "type": "tap",
+      "id": 70
+    },
+    {
+      "type": "spawn"
+    },
+    {
+      "type": "tap",
+      "id": 48
+    },
+    {
+      "type": "tap",
+      "id": 71
+    },
+    {
+      "type": "tap",
+      "id": 72
+    },
+    {
+      "type": "tap",
+      "id": 18
+    },
+    {
+      "type": "tap",
+      "id": 58
+    },
+    {
+      "type": "tap",
+      "id": 42
+    },
+    {
+      "type": "tap",
+      "id": 16
+    },
+    {
+      "type": "spawn"
+    },
+    {
+      "type": "tap",
+      "id": 37
+    },
+    {
+      "type": "spawn"
+    },
+    {
+      "type": "tap",
+      "id": 56
+    },
+    {
+      "type": "tap",
+      "id": 27
+    },
+    {
+      "type": "tap",
+      "id": 30
+    },
+    {
+      "type": "tap",
+      "id": 73
+    },
+    {
+      "type": "tap",
+      "id": 75
+    },
+    {
+      "type": "tap",
+      "id": 47
+    },
+    {
+      "type": "tap",
+      "id": 49
+    },
+    {
+      "type": "tap",
+      "id": 88
+    },
+    {
+      "type": "tap",
+      "id": 63
+    },
+    {
+      "type": "tap",
+      "id": 64
+    },
+    {
+      "type": "tap",
+      "id": 65
+    },
+    {
+      "type": "tap",
+      "id": 24
+    },
+    {
+      "type": "spawn"
+    },
+    {
+      "type": "spawn"
+    },
+    {
+      "type": "spawn"
+    },
+    {
+      "type": "tap",
+      "id": 33
+    },
+    {
+      "type": "tap",
+      "id": 34
+    },
+    {
+      "type": "spawn"
+    },
+    {
+      "type": "spawn"
+    },
+    {
+      "type": "tap",
+      "id": 98
+    },
+    {
+      "type": "spawn"
+    },
+    {
+      "type": "tap",
+      "id": 102
+    },
+    {
+      "type": "tap",
+      "id": 103
+    },
+    {
+      "type": "tap",
+      "id": 101
+    },
+    {
+      "type": "tap",
+      "id": 112
+    },
+    {
+      "type": "tap",
+      "id": 76
+    },
+    {
+      "type": "tap",
+      "id": 77
+    },
+    {
+      "type": "tap",
+      "id": 83
+    },
+    {
+      "type": "tap",
+      "id": 95
+    },
+    {
+      "type": "tap",
+      "id": 38
+    },
+    {
+      "type": "tap",
+      "id": 61
+    },
+    {
+      "type": "tap",
+      "id": 100
+    },
+    {
+      "type": "spawn"
+    },
+    {
+      "type": "spawn"
+    },
+    {
+      "type": "tap",
+      "id": 114
+    },
+    {
+      "type": "tap",
+      "id": 89
+    },
+    {
+      "type": "tap",
+      "id": 115
+    },
+    {
+      "type": "tap",
+      "id": 53
+    },
+    {
+      "type": "tap",
+      "id": 91
+    },
+    {
+      "type": "tap",
+      "id": 79
+    },
+    {
+      "type": "tap",
+      "id": 96
+    },
+    {
+      "type": "tap",
+      "id": 82
+    },
+    {
+      "type": "tap",
+      "id": 107
+    },
+    {
+      "type": "tap",
+      "id": 50
+    },
+    {
+      "type": "spawn"
+    },
+    {
+      "type": "tap",
+      "id": 121
+    },
+    {
+      "type": "tap",
+      "id": 86
+    },
+    {
+      "type": "tap",
+      "id": 117
+    },
+    {
+      "type": "tap",
+      "id": 81
+    },
+    {
+      "type": "tap",
+      "id": 106
+    },
+    {
+      "type": "tap",
+      "id": 109
+    },
+    {
+      "type": "tap",
+      "id": 45
+    },
+    {
+      "type": "tap",
+      "id": 46
+    },
+    {
+      "type": "tap",
+      "id": 111
+    },
+    {
+      "type": "tap",
+      "id": 87
+    },
+    {
+      "type": "tap",
+      "id": 80
+    },
+    {
+      "type": "tap",
+      "id": 116
+    },
+    {
+      "type": "tap",
+      "id": 78
+    },
+    {
+      "type": "tap",
+      "id": 113
+    },
+    {
+      "type": "tap",
+      "id": 66
+    },
+    {
+      "type": "tap",
+      "id": 104
+    },
+    {
+      "type": "tap",
+      "id": 85
+    },
+    {
+      "type": "tap",
+      "id": 108
+    },
+    {
+      "type": "tap",
+      "id": 67
+    },
+    {
+      "type": "tap",
+      "id": 90
+    },
+    {
+      "type": "tap",
+      "id": 97
+    },
+    {
+      "type": "tap",
+      "id": 84
+    },
+    {
+      "type": "tap",
+      "id": 99
+    },
+    {
+      "type": "tap",
+      "id": 105
+    },
+    {
+      "type": "tap",
+      "id": 110
+    },
+    {
+      "type": "tap",
+      "id": 123
+    },
+    {
+      "type": "tap",
+      "id": 118
+    },
+    {
+      "type": "tap",
+      "id": 122
+    },
+    {
+      "type": "tap",
+      "id": 92
+    },
+    {
+      "type": "tap",
+      "id": 119
+    },
+    {
+      "type": "tap",
+      "id": 120
+    },
+    {
+      "type": "tap",
+      "id": 40
+    },
+    {
+      "type": "tap",
+      "id": 41
+    },
+    {
+      "type": "tap",
+      "id": 43
+    },
+    {
+      "type": "tap",
+      "id": 44
+    },
+    {
+      "type": "tap",
+      "id": 93
+    },
+    {
+      "type": "tap",
+      "id": 94
+    }
+  ],
+  "final": {
+    "level": "A",
+    "seed": 7,
+    "rng": 1886483239,
+    "status": "won",
+    "reason": "",
+    "moves": 123,
+    "total": 123,
+    "completed": 123,
+    "pending": [],
+    "active": [],
+    "buffer": [
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "orders": [
+      {
+        "slot": 0,
+        "open": true,
+        "kind": -1,
+        "ids": []
+      },
+      {
+        "slot": 1,
+        "open": true,
+        "kind": -1,
+        "ids": []
+      },
+      {
+        "slot": 2,
+        "open": false,
+        "kind": -1,
+        "ids": []
+      },
+      {
+        "slot": 3,
+        "open": false,
+        "kind": -1,
+        "ids": []
+      }
+    ],
+    "completedByKind": [
+      18,
+      6,
+      9,
+      12,
+      12,
+      24,
+      9,
+      3,
+      3,
+      6,
+      9,
+      3,
+      3,
+      3,
+      3,
+      0
+    ]
+  },
+  "log": [
+    {
+      "seq": 0,
+      "type": "start",
+      "level": "A",
+      "seed": 7,
+      "total": 123,
+      "failOnFull": true
+    },
+    {
+      "seq": 1,
+      "type": "target",
+      "slot": 0,
+      "kind": 0,
+      "reason": "opening-prefix-max",
+      "candidates": [
+        {
+          "kind": 0,
+          "count": 9
+        },
+        {
+          "kind": 5,
+          "count": 7
+        },
+        {
+          "kind": 3,
+          "count": 4
+        },
+        {
+          "kind": 4,
+          "count": 4
+        },
+        {
+          "kind": 2,
+          "count": 3
+        },
+        {
+          "kind": 8,
+          "count": 2
+        },
+        {
+          "kind": 1,
+          "count": 1
+        },
+        {
+          "kind": 6,
+          "count": 1
+        },
+        {
+          "kind": 7,
+          "count": 1
+        },
+        {
+          "kind": 9,
+          "count": 1
+        },
+        {
+          "kind": 10,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "seq": 2,
+      "type": "target",
+      "slot": 1,
+      "kind": 5,
+      "reason": "opening-prefix-max",
+      "candidates": [
+        {
+          "kind": 5,
+          "count": 7
+        },
+        {
+          "kind": 3,
+          "count": 4
+        },
+        {
+          "kind": 4,
+          "count": 4
+        },
+        {
+          "kind": 2,
+          "count": 3
+        },
+        {
+          "kind": 8,
+          "count": 2
+        },
+        {
+          "kind": 1,
+          "count": 1
+        },
+        {
+          "kind": 6,
+          "count": 1
+        },
+        {
+          "kind": 7,
+          "count": 1
+        },
+        {
+          "kind": 9,
+          "count": 1
+        },
+        {
+          "kind": 10,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "seq": 3,
+      "type": "spawn",
+      "plate": 1
+    },
+    {
+      "seq": 4,
+      "type": "spawn",
+      "plate": 2
+    },
+    {
+      "seq": 5,
+      "type": "spawn",
+      "plate": 3
+    },
+    {
+      "seq": 6,
+      "type": "spawn",
+      "plate": 4
+    },
+    {
+      "seq": 7,
+      "type": "spawn",
+      "plate": 5
+    },
+    {
+      "seq": 8,
+      "type": "spawn",
+      "plate": 6
+    },
+    {
+      "seq": 9,
+      "type": "spawn",
+      "plate": 7
+    },
+    {
+      "seq": 10,
+      "type": "spawn",
+      "plate": 8
+    },
+    {
+      "seq": 11,
+      "type": "spawn",
+      "plate": 9
+    },
+    {
+      "seq": 12,
+      "type": "spawn",
+      "plate": 10
+    },
+    {
+      "seq": 13,
+      "type": "spawn",
+      "plate": 11
+    },
+    {
+      "seq": 14,
+      "type": "spawn",
+      "plate": 12
+    },
+    {
+      "seq": 15,
+      "type": "spawn",
+      "plate": 13
+    },
+    {
+      "seq": 16,
+      "type": "spawn",
+      "plate": 14
+    },
+    {
+      "seq": 17,
+      "type": "spawn",
+      "plate": 15
+    },
+    {
+      "seq": 18,
+      "type": "move",
+      "id": 8,
+      "kind": 0,
+      "from": "plate",
+      "plate": 3,
+      "to": "order",
+      "slot": 0
+    },
+    {
+      "seq": 19,
+      "type": "move",
+      "id": 9,
+      "kind": 5,
+      "from": "plate",
+      "plate": 3,
+      "to": "order",
+      "slot": 1
+    },
+    {
+      "seq": 20,
+      "type": "plate-empty",
+      "plate": 3
+    },
+    {
+      "seq": 21,
+      "type": "move",
+      "id": 10,
+      "kind": 0,
+      "from": "plate",
+      "plate": 4,
+      "to": "order",
+      "slot": 0
+    },
+    {
+      "seq": 22,
+      "type": "move",
+      "id": 11,
+      "kind": 5,
+      "from": "plate",
+      "plate": 4,
+      "to": "order",
+      "slot": 1
+    },
+    {
+      "seq": 23,
+      "type": "plate-empty",
+      "plate": 4
+    },
+    {
+      "seq": 24,
+      "type": "move",
+      "id": 39,
+      "kind": 5,
+      "from": "plate",
+      "plate": 12,
+      "to": "order",
+      "slot": 1
+    },
+    {
+      "seq": 25,
+      "type": "complete",
+      "slot": 1,
+      "kind": 5,
+      "ids": [
+        9,
+        11,
+        39
+      ]
+    },
+    {
+      "seq": 26,
+      "type": "target",
+      "slot": 1,
+      "kind": 2,
+      "reason": "weighted-category",
+      "requestedGroup": 2,
+      "cost": 0,
+      "threshold": 0.4,
+      "temp": 0,
+      "candidates": [
+        {
+          "kind": 1,
+          "cost": 1,
+          "groups": [
+            false,
+            false,
+            true,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 1
+        },
+        {
+          "kind": 2,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 3,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 5
+        },
+        {
+          "kind": 4,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 6
+        },
+        {
+          "kind": 5,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 7
+        },
+        {
+          "kind": 6,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 5
+        },
+        {
+          "kind": 7,
+          "cost": 3,
+          "groups": [
+            false,
+            false,
+            true,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 8,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 9,
+          "cost": 5,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 1
+        },
+        {
+          "kind": 10,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 11,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 1
+        },
+        {
+          "kind": 12,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 13,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 0
+        },
+        {
+          "kind": 14,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 0
+        }
+      ]
+    },
+    {
+      "seq": 27,
+      "type": "move",
+      "id": 12,
+      "kind": 2,
+      "from": "plate",
+      "plate": 5,
+      "to": "order",
+      "slot": 1
+    },
+    {
+      "seq": 28,
+      "type": "move",
+      "id": 13,
+      "kind": 2,
+      "from": "plate",
+      "plate": 5,
+      "to": "order",
+      "slot": 1
+    },
+    {
+      "seq": 29,
+      "type": "move",
+      "id": 19,
+      "kind": 0,
+      "from": "plate",
+      "plate": 7,
+      "to": "order",
+      "slot": 0
+    },
+    {
+      "seq": 30,
+      "type": "complete",
+      "slot": 0,
+      "kind": 0,
+      "ids": [
+        8,
+        10,
+        19
+      ]
+    },
+    {
+      "seq": 31,
+      "type": "target",
+      "slot": 0,
+      "kind": 7,
+      "reason": "weighted-category",
+      "requestedGroup": 3,
+      "cost": 3,
+      "threshold": 0.4,
+      "temp": 0,
+      "candidates": [
+        {
+          "kind": 0,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 9
+        },
+        {
+          "kind": 1,
+          "cost": 1,
+          "groups": [
+            false,
+            false,
+            true,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 1
+        },
+        {
+          "kind": 3,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 5
+        },
+        {
+          "kind": 4,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 6
+        },
+        {
+          "kind": 5,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 7
+        },
+        {
+          "kind": 6,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 5
+        },
+        {
+          "kind": 7,
+          "cost": 3,
+          "groups": [
+            false,
+            false,
+            true,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 8,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 9,
+          "cost": 5,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 1
+        },
+        {
+          "kind": 10,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 11,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 1
+        },
+        {
+          "kind": 12,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 13,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 0
+        },
+        {
+          "kind": 14,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 0
+        }
+      ]
+    },
+    {
+      "seq": 32,
+      "type": "move",
+      "id": 3,
+      "kind": 2,
+      "from": "plate",
+      "plate": 1,
+      "to": "order",
+      "slot": 1
+    },
+    {
+      "seq": 33,
+      "type": "complete",
+      "slot": 1,
+      "kind": 2,
+      "ids": [
+        12,
+        13,
+        3
+      ]
+    },
+    {
+      "seq": 34,
+      "type": "target",
+      "slot": 1,
+      "kind": 4,
+      "reason": "weighted-category",
+      "requestedGroup": 2,
+      "cost": 0,
+      "threshold": 0.4,
+      "temp": 0,
+      "candidates": [
+        {
+          "kind": 0,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 9
+        },
+        {
+          "kind": 1,
+          "cost": 1,
+          "groups": [
+            false,
+            false,
+            true,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 1
+        },
+        {
+          "kind": 2,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 0
+        },
+        {
+          "kind": 3,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 5
+        },
+        {
+          "kind": 4,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 6
+        },
+        {
+          "kind": 5,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 7
+        },
+        {
+          "kind": 6,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 5
+        },
+        {
+          "kind": 8,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 9,
+          "cost": 5,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 1
+        },
+        {
+          "kind": 10,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 11,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 1
+        },
+        {
+          "kind": 12,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 13,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 0
+        },
+        {
+          "kind": 14,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 0
+        }
+      ]
+    },
+    {
+      "seq": 35,
+      "type": "move",
+      "id": 6,
+      "kind": 4,
+      "from": "plate",
+      "plate": 2,
+      "to": "order",
+      "slot": 1
+    },
+    {
+      "seq": 36,
+      "type": "move",
+      "id": 7,
+      "kind": 4,
+      "from": "plate",
+      "plate": 2,
+      "to": "order",
+      "slot": 1
+    },
+    {
+      "seq": 37,
+      "type": "plate-empty",
+      "plate": 2
+    },
+    {
+      "seq": 38,
+      "type": "move",
+      "id": 17,
+      "kind": 4,
+      "from": "plate",
+      "plate": 6,
+      "to": "order",
+      "slot": 1
+    },
+    {
+      "seq": 39,
+      "type": "complete",
+      "slot": 1,
+      "kind": 4,
+      "ids": [
+        6,
+        7,
+        17
+      ]
+    },
+    {
+      "seq": 40,
+      "type": "target",
+      "slot": 1,
+      "kind": 3,
+      "reason": "weighted-category",
+      "requestedGroup": 2,
+      "cost": 0,
+      "threshold": 0.4,
+      "temp": 0,
+      "candidates": [
+        {
+          "kind": 0,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 9
+        },
+        {
+          "kind": 1,
+          "cost": 1,
+          "groups": [
+            false,
+            false,
+            true,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 1
+        },
+        {
+          "kind": 2,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 0
+        },
+        {
+          "kind": 3,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 5
+        },
+        {
+          "kind": 4,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 5,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 7
+        },
+        {
+          "kind": 6,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 5
+        },
+        {
+          "kind": 8,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 9,
+          "cost": 5,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 1
+        },
+        {
+          "kind": 10,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 11,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 1
+        },
+        {
+          "kind": 12,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 13,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 0
+        },
+        {
+          "kind": 14,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 0
+        }
+      ]
+    },
+    {
+      "seq": 41,
+      "type": "move",
+      "id": 14,
+      "kind": 3,
+      "from": "plate",
+      "plate": 5,
+      "to": "order",
+      "slot": 1
+    },
+    {
+      "seq": 42,
+      "type": "plate-empty",
+      "plate": 5
+    },
+    {
+      "seq": 43,
+      "type": "move",
+      "id": 4,
+      "kind": 3,
+      "from": "plate",
+      "plate": 1,
+      "to": "order",
+      "slot": 1
+    },
+    {
+      "seq": 44,
+      "type": "move",
+      "id": 5,
+      "kind": 3,
+      "from": "plate",
+      "plate": 1,
+      "to": "order",
+      "slot": 1
+    },
+    {
+      "seq": 45,
+      "type": "complete",
+      "slot": 1,
+      "kind": 3,
+      "ids": [
+        14,
+        4,
+        5
+      ]
+    },
+    {
+      "seq": 46,
+      "type": "target",
+      "slot": 1,
+      "kind": 0,
+      "reason": "weighted-category",
+      "requestedGroup": 2,
+      "cost": 0,
+      "threshold": 0.4,
+      "temp": 0,
+      "candidates": [
+        {
+          "kind": 0,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 9
+        },
+        {
+          "kind": 1,
+          "cost": 1,
+          "groups": [
+            false,
+            false,
+            true,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 1
+        },
+        {
+          "kind": 2,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 0
+        },
+        {
+          "kind": 3,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 4,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 5,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 7
+        },
+        {
+          "kind": 6,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 5
+        },
+        {
+          "kind": 8,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 9,
+          "cost": 5,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 1
+        },
+        {
+          "kind": 10,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 11,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 1
+        },
+        {
+          "kind": 12,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 13,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 0
+        },
+        {
+          "kind": 14,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 0
+        }
+      ]
+    },
+    {
+      "seq": 47,
+      "type": "move",
+      "id": 1,
+      "kind": 0,
+      "from": "plate",
+      "plate": 1,
+      "to": "order",
+      "slot": 1
+    },
+    {
+      "seq": 48,
+      "type": "move",
+      "id": 20,
+      "kind": 0,
+      "from": "plate",
+      "plate": 7,
+      "to": "order",
+      "slot": 1
+    },
+    {
+      "seq": 49,
+      "type": "move",
+      "id": 23,
+      "kind": 0,
+      "from": "plate",
+      "plate": 8,
+      "to": "order",
+      "slot": 1
+    },
+    {
+      "seq": 50,
+      "type": "complete",
+      "slot": 1,
+      "kind": 0,
+      "ids": [
+        1,
+        20,
+        23
+      ]
+    },
+    {
+      "seq": 51,
+      "type": "target",
+      "slot": 1,
+      "kind": 1,
+      "reason": "weighted-category",
+      "requestedGroup": 3,
+      "cost": 1,
+      "threshold": 0.4,
+      "temp": 0,
+      "candidates": [
+        {
+          "kind": 0,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 6
+        },
+        {
+          "kind": 1,
+          "cost": 1,
+          "groups": [
+            false,
+            false,
+            true,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 1
+        },
+        {
+          "kind": 2,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 0
+        },
+        {
+          "kind": 3,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 4,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 5,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 7
+        },
+        {
+          "kind": 6,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 5
+        },
+        {
+          "kind": 8,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 9,
+          "cost": 5,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 1
+        },
+        {
+          "kind": 10,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 11,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 1
+        },
+        {
+          "kind": 12,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 13,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 0
+        },
+        {
+          "kind": 14,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 0
+        }
+      ]
+    },
+    {
+      "seq": 52,
+      "type": "move",
+      "id": 2,
+      "kind": 1,
+      "from": "plate",
+      "plate": 1,
+      "to": "order",
+      "slot": 1
+    },
+    {
+      "seq": 53,
+      "type": "plate-empty",
+      "plate": 1
+    },
+    {
+      "seq": 54,
+      "type": "spawn",
+      "plate": 16
+    },
+    {
+      "seq": 55,
+      "type": "spawn",
+      "plate": 17
+    },
+    {
+      "seq": 56,
+      "type": "spawn",
+      "plate": 18
+    },
+    {
+      "seq": 57,
+      "type": "move",
+      "id": 26,
+      "kind": 7,
+      "from": "plate",
+      "plate": 9,
+      "to": "order",
+      "slot": 0
+    },
+    {
+      "seq": 58,
+      "type": "move",
+      "id": 51,
+      "kind": 7,
+      "from": "plate",
+      "plate": 15,
+      "to": "order",
+      "slot": 0
+    },
+    {
+      "seq": 59,
+      "type": "spawn",
+      "plate": 19
+    },
+    {
+      "seq": 60,
+      "type": "move",
+      "id": 54,
+      "kind": 1,
+      "from": "plate",
+      "plate": 16,
+      "to": "order",
+      "slot": 1
+    },
+    {
+      "seq": 61,
+      "type": "move",
+      "id": 55,
+      "kind": 1,
+      "from": "plate",
+      "plate": 16,
+      "to": "order",
+      "slot": 1
+    },
+    {
+      "seq": 62,
+      "type": "complete",
+      "slot": 1,
+      "kind": 1,
+      "ids": [
+        2,
+        54,
+        55
+      ]
+    },
+    {
+      "seq": 63,
+      "type": "target",
+      "slot": 1,
+      "kind": 5,
+      "reason": "weighted-category",
+      "requestedGroup": 2,
+      "cost": 0,
+      "threshold": 0.4,
+      "temp": 0,
+      "candidates": [
+        {
+          "kind": 0,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 6
+        },
+        {
+          "kind": 1,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 1
+        },
+        {
+          "kind": 2,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 3,
+          "cost": 3,
+          "groups": [
+            false,
+            false,
+            true,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 4,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 4
+        },
+        {
+          "kind": 5,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 12
+        },
+        {
+          "kind": 6,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 6
+        },
+        {
+          "kind": 8,
+          "cost": 2,
+          "groups": [
+            false,
+            false,
+            true,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 9,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 4
+        },
+        {
+          "kind": 10,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 11,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 1
+        },
+        {
+          "kind": 12,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 13,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 0
+        },
+        {
+          "kind": 14,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 0
+        }
+      ]
+    },
+    {
+      "seq": 64,
+      "type": "move",
+      "id": 21,
+      "kind": 5,
+      "from": "plate",
+      "plate": 7,
+      "to": "order",
+      "slot": 1
+    },
+    {
+      "seq": 65,
+      "type": "plate-empty",
+      "plate": 7
+    },
+    {
+      "seq": 66,
+      "type": "spawn",
+      "plate": 20
+    },
+    {
+      "seq": 67,
+      "type": "spawn",
+      "plate": 21
+    },
+    {
+      "seq": 68,
+      "type": "move",
+      "id": 15,
+      "kind": 5,
+      "from": "plate",
+      "plate": 6,
+      "to": "order",
+      "slot": 1
+    },
+    {
+      "seq": 69,
+      "type": "move",
+      "id": 25,
+      "kind": 5,
+      "from": "plate",
+      "plate": 8,
+      "to": "order",
+      "slot": 1
+    },
+    {
+      "seq": 70,
+      "type": "complete",
+      "slot": 1,
+      "kind": 5,
+      "ids": [
+        21,
+        15,
+        25
+      ]
+    },
+    {
+      "seq": 71,
+      "type": "target",
+      "slot": 1,
+      "kind": 9,
+      "reason": "weighted-category",
+      "requestedGroup": 2,
+      "cost": 0,
+      "threshold": 0.4,
+      "temp": 0,
+      "candidates": [
+        {
+          "kind": 0,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 6
+        },
+        {
+          "kind": 1,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 2,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 3,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 4,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 4
+        },
+        {
+          "kind": 5,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 11
+        },
+        {
+          "kind": 6,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 7
+        },
+        {
+          "kind": 8,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 9,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 5
+        },
+        {
+          "kind": 10,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 5
+        },
+        {
+          "kind": 11,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 1
+        },
+        {
+          "kind": 12,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 13,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 1
+        },
+        {
+          "kind": 14,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 0
+        }
+      ]
+    },
+    {
+      "seq": 72,
+      "type": "move",
+      "id": 57,
+      "kind": 7,
+      "from": "plate",
+      "plate": 16,
+      "to": "order",
+      "slot": 0
+    },
+    {
+      "seq": 73,
+      "type": "complete",
+      "slot": 0,
+      "kind": 7,
+      "ids": [
+        26,
+        51,
+        57
+      ]
+    },
+    {
+      "seq": 74,
+      "type": "target",
+      "slot": 0,
+      "kind": 10,
+      "reason": "category-empty-min-cost",
+      "requestedGroup": 3,
+      "cost": 0,
+      "threshold": 0.4,
+      "temp": 0,
+      "candidates": [
+        {
+          "kind": 0,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 6
+        },
+        {
+          "kind": 1,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 2,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 3,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 4,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 4
+        },
+        {
+          "kind": 5,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 11
+        },
+        {
+          "kind": 6,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 7
+        },
+        {
+          "kind": 8,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 10,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 5
+        },
+        {
+          "kind": 11,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 1
+        },
+        {
+          "kind": 12,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 13,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 1
+        },
+        {
+          "kind": 14,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 0
+        }
+      ]
+    },
+    {
+      "seq": 75,
+      "type": "move",
+      "id": 35,
+      "kind": 10,
+      "from": "plate",
+      "plate": 11,
+      "to": "order",
+      "slot": 0
+    },
+    {
+      "seq": 76,
+      "type": "move",
+      "id": 36,
+      "kind": 10,
+      "from": "plate",
+      "plate": 11,
+      "to": "order",
+      "slot": 0
+    },
+    {
+      "seq": 77,
+      "type": "move",
+      "id": 29,
+      "kind": 9,
+      "from": "plate",
+      "plate": 9,
+      "to": "order",
+      "slot": 1
+    },
+    {
+      "seq": 78,
+      "type": "move",
+      "id": 31,
+      "kind": 10,
+      "from": "plate",
+      "plate": 10,
+      "to": "order",
+      "slot": 0
+    },
+    {
+      "seq": 79,
+      "type": "complete",
+      "slot": 0,
+      "kind": 10,
+      "ids": [
+        35,
+        36,
+        31
+      ]
+    },
+    {
+      "seq": 80,
+      "type": "target",
+      "slot": 0,
+      "kind": 3,
+      "reason": "weighted-category",
+      "requestedGroup": 2,
+      "cost": 0,
+      "threshold": 0.4,
+      "temp": 0,
+      "candidates": [
+        {
+          "kind": 0,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 6
+        },
+        {
+          "kind": 1,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 2,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 3,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 4,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 4
+        },
+        {
+          "kind": 5,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 11
+        },
+        {
+          "kind": 6,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 7
+        },
+        {
+          "kind": 8,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 10,
+          "cost": 2,
+          "groups": [
+            false,
+            false,
+            true,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 11,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 1
+        },
+        {
+          "kind": 12,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 13,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 1
+        },
+        {
+          "kind": 14,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 0
+        }
+      ]
+    },
+    {
+      "seq": 81,
+      "type": "move",
+      "id": 22,
+      "kind": 3,
+      "from": "plate",
+      "plate": 8,
+      "to": "order",
+      "slot": 0
+    },
+    {
+      "seq": 82,
+      "type": "move",
+      "id": 52,
+      "kind": 3,
+      "from": "plate",
+      "plate": 15,
+      "to": "order",
+      "slot": 0
+    },
+    {
+      "seq": 83,
+      "type": "move",
+      "id": 59,
+      "kind": 9,
+      "from": "plate",
+      "plate": 17,
+      "to": "order",
+      "slot": 1
+    },
+    {
+      "seq": 84,
+      "type": "move",
+      "id": 60,
+      "kind": 9,
+      "from": "plate",
+      "plate": 17,
+      "to": "order",
+      "slot": 1
+    },
+    {
+      "seq": 85,
+      "type": "complete",
+      "slot": 1,
+      "kind": 9,
+      "ids": [
+        29,
+        59,
+        60
+      ]
+    },
+    {
+      "seq": 86,
+      "type": "target",
+      "slot": 1,
+      "kind": 5,
+      "reason": "weighted-category",
+      "requestedGroup": 2,
+      "cost": 0,
+      "threshold": 0.4,
+      "temp": 0,
+      "candidates": [
+        {
+          "kind": 0,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 6
+        },
+        {
+          "kind": 1,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 2,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 4,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 4
+        },
+        {
+          "kind": 5,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 11
+        },
+        {
+          "kind": 6,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 7
+        },
+        {
+          "kind": 8,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 9,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 10,
+          "cost": 2,
+          "groups": [
+            false,
+            false,
+            true,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 11,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 1
+        },
+        {
+          "kind": 12,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 13,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 1
+        },
+        {
+          "kind": 14,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 0
+        }
+      ]
+    },
+    {
+      "seq": 87,
+      "type": "move",
+      "id": 62,
+      "kind": 5,
+      "from": "plate",
+      "plate": 17,
+      "to": "order",
+      "slot": 1
+    },
+    {
+      "seq": 88,
+      "type": "move",
+      "id": 28,
+      "kind": 5,
+      "from": "plate",
+      "plate": 9,
+      "to": "order",
+      "slot": 1
+    },
+    {
+      "seq": 89,
+      "type": "move",
+      "id": 32,
+      "kind": 5,
+      "from": "plate",
+      "plate": 10,
+      "to": "order",
+      "slot": 1
+    },
+    {
+      "seq": 90,
+      "type": "complete",
+      "slot": 1,
+      "kind": 5,
+      "ids": [
+        62,
+        28,
+        32
+      ]
+    },
+    {
+      "seq": 91,
+      "type": "target",
+      "slot": 1,
+      "kind": 10,
+      "reason": "weighted-category",
+      "requestedGroup": 3,
+      "cost": 2,
+      "threshold": 0.4,
+      "temp": 0,
+      "candidates": [
+        {
+          "kind": 0,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 6
+        },
+        {
+          "kind": 1,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 2,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 4,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 4
+        },
+        {
+          "kind": 5,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 8
+        },
+        {
+          "kind": 6,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 7
+        },
+        {
+          "kind": 8,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 9,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 10,
+          "cost": 2,
+          "groups": [
+            false,
+            false,
+            true,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 11,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 1
+        },
+        {
+          "kind": 12,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 13,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 1
+        },
+        {
+          "kind": 14,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 0
+        }
+      ]
+    },
+    {
+      "seq": 92,
+      "type": "move",
+      "id": 74,
+      "kind": 3,
+      "from": "plate",
+      "plate": 20,
+      "to": "order",
+      "slot": 0
+    },
+    {
+      "seq": 93,
+      "type": "complete",
+      "slot": 0,
+      "kind": 3,
+      "ids": [
+        22,
+        52,
+        74
+      ]
+    },
+    {
+      "seq": 94,
+      "type": "target",
+      "slot": 0,
+      "kind": 5,
+      "reason": "weighted-category",
+      "requestedGroup": 2,
+      "cost": 0,
+      "threshold": 0.4,
+      "temp": 0,
+      "candidates": [
+        {
+          "kind": 0,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 6
+        },
+        {
+          "kind": 1,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 2,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 3,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 0
+        },
+        {
+          "kind": 4,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 4
+        },
+        {
+          "kind": 5,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 8
+        },
+        {
+          "kind": 6,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 7
+        },
+        {
+          "kind": 8,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 9,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 11,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 1
+        },
+        {
+          "kind": 12,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 13,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 1
+        },
+        {
+          "kind": 14,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 0
+        }
+      ]
+    },
+    {
+      "seq": 95,
+      "type": "move",
+      "id": 68,
+      "kind": 5,
+      "from": "plate",
+      "plate": 19,
+      "to": "order",
+      "slot": 0
+    },
+    {
+      "seq": 96,
+      "type": "move",
+      "id": 69,
+      "kind": 5,
+      "from": "plate",
+      "plate": 19,
+      "to": "order",
+      "slot": 0
+    },
+    {
+      "seq": 97,
+      "type": "move",
+      "id": 70,
+      "kind": 5,
+      "from": "plate",
+      "plate": 19,
+      "to": "order",
+      "slot": 0
+    },
+    {
+      "seq": 98,
+      "type": "plate-empty",
+      "plate": 19
+    },
+    {
+      "seq": 99,
+      "type": "complete",
+      "slot": 0,
+      "kind": 5,
+      "ids": [
+        68,
+        69,
+        70
+      ]
+    },
+    {
+      "seq": 100,
+      "type": "target",
+      "slot": 0,
+      "kind": 5,
+      "reason": "weighted-category",
+      "requestedGroup": 2,
+      "cost": 0,
+      "threshold": 0.4,
+      "temp": 0,
+      "candidates": [
+        {
+          "kind": 0,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 6
+        },
+        {
+          "kind": 1,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 2,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 3,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 0
+        },
+        {
+          "kind": 4,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 4
+        },
+        {
+          "kind": 5,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 5
+        },
+        {
+          "kind": 6,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 7
+        },
+        {
+          "kind": 8,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 9,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 11,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 1
+        },
+        {
+          "kind": 12,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 13,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 1
+        },
+        {
+          "kind": 14,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 0
+        }
+      ]
+    },
+    {
+      "seq": 101,
+      "type": "spawn",
+      "plate": 22
+    },
+    {
+      "seq": 102,
+      "type": "move",
+      "id": 48,
+      "kind": 5,
+      "from": "plate",
+      "plate": 14,
+      "to": "order",
+      "slot": 0
+    },
+    {
+      "seq": 103,
+      "type": "move",
+      "id": 71,
+      "kind": 5,
+      "from": "plate",
+      "plate": 20,
+      "to": "order",
+      "slot": 0
+    },
+    {
+      "seq": 104,
+      "type": "move",
+      "id": 72,
+      "kind": 5,
+      "from": "plate",
+      "plate": 20,
+      "to": "order",
+      "slot": 0
+    },
+    {
+      "seq": 105,
+      "type": "complete",
+      "slot": 0,
+      "kind": 5,
+      "ids": [
+        48,
+        71,
+        72
+      ]
+    },
+    {
+      "seq": 106,
+      "type": "target",
+      "slot": 0,
+      "kind": 4,
+      "reason": "weighted-category",
+      "requestedGroup": 2,
+      "cost": 0,
+      "threshold": 0.4,
+      "temp": 0,
+      "candidates": [
+        {
+          "kind": 0,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 7
+        },
+        {
+          "kind": 1,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 2,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 3,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 1
+        },
+        {
+          "kind": 4,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 5
+        },
+        {
+          "kind": 5,
+          "cost": 4,
+          "groups": [
+            false,
+            false,
+            false,
+            true,
+            false
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 6,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 7
+        },
+        {
+          "kind": 8,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 9,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 11,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 1
+        },
+        {
+          "kind": 12,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 13,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 1
+        },
+        {
+          "kind": 14,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 1
+        }
+      ]
+    },
+    {
+      "seq": 107,
+      "type": "move",
+      "id": 18,
+      "kind": 4,
+      "from": "plate",
+      "plate": 6,
+      "to": "order",
+      "slot": 0
+    },
+    {
+      "seq": 108,
+      "type": "move",
+      "id": 58,
+      "kind": 4,
+      "from": "plate",
+      "plate": 16,
+      "to": "order",
+      "slot": 0
+    },
+    {
+      "seq": 109,
+      "type": "move",
+      "id": 42,
+      "kind": 4,
+      "from": "plate",
+      "plate": 13,
+      "to": "order",
+      "slot": 0
+    },
+    {
+      "seq": 110,
+      "type": "complete",
+      "slot": 0,
+      "kind": 4,
+      "ids": [
+        18,
+        58,
+        42
+      ]
+    },
+    {
+      "seq": 111,
+      "type": "target",
+      "slot": 0,
+      "kind": 6,
+      "reason": "weighted-category",
+      "requestedGroup": 2,
+      "cost": 0,
+      "threshold": 0.4,
+      "temp": 0,
+      "candidates": [
+        {
+          "kind": 0,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 7
+        },
+        {
+          "kind": 1,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 2,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 3,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 1
+        },
+        {
+          "kind": 4,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 5,
+          "cost": 4,
+          "groups": [
+            false,
+            false,
+            false,
+            true,
+            false
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 6,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 7
+        },
+        {
+          "kind": 8,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 9,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 11,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 1
+        },
+        {
+          "kind": 12,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 13,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 1
+        },
+        {
+          "kind": 14,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 1
+        }
+      ]
+    },
+    {
+      "seq": 112,
+      "type": "move",
+      "id": 16,
+      "kind": 6,
+      "from": "plate",
+      "plate": 6,
+      "to": "order",
+      "slot": 0
+    },
+    {
+      "seq": 113,
+      "type": "plate-empty",
+      "plate": 6
+    },
+    {
+      "seq": 114,
+      "type": "spawn",
+      "plate": 23
+    },
+    {
+      "seq": 115,
+      "type": "move",
+      "id": 37,
+      "kind": 6,
+      "from": "plate",
+      "plate": 11,
+      "to": "order",
+      "slot": 0
+    },
+    {
+      "seq": 116,
+      "type": "plate-empty",
+      "plate": 11
+    },
+    {
+      "seq": 117,
+      "type": "spawn",
+      "plate": 24
+    },
+    {
+      "seq": 118,
+      "type": "move",
+      "id": 56,
+      "kind": 6,
+      "from": "plate",
+      "plate": 16,
+      "to": "order",
+      "slot": 0
+    },
+    {
+      "seq": 119,
+      "type": "plate-empty",
+      "plate": 16
+    },
+    {
+      "seq": 120,
+      "type": "complete",
+      "slot": 0,
+      "kind": 6,
+      "ids": [
+        16,
+        37,
+        56
+      ]
+    },
+    {
+      "seq": 121,
+      "type": "target",
+      "slot": 0,
+      "kind": 8,
+      "reason": "category-empty-min-cost",
+      "requestedGroup": 3,
+      "cost": 0,
+      "threshold": 0.65,
+      "temp": 0,
+      "candidates": [
+        {
+          "kind": 0,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 8
+        },
+        {
+          "kind": 1,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 2,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 3,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 1
+        },
+        {
+          "kind": 4,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 5,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 6,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 5
+        },
+        {
+          "kind": 8,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 9,
+          "cost": 4,
+          "groups": [
+            false,
+            false,
+            false,
+            true,
+            false
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 11,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 12,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 13,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 14,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 1
+        }
+      ]
+    },
+    {
+      "seq": 122,
+      "type": "move",
+      "id": 27,
+      "kind": 8,
+      "from": "plate",
+      "plate": 9,
+      "to": "order",
+      "slot": 0
+    },
+    {
+      "seq": 123,
+      "type": "move",
+      "id": 30,
+      "kind": 8,
+      "from": "plate",
+      "plate": 9,
+      "to": "order",
+      "slot": 0
+    },
+    {
+      "seq": 124,
+      "type": "plate-empty",
+      "plate": 9
+    },
+    {
+      "seq": 125,
+      "type": "move",
+      "id": 73,
+      "kind": 8,
+      "from": "plate",
+      "plate": 20,
+      "to": "order",
+      "slot": 0
+    },
+    {
+      "seq": 126,
+      "type": "complete",
+      "slot": 0,
+      "kind": 8,
+      "ids": [
+        27,
+        30,
+        73
+      ]
+    },
+    {
+      "seq": 127,
+      "type": "target",
+      "slot": 0,
+      "kind": 6,
+      "reason": "weighted-category",
+      "requestedGroup": 2,
+      "cost": 0,
+      "threshold": 0.65,
+      "temp": 0,
+      "candidates": [
+        {
+          "kind": 0,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 8
+        },
+        {
+          "kind": 1,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 2,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 3,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 1
+        },
+        {
+          "kind": 4,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 5,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 6,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 5
+        },
+        {
+          "kind": 9,
+          "cost": 4,
+          "groups": [
+            false,
+            false,
+            false,
+            true,
+            false
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 11,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 12,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 13,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 14,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 1
+        }
+      ]
+    },
+    {
+      "seq": 128,
+      "type": "move",
+      "id": 75,
+      "kind": 6,
+      "from": "plate",
+      "plate": 20,
+      "to": "order",
+      "slot": 0
+    },
+    {
+      "seq": 129,
+      "type": "plate-empty",
+      "plate": 20
+    },
+    {
+      "seq": 130,
+      "type": "move",
+      "id": 47,
+      "kind": 6,
+      "from": "plate",
+      "plate": 14,
+      "to": "order",
+      "slot": 0
+    },
+    {
+      "seq": 131,
+      "type": "move",
+      "id": 49,
+      "kind": 6,
+      "from": "plate",
+      "plate": 15,
+      "to": "order",
+      "slot": 0
+    },
+    {
+      "seq": 132,
+      "type": "complete",
+      "slot": 0,
+      "kind": 6,
+      "ids": [
+        75,
+        47,
+        49
+      ]
+    },
+    {
+      "seq": 133,
+      "type": "target",
+      "slot": 0,
+      "kind": 2,
+      "reason": "category-empty-min-cost",
+      "requestedGroup": 3,
+      "cost": 0,
+      "threshold": 0.65,
+      "temp": 0,
+      "candidates": [
+        {
+          "kind": 0,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 8
+        },
+        {
+          "kind": 1,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 2,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 3,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 1
+        },
+        {
+          "kind": 4,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 5,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 6,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 9,
+          "cost": 4,
+          "groups": [
+            false,
+            false,
+            false,
+            true,
+            false
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 11,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 12,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 13,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 14,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 1
+        }
+      ]
+    },
+    {
+      "seq": 134,
+      "type": "move",
+      "id": 88,
+      "kind": 10,
+      "from": "plate",
+      "plate": 23,
+      "to": "order",
+      "slot": 1
+    },
+    {
+      "seq": 135,
+      "type": "move",
+      "id": 63,
+      "kind": 2,
+      "from": "plate",
+      "plate": 18,
+      "to": "order",
+      "slot": 0
+    },
+    {
+      "seq": 136,
+      "type": "move",
+      "id": 64,
+      "kind": 2,
+      "from": "plate",
+      "plate": 18,
+      "to": "order",
+      "slot": 0
+    },
+    {
+      "seq": 137,
+      "type": "move",
+      "id": 65,
+      "kind": 2,
+      "from": "plate",
+      "plate": 18,
+      "to": "order",
+      "slot": 0
+    },
+    {
+      "seq": 138,
+      "type": "complete",
+      "slot": 0,
+      "kind": 2,
+      "ids": [
+        63,
+        64,
+        65
+      ]
+    },
+    {
+      "seq": 139,
+      "type": "target",
+      "slot": 0,
+      "kind": 0,
+      "reason": "category-empty-min-cost",
+      "requestedGroup": 3,
+      "cost": 0,
+      "threshold": 0.65,
+      "temp": 0,
+      "candidates": [
+        {
+          "kind": 0,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 8
+        },
+        {
+          "kind": 1,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 2,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 0
+        },
+        {
+          "kind": 3,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 1
+        },
+        {
+          "kind": 4,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 5,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 6,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 9,
+          "cost": 4,
+          "groups": [
+            false,
+            false,
+            false,
+            true,
+            false
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 11,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 12,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 13,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 14,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 1
+        }
+      ]
+    },
+    {
+      "seq": 140,
+      "type": "move",
+      "id": 24,
+      "kind": 0,
+      "from": "plate",
+      "plate": 8,
+      "to": "order",
+      "slot": 0
+    },
+    {
+      "seq": 141,
+      "type": "plate-empty",
+      "plate": 8
+    },
+    {
+      "seq": 142,
+      "type": "spawn",
+      "plate": 25
+    },
+    {
+      "seq": 143,
+      "type": "spawn",
+      "plate": 26
+    },
+    {
+      "seq": 144,
+      "type": "spawn",
+      "plate": 27
+    },
+    {
+      "seq": 145,
+      "type": "move",
+      "id": 33,
+      "kind": 0,
+      "from": "plate",
+      "plate": 10,
+      "to": "order",
+      "slot": 0
+    },
+    {
+      "seq": 146,
+      "type": "move",
+      "id": 34,
+      "kind": 0,
+      "from": "plate",
+      "plate": 10,
+      "to": "order",
+      "slot": 0
+    },
+    {
+      "seq": 147,
+      "type": "plate-empty",
+      "plate": 10
+    },
+    {
+      "seq": 148,
+      "type": "complete",
+      "slot": 0,
+      "kind": 0,
+      "ids": [
+        24,
+        33,
+        34
+      ]
+    },
+    {
+      "seq": 149,
+      "type": "target",
+      "slot": 0,
+      "kind": 3,
+      "reason": "weighted-category",
+      "requestedGroup": 3,
+      "cost": 1,
+      "threshold": 0.65,
+      "temp": 0,
+      "candidates": [
+        {
+          "kind": 0,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 6
+        },
+        {
+          "kind": 1,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 2,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 1
+        },
+        {
+          "kind": 3,
+          "cost": 1,
+          "groups": [
+            false,
+            false,
+            true,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 4,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 5,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 7
+        },
+        {
+          "kind": 6,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 9,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 11,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 12,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 13,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 14,
+          "cost": 5,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 1
+        }
+      ]
+    },
+    {
+      "seq": 150,
+      "type": "spawn",
+      "plate": 28
+    },
+    {
+      "seq": 151,
+      "type": "spawn",
+      "plate": 29
+    },
+    {
+      "seq": 152,
+      "type": "move",
+      "id": 98,
+      "kind": 3,
+      "from": "plate",
+      "plate": 26,
+      "to": "order",
+      "slot": 0
+    },
+    {
+      "seq": 153,
+      "type": "spawn",
+      "plate": 30
+    },
+    {
+      "seq": 154,
+      "type": "move",
+      "id": 102,
+      "kind": 3,
+      "from": "plate",
+      "plate": 28,
+      "to": "order",
+      "slot": 0
+    },
+    {
+      "seq": 155,
+      "type": "move",
+      "id": 103,
+      "kind": 3,
+      "from": "plate",
+      "plate": 28,
+      "to": "order",
+      "slot": 0
+    },
+    {
+      "seq": 156,
+      "type": "complete",
+      "slot": 0,
+      "kind": 3,
+      "ids": [
+        98,
+        102,
+        103
+      ]
+    },
+    {
+      "seq": 157,
+      "type": "target",
+      "slot": 0,
+      "kind": 2,
+      "reason": "weighted-category",
+      "requestedGroup": 3,
+      "cost": 2,
+      "threshold": 0.65,
+      "temp": 0,
+      "candidates": [
+        {
+          "kind": 0,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 9
+        },
+        {
+          "kind": 1,
+          "cost": 1,
+          "groups": [
+            false,
+            false,
+            true,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 2,
+          "cost": 2,
+          "groups": [
+            false,
+            false,
+            true,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 3,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 4,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 4
+        },
+        {
+          "kind": 5,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 7
+        },
+        {
+          "kind": 6,
+          "cost": 4,
+          "groups": [
+            false,
+            false,
+            false,
+            true,
+            false
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 9,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 11,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 12,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 13,
+          "cost": 3,
+          "groups": [
+            false,
+            false,
+            true,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 14,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        }
+      ]
+    },
+    {
+      "seq": 158,
+      "type": "move",
+      "id": 101,
+      "kind": 2,
+      "from": "plate",
+      "plate": 27,
+      "to": "order",
+      "slot": 0
+    },
+    {
+      "seq": 159,
+      "type": "move",
+      "id": 112,
+      "kind": 2,
+      "from": "plate",
+      "plate": 30,
+      "to": "order",
+      "slot": 0
+    },
+    {
+      "seq": 160,
+      "type": "move",
+      "id": 76,
+      "kind": 10,
+      "from": "plate",
+      "plate": 21,
+      "to": "order",
+      "slot": 1
+    },
+    {
+      "seq": 161,
+      "type": "move",
+      "id": 77,
+      "kind": 10,
+      "from": "plate",
+      "plate": 21,
+      "to": "order",
+      "slot": 1
+    },
+    {
+      "seq": 162,
+      "type": "complete",
+      "slot": 1,
+      "kind": 10,
+      "ids": [
+        88,
+        76,
+        77
+      ]
+    },
+    {
+      "seq": 163,
+      "type": "target",
+      "slot": 1,
+      "kind": 10,
+      "reason": "weighted-category",
+      "requestedGroup": 3,
+      "cost": 1,
+      "threshold": 0.65,
+      "temp": 0,
+      "candidates": [
+        {
+          "kind": 0,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 9
+        },
+        {
+          "kind": 1,
+          "cost": 1,
+          "groups": [
+            false,
+            false,
+            true,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 3,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 4,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 4
+        },
+        {
+          "kind": 5,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 7
+        },
+        {
+          "kind": 6,
+          "cost": 4,
+          "groups": [
+            false,
+            false,
+            false,
+            true,
+            false
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 9,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 10,
+          "cost": 1,
+          "groups": [
+            false,
+            false,
+            true,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 11,
+          "cost": 6,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 12,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 13,
+          "cost": 3,
+          "groups": [
+            false,
+            false,
+            true,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 14,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        }
+      ]
+    },
+    {
+      "seq": 164,
+      "type": "move",
+      "id": 83,
+      "kind": 10,
+      "from": "plate",
+      "plate": 22,
+      "to": "order",
+      "slot": 1
+    },
+    {
+      "seq": 165,
+      "type": "move",
+      "id": 95,
+      "kind": 10,
+      "from": "plate",
+      "plate": 25,
+      "to": "order",
+      "slot": 1
+    },
+    {
+      "seq": 166,
+      "type": "move",
+      "id": 38,
+      "kind": 11,
+      "from": "plate",
+      "plate": 12,
+      "to": "buffer",
+      "slot": 0
+    },
+    {
+      "seq": 167,
+      "type": "plate-empty",
+      "plate": 12
+    },
+    {
+      "seq": 168,
+      "type": "move",
+      "id": 61,
+      "kind": 9,
+      "from": "plate",
+      "plate": 17,
+      "to": "buffer",
+      "slot": 1
+    },
+    {
+      "seq": 169,
+      "type": "plate-empty",
+      "plate": 17
+    },
+    {
+      "seq": 170,
+      "type": "move",
+      "id": 100,
+      "kind": 0,
+      "from": "plate",
+      "plate": 27,
+      "to": "buffer",
+      "slot": 2
+    },
+    {
+      "seq": 171,
+      "type": "plate-empty",
+      "plate": 27
+    },
+    {
+      "seq": 172,
+      "type": "spawn",
+      "plate": 31
+    },
+    {
+      "seq": 173,
+      "type": "spawn",
+      "plate": 32
+    },
+    {
+      "seq": 174,
+      "type": "move",
+      "id": 114,
+      "kind": 10,
+      "from": "plate",
+      "plate": 31,
+      "to": "order",
+      "slot": 1
+    },
+    {
+      "seq": 175,
+      "type": "complete",
+      "slot": 1,
+      "kind": 10,
+      "ids": [
+        83,
+        95,
+        114
+      ]
+    },
+    {
+      "seq": 176,
+      "type": "target",
+      "slot": 1,
+      "kind": 11,
+      "reason": "weighted-category",
+      "requestedGroup": 4,
+      "cost": 1,
+      "threshold": 0.65,
+      "temp": 3,
+      "candidates": [
+        {
+          "kind": 0,
+          "cost": -1,
+          "groups": [
+            true,
+            false,
+            false,
+            false,
+            false
+          ],
+          "buffer": 1,
+          "active": 8
+        },
+        {
+          "kind": 1,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 3,
+          "cost": 3,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 4,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 5
+        },
+        {
+          "kind": 5,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 8
+        },
+        {
+          "kind": 6,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 9,
+          "cost": -1,
+          "groups": [
+            true,
+            false,
+            false,
+            false,
+            false
+          ],
+          "buffer": 1,
+          "active": 2
+        },
+        {
+          "kind": 11,
+          "cost": 1,
+          "groups": [
+            false,
+            false,
+            false,
+            true,
+            false
+          ],
+          "buffer": 1,
+          "active": 1
+        },
+        {
+          "kind": 12,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 13,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 14,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        }
+      ]
+    },
+    {
+      "seq": 177,
+      "type": "move",
+      "id": 38,
+      "kind": 11,
+      "from": "buffer",
+      "fromSlot": 0,
+      "to": "order",
+      "slot": 1
+    },
+    {
+      "seq": 178,
+      "type": "move",
+      "id": 89,
+      "kind": 11,
+      "from": "plate",
+      "plate": 24,
+      "to": "order",
+      "slot": 1
+    },
+    {
+      "seq": 179,
+      "type": "move",
+      "id": 115,
+      "kind": 2,
+      "from": "plate",
+      "plate": 31,
+      "to": "order",
+      "slot": 0
+    },
+    {
+      "seq": 180,
+      "type": "complete",
+      "slot": 0,
+      "kind": 2,
+      "ids": [
+        101,
+        112,
+        115
+      ]
+    },
+    {
+      "seq": 181,
+      "type": "target",
+      "slot": 0,
+      "kind": 0,
+      "reason": "weighted-category",
+      "requestedGroup": 1,
+      "cost": -1,
+      "threshold": 0.65,
+      "temp": 2,
+      "candidates": [
+        {
+          "kind": 0,
+          "cost": -1,
+          "groups": [
+            true,
+            false,
+            false,
+            false,
+            false
+          ],
+          "buffer": 1,
+          "active": 8
+        },
+        {
+          "kind": 1,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 3,
+          "cost": 3,
+          "groups": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 4,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 5
+        },
+        {
+          "kind": 5,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 8
+        },
+        {
+          "kind": 6,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 9,
+          "cost": -1,
+          "groups": [
+            true,
+            false,
+            false,
+            false,
+            false
+          ],
+          "buffer": 1,
+          "active": 2
+        },
+        {
+          "kind": 12,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 13,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 14,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        }
+      ]
+    },
+    {
+      "seq": 182,
+      "type": "move",
+      "id": 100,
+      "kind": 0,
+      "from": "buffer",
+      "fromSlot": 2,
+      "to": "order",
+      "slot": 0
+    },
+    {
+      "seq": 183,
+      "type": "move",
+      "id": 53,
+      "kind": 0,
+      "from": "plate",
+      "plate": 15,
+      "to": "order",
+      "slot": 0
+    },
+    {
+      "seq": 184,
+      "type": "move",
+      "id": 91,
+      "kind": 0,
+      "from": "plate",
+      "plate": 24,
+      "to": "order",
+      "slot": 0
+    },
+    {
+      "seq": 185,
+      "type": "complete",
+      "slot": 0,
+      "kind": 0,
+      "ids": [
+        100,
+        53,
+        91
+      ]
+    },
+    {
+      "seq": 186,
+      "type": "target",
+      "slot": 0,
+      "kind": 9,
+      "reason": "category-empty-min-cost",
+      "requestedGroup": 3,
+      "cost": -1,
+      "threshold": 0.85,
+      "temp": 1,
+      "candidates": [
+        {
+          "kind": 0,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 6
+        },
+        {
+          "kind": 1,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 3,
+          "cost": 3,
+          "groups": [
+            false,
+            false,
+            false,
+            true,
+            false
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 4,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 5
+        },
+        {
+          "kind": 5,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 8
+        },
+        {
+          "kind": 6,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 9,
+          "cost": -1,
+          "groups": [
+            true,
+            false,
+            false,
+            false,
+            false
+          ],
+          "buffer": 1,
+          "active": 2
+        },
+        {
+          "kind": 12,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 13,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 14,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        }
+      ]
+    },
+    {
+      "seq": 187,
+      "type": "move",
+      "id": 61,
+      "kind": 9,
+      "from": "buffer",
+      "fromSlot": 1,
+      "to": "order",
+      "slot": 0
+    },
+    {
+      "seq": 188,
+      "type": "move",
+      "id": 79,
+      "kind": 9,
+      "from": "plate",
+      "plate": 21,
+      "to": "order",
+      "slot": 0
+    },
+    {
+      "seq": 189,
+      "type": "move",
+      "id": 96,
+      "kind": 9,
+      "from": "plate",
+      "plate": 25,
+      "to": "order",
+      "slot": 0
+    },
+    {
+      "seq": 190,
+      "type": "complete",
+      "slot": 0,
+      "kind": 9,
+      "ids": [
+        61,
+        79,
+        96
+      ]
+    },
+    {
+      "seq": 191,
+      "type": "target",
+      "slot": 0,
+      "kind": 3,
+      "reason": "weighted-category",
+      "requestedGroup": 3,
+      "cost": 3,
+      "threshold": 0.85,
+      "temp": 0,
+      "candidates": [
+        {
+          "kind": 0,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 6
+        },
+        {
+          "kind": 1,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 3,
+          "cost": 3,
+          "groups": [
+            false,
+            false,
+            true,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 2
+        },
+        {
+          "kind": 4,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 5
+        },
+        {
+          "kind": 5,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 8
+        },
+        {
+          "kind": 6,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 12,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 13,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 14,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        }
+      ]
+    },
+    {
+      "seq": 192,
+      "type": "move",
+      "id": 82,
+      "kind": 3,
+      "from": "plate",
+      "plate": 22,
+      "to": "order",
+      "slot": 0
+    },
+    {
+      "seq": 193,
+      "type": "move",
+      "id": 107,
+      "kind": 3,
+      "from": "plate",
+      "plate": 29,
+      "to": "order",
+      "slot": 0
+    },
+    {
+      "seq": 194,
+      "type": "move",
+      "id": 50,
+      "kind": 6,
+      "from": "plate",
+      "plate": 15,
+      "to": "buffer",
+      "slot": 0
+    },
+    {
+      "seq": 195,
+      "type": "plate-empty",
+      "plate": 15
+    },
+    {
+      "seq": 196,
+      "type": "spawn",
+      "plate": 33
+    },
+    {
+      "seq": 197,
+      "type": "move",
+      "id": 121,
+      "kind": 11,
+      "from": "plate",
+      "plate": 33,
+      "to": "order",
+      "slot": 1
+    },
+    {
+      "seq": 198,
+      "type": "complete",
+      "slot": 1,
+      "kind": 11,
+      "ids": [
+        38,
+        89,
+        121
+      ]
+    },
+    {
+      "seq": 199,
+      "type": "target",
+      "slot": 1,
+      "kind": 6,
+      "reason": "category-empty-min-cost",
+      "requestedGroup": 3,
+      "cost": -1,
+      "threshold": 0.85,
+      "temp": 1,
+      "candidates": [
+        {
+          "kind": 0,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 6
+        },
+        {
+          "kind": 1,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 4,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 6
+        },
+        {
+          "kind": 5,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 9
+        },
+        {
+          "kind": 6,
+          "cost": -1,
+          "groups": [
+            true,
+            false,
+            false,
+            false,
+            false
+          ],
+          "buffer": 1,
+          "active": 2
+        },
+        {
+          "kind": 12,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 13,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 14,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        }
+      ]
+    },
+    {
+      "seq": 200,
+      "type": "move",
+      "id": 50,
+      "kind": 6,
+      "from": "buffer",
+      "fromSlot": 0,
+      "to": "order",
+      "slot": 1
+    },
+    {
+      "seq": 201,
+      "type": "move",
+      "id": 86,
+      "kind": 6,
+      "from": "plate",
+      "plate": 23,
+      "to": "order",
+      "slot": 1
+    },
+    {
+      "seq": 202,
+      "type": "move",
+      "id": 117,
+      "kind": 6,
+      "from": "plate",
+      "plate": 32,
+      "to": "order",
+      "slot": 1
+    },
+    {
+      "seq": 203,
+      "type": "complete",
+      "slot": 1,
+      "kind": 6,
+      "ids": [
+        50,
+        86,
+        117
+      ]
+    },
+    {
+      "seq": 204,
+      "type": "target",
+      "slot": 1,
+      "kind": 0,
+      "reason": "category-empty-min-cost",
+      "requestedGroup": 3,
+      "cost": 0,
+      "threshold": 0.85,
+      "temp": 0,
+      "candidates": [
+        {
+          "kind": 0,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 6
+        },
+        {
+          "kind": 1,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 4,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 6
+        },
+        {
+          "kind": 5,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 9
+        },
+        {
+          "kind": 12,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 13,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 14,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        }
+      ]
+    },
+    {
+      "seq": 205,
+      "type": "move",
+      "id": 81,
+      "kind": 0,
+      "from": "plate",
+      "plate": 22,
+      "to": "order",
+      "slot": 1
+    },
+    {
+      "seq": 206,
+      "type": "move",
+      "id": 106,
+      "kind": 0,
+      "from": "plate",
+      "plate": 29,
+      "to": "order",
+      "slot": 1
+    },
+    {
+      "seq": 207,
+      "type": "move",
+      "id": 109,
+      "kind": 0,
+      "from": "plate",
+      "plate": 30,
+      "to": "order",
+      "slot": 1
+    },
+    {
+      "seq": 208,
+      "type": "complete",
+      "slot": 1,
+      "kind": 0,
+      "ids": [
+        81,
+        106,
+        109
+      ]
+    },
+    {
+      "seq": 209,
+      "type": "target",
+      "slot": 1,
+      "kind": 12,
+      "reason": "weighted-category",
+      "requestedGroup": 2,
+      "cost": 0,
+      "threshold": 0.85,
+      "temp": 0,
+      "candidates": [
+        {
+          "kind": 0,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 1,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 4,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 6
+        },
+        {
+          "kind": 5,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 9
+        },
+        {
+          "kind": 12,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 13,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 14,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        }
+      ]
+    },
+    {
+      "seq": 210,
+      "type": "move",
+      "id": 45,
+      "kind": 12,
+      "from": "plate",
+      "plate": 14,
+      "to": "order",
+      "slot": 1
+    },
+    {
+      "seq": 211,
+      "type": "move",
+      "id": 46,
+      "kind": 12,
+      "from": "plate",
+      "plate": 14,
+      "to": "order",
+      "slot": 1
+    },
+    {
+      "seq": 212,
+      "type": "plate-empty",
+      "plate": 14
+    },
+    {
+      "seq": 213,
+      "type": "move",
+      "id": 111,
+      "kind": 12,
+      "from": "plate",
+      "plate": 30,
+      "to": "order",
+      "slot": 1
+    },
+    {
+      "seq": 214,
+      "type": "complete",
+      "slot": 1,
+      "kind": 12,
+      "ids": [
+        45,
+        46,
+        111
+      ]
+    },
+    {
+      "seq": 215,
+      "type": "target",
+      "slot": 1,
+      "kind": 13,
+      "reason": "category-empty-min-cost",
+      "requestedGroup": 3,
+      "cost": 0,
+      "threshold": 0.85,
+      "temp": 0,
+      "candidates": [
+        {
+          "kind": 0,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 1,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 4,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 6
+        },
+        {
+          "kind": 5,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 9
+        },
+        {
+          "kind": 13,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 14,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        }
+      ]
+    },
+    {
+      "seq": 216,
+      "type": "move",
+      "id": 87,
+      "kind": 13,
+      "from": "plate",
+      "plate": 23,
+      "to": "order",
+      "slot": 1
+    },
+    {
+      "seq": 217,
+      "type": "plate-empty",
+      "plate": 23
+    },
+    {
+      "seq": 218,
+      "type": "move",
+      "id": 80,
+      "kind": 13,
+      "from": "plate",
+      "plate": 21,
+      "to": "order",
+      "slot": 1
+    },
+    {
+      "seq": 219,
+      "type": "move",
+      "id": 116,
+      "kind": 13,
+      "from": "plate",
+      "plate": 31,
+      "to": "order",
+      "slot": 1
+    },
+    {
+      "seq": 220,
+      "type": "complete",
+      "slot": 1,
+      "kind": 13,
+      "ids": [
+        87,
+        80,
+        116
+      ]
+    },
+    {
+      "seq": 221,
+      "type": "target",
+      "slot": 1,
+      "kind": 1,
+      "reason": "category-empty-min-cost",
+      "requestedGroup": 3,
+      "cost": 0,
+      "threshold": 0.85,
+      "temp": 0,
+      "candidates": [
+        {
+          "kind": 0,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 1,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 4,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 6
+        },
+        {
+          "kind": 5,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 9
+        },
+        {
+          "kind": 14,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        }
+      ]
+    },
+    {
+      "seq": 222,
+      "type": "move",
+      "id": 78,
+      "kind": 1,
+      "from": "plate",
+      "plate": 21,
+      "to": "order",
+      "slot": 1
+    },
+    {
+      "seq": 223,
+      "type": "plate-empty",
+      "plate": 21
+    },
+    {
+      "seq": 224,
+      "type": "move",
+      "id": 113,
+      "kind": 1,
+      "from": "plate",
+      "plate": 31,
+      "to": "order",
+      "slot": 1
+    },
+    {
+      "seq": 225,
+      "type": "plate-empty",
+      "plate": 31
+    },
+    {
+      "seq": 226,
+      "type": "move",
+      "id": 66,
+      "kind": 1,
+      "from": "plate",
+      "plate": 18,
+      "to": "order",
+      "slot": 1
+    },
+    {
+      "seq": 227,
+      "type": "complete",
+      "slot": 1,
+      "kind": 1,
+      "ids": [
+        78,
+        113,
+        66
+      ]
+    },
+    {
+      "seq": 228,
+      "type": "target",
+      "slot": 1,
+      "kind": 14,
+      "reason": "weighted-category",
+      "requestedGroup": 2,
+      "cost": 0,
+      "threshold": 0.85,
+      "temp": 0,
+      "candidates": [
+        {
+          "kind": 0,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 4,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 6
+        },
+        {
+          "kind": 5,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 9
+        },
+        {
+          "kind": 14,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        }
+      ]
+    },
+    {
+      "seq": 229,
+      "type": "move",
+      "id": 104,
+      "kind": 14,
+      "from": "plate",
+      "plate": 28,
+      "to": "order",
+      "slot": 1
+    },
+    {
+      "seq": 230,
+      "type": "plate-empty",
+      "plate": 28
+    },
+    {
+      "seq": 231,
+      "type": "move",
+      "id": 85,
+      "kind": 14,
+      "from": "plate",
+      "plate": 22,
+      "to": "order",
+      "slot": 1
+    },
+    {
+      "seq": 232,
+      "type": "move",
+      "id": 108,
+      "kind": 14,
+      "from": "plate",
+      "plate": 29,
+      "to": "order",
+      "slot": 1
+    },
+    {
+      "seq": 233,
+      "type": "complete",
+      "slot": 1,
+      "kind": 14,
+      "ids": [
+        104,
+        85,
+        108
+      ]
+    },
+    {
+      "seq": 234,
+      "type": "target",
+      "slot": 1,
+      "kind": 5,
+      "reason": "category-empty-min-cost",
+      "requestedGroup": 3,
+      "cost": 0,
+      "threshold": 0.85,
+      "temp": 0,
+      "candidates": [
+        {
+          "kind": 0,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 4,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 6
+        },
+        {
+          "kind": 5,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 9
+        }
+      ]
+    },
+    {
+      "seq": 235,
+      "type": "move",
+      "id": 67,
+      "kind": 5,
+      "from": "plate",
+      "plate": 18,
+      "to": "order",
+      "slot": 1
+    },
+    {
+      "seq": 236,
+      "type": "plate-empty",
+      "plate": 18
+    },
+    {
+      "seq": 237,
+      "type": "move",
+      "id": 90,
+      "kind": 5,
+      "from": "plate",
+      "plate": 24,
+      "to": "order",
+      "slot": 1
+    },
+    {
+      "seq": 238,
+      "type": "plate-empty",
+      "plate": 24
+    },
+    {
+      "seq": 239,
+      "type": "move",
+      "id": 97,
+      "kind": 5,
+      "from": "plate",
+      "plate": 26,
+      "to": "order",
+      "slot": 1
+    },
+    {
+      "seq": 240,
+      "type": "complete",
+      "slot": 1,
+      "kind": 5,
+      "ids": [
+        67,
+        90,
+        97
+      ]
+    },
+    {
+      "seq": 241,
+      "type": "target",
+      "slot": 1,
+      "kind": 4,
+      "reason": "category-empty-min-cost",
+      "requestedGroup": 3,
+      "cost": 0,
+      "threshold": 1,
+      "temp": 0,
+      "candidates": [
+        {
+          "kind": 0,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 4,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 6
+        },
+        {
+          "kind": 5,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 6
+        }
+      ]
+    },
+    {
+      "seq": 242,
+      "type": "move",
+      "id": 84,
+      "kind": 4,
+      "from": "plate",
+      "plate": 22,
+      "to": "order",
+      "slot": 1
+    },
+    {
+      "seq": 243,
+      "type": "plate-empty",
+      "plate": 22
+    },
+    {
+      "seq": 244,
+      "type": "move",
+      "id": 99,
+      "kind": 4,
+      "from": "plate",
+      "plate": 26,
+      "to": "order",
+      "slot": 1
+    },
+    {
+      "seq": 245,
+      "type": "plate-empty",
+      "plate": 26
+    },
+    {
+      "seq": 246,
+      "type": "move",
+      "id": 105,
+      "kind": 4,
+      "from": "plate",
+      "plate": 29,
+      "to": "order",
+      "slot": 1
+    },
+    {
+      "seq": 247,
+      "type": "plate-empty",
+      "plate": 29
+    },
+    {
+      "seq": 248,
+      "type": "complete",
+      "slot": 1,
+      "kind": 4,
+      "ids": [
+        84,
+        99,
+        105
+      ]
+    },
+    {
+      "seq": 249,
+      "type": "target",
+      "slot": 1,
+      "kind": 0,
+      "reason": "category-empty-min-cost",
+      "requestedGroup": 3,
+      "cost": 0,
+      "threshold": 1,
+      "temp": 0,
+      "candidates": [
+        {
+          "kind": 0,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 4,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 5,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 6
+        }
+      ]
+    },
+    {
+      "seq": 250,
+      "type": "move",
+      "id": 110,
+      "kind": 0,
+      "from": "plate",
+      "plate": 30,
+      "to": "order",
+      "slot": 1
+    },
+    {
+      "seq": 251,
+      "type": "plate-empty",
+      "plate": 30
+    },
+    {
+      "seq": 252,
+      "type": "move",
+      "id": 123,
+      "kind": 3,
+      "from": "plate",
+      "plate": 33,
+      "to": "order",
+      "slot": 0
+    },
+    {
+      "seq": 253,
+      "type": "complete",
+      "slot": 0,
+      "kind": 3,
+      "ids": [
+        82,
+        107,
+        123
+      ]
+    },
+    {
+      "seq": 254,
+      "type": "target",
+      "slot": 0,
+      "kind": 5,
+      "reason": "weighted-category",
+      "requestedGroup": 2,
+      "cost": 0,
+      "threshold": 1,
+      "temp": 0,
+      "candidates": [
+        {
+          "kind": 4,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 5,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 6
+        }
+      ]
+    },
+    {
+      "seq": 255,
+      "type": "move",
+      "id": 118,
+      "kind": 5,
+      "from": "plate",
+      "plate": 32,
+      "to": "order",
+      "slot": 0
+    },
+    {
+      "seq": 256,
+      "type": "move",
+      "id": 122,
+      "kind": 5,
+      "from": "plate",
+      "plate": 33,
+      "to": "order",
+      "slot": 0
+    },
+    {
+      "seq": 257,
+      "type": "move",
+      "id": 92,
+      "kind": 5,
+      "from": "plate",
+      "plate": 25,
+      "to": "order",
+      "slot": 0
+    },
+    {
+      "seq": 258,
+      "type": "complete",
+      "slot": 0,
+      "kind": 5,
+      "ids": [
+        118,
+        122,
+        92
+      ]
+    },
+    {
+      "seq": 259,
+      "type": "target",
+      "slot": 0,
+      "kind": 4,
+      "reason": "weighted-category",
+      "requestedGroup": 2,
+      "cost": 0,
+      "threshold": 1,
+      "temp": 0,
+      "candidates": [
+        {
+          "kind": 4,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        },
+        {
+          "kind": 5,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        }
+      ]
+    },
+    {
+      "seq": 260,
+      "type": "move",
+      "id": 119,
+      "kind": 4,
+      "from": "plate",
+      "plate": 32,
+      "to": "order",
+      "slot": 0
+    },
+    {
+      "seq": 261,
+      "type": "plate-empty",
+      "plate": 32
+    },
+    {
+      "seq": 262,
+      "type": "move",
+      "id": 120,
+      "kind": 4,
+      "from": "plate",
+      "plate": 33,
+      "to": "order",
+      "slot": 0
+    },
+    {
+      "seq": 263,
+      "type": "plate-empty",
+      "plate": 33
+    },
+    {
+      "seq": 264,
+      "type": "move",
+      "id": 40,
+      "kind": 0,
+      "from": "plate",
+      "plate": 13,
+      "to": "order",
+      "slot": 1
+    },
+    {
+      "seq": 265,
+      "type": "move",
+      "id": 41,
+      "kind": 0,
+      "from": "plate",
+      "plate": 13,
+      "to": "order",
+      "slot": 1
+    },
+    {
+      "seq": 266,
+      "type": "complete",
+      "slot": 1,
+      "kind": 0,
+      "ids": [
+        110,
+        40,
+        41
+      ]
+    },
+    {
+      "seq": 267,
+      "type": "target",
+      "slot": 1,
+      "kind": 5,
+      "reason": "category-empty-min-cost",
+      "requestedGroup": 3,
+      "cost": 0,
+      "threshold": 1,
+      "temp": 0,
+      "candidates": [
+        {
+          "kind": 5,
+          "cost": 0,
+          "groups": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "buffer": 0,
+          "active": 3
+        }
+      ]
+    },
+    {
+      "seq": 268,
+      "type": "move",
+      "id": 43,
+      "kind": 4,
+      "from": "plate",
+      "plate": 13,
+      "to": "order",
+      "slot": 0
+    },
+    {
+      "seq": 269,
+      "type": "complete",
+      "slot": 0,
+      "kind": 4,
+      "ids": [
+        119,
+        120,
+        43
+      ]
+    },
+    {
+      "seq": 270,
+      "type": "target",
+      "slot": 0,
+      "kind": -1,
+      "reason": "no-unreserved-triple"
+    },
+    {
+      "seq": 271,
+      "type": "move",
+      "id": 44,
+      "kind": 5,
+      "from": "plate",
+      "plate": 13,
+      "to": "order",
+      "slot": 1
+    },
+    {
+      "seq": 272,
+      "type": "plate-empty",
+      "plate": 13
+    },
+    {
+      "seq": 273,
+      "type": "move",
+      "id": 93,
+      "kind": 5,
+      "from": "plate",
+      "plate": 25,
+      "to": "order",
+      "slot": 1
+    },
+    {
+      "seq": 274,
+      "type": "move",
+      "id": 94,
+      "kind": 5,
+      "from": "plate",
+      "plate": 25,
+      "to": "order",
+      "slot": 1
+    },
+    {
+      "seq": 275,
+      "type": "plate-empty",
+      "plate": 25
+    },
+    {
+      "seq": 276,
+      "type": "complete",
+      "slot": 1,
+      "kind": 5,
+      "ids": [
+        44,
+        93,
+        94
+      ]
+    },
+    {
+      "seq": 277,
+      "type": "target",
+      "slot": 1,
+      "kind": -1,
+      "reason": "no-unreserved-triple"
+    },
+    {
+      "seq": 278,
+      "type": "won",
+      "moves": 123
+    }
+  ],
+  "physics": {
+    "note": "Final positions only; command replay is logic-only, not a timed physics replay.",
+    "steps": 20406,
+    "bodies": []
+  }
+}

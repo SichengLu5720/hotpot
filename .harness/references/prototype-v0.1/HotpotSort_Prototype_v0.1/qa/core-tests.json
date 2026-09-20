@@ -1,0 +1,234 @@
+{
+  "runtime": "v22.16.0",
+  "passed": 29,
+  "failed": 0,
+  "results": [
+    {
+      "name": "data: A/B/C/P cardinalities and 3-divisible species",
+      "passed": true
+    },
+    {
+      "name": "opening: A→A,F; B→A,G; C→C,H; P→A,B",
+      "passed": true
+    },
+    {
+      "name": "invalid schema/unknown level/invalid plate/unbalanced counts rejected",
+      "passed": true
+    },
+    {
+      "name": "capacity: exactly 5 buffer, 2 active targets, 4 target positions",
+      "passed": true
+    },
+    {
+      "name": "spawn FIFO and no entire-board instantiation in constructor",
+      "passed": true
+    },
+    {
+      "name": "input: unspawned token rejected without state mutation",
+      "passed": true
+    },
+    {
+      "name": "matching token enters order rather than buffer",
+      "passed": true
+    },
+    {
+      "name": "unmatched token enters first free buffer cell",
+      "passed": true
+    },
+    {
+      "name": "duplicate click cannot duplicate a token",
+      "passed": true
+    },
+    {
+      "name": "plate item slots remain stable after removal",
+      "passed": true
+    },
+    {
+      "name": "empty plate recycled independently",
+      "passed": true
+    },
+    {
+      "name": "closest-to-full target wins even when not first slot",
+      "passed": true
+    },
+    {
+      "name": "refill automatically absorbs matching buffered item",
+      "passed": true
+    },
+    {
+      "name": "buffered triple can cause multi-order cascade",
+      "passed": true
+    },
+    {
+      "name": "default fifth buffer token causes failure after settlement",
+      "passed": true
+    },
+    {
+      "name": "alternative overflow policy keeps fifth token; sixth attempt loses without removing it",
+      "passed": true
+    },
+    {
+      "name": "winning is not triggered while pending supply remains",
+      "passed": true
+    },
+    {
+      "name": "one-species tail closes unused order rather than creating impossible demand",
+      "passed": true
+    },
+    {
+      "name": "xorshift32 known vector / separate seed repeatability",
+      "passed": true
+    },
+    {
+      "name": "difficulty: 60 normalized rows; explicit early temp weights",
+      "passed": true
+    },
+    {
+      "name": "all-visible logical completion across 80 level/seed cases",
+      "passed": true
+    },
+    {
+      "name": "replay exactly reproduces logical state / invalid version rejected",
+      "passed": true
+    },
+    {
+      "name": "fuzz: conservation and valid commitments across 180 seeded games",
+      "passed": true
+    },
+    {
+      "name": "logs include candidate, chosen category and fallback reason",
+      "passed": true
+    },
+    {
+      "name": "physics: finite fixed-step states and bounded initial supply",
+      "passed": true
+    },
+    {
+      "name": "height gate blocks supply; scene does not enforce a hard count limit",
+      "passed": true
+    },
+    {
+      "name": "hit-test: token position, outside board, and removed token",
+      "passed": true
+    },
+    {
+      "name": "physics does not continue after terminal state",
+      "passed": true
+    },
+    {
+      "name": "physical greedy smoke: normal gated supply and actual hit tests, 12 runs",
+      "passed": true
+    }
+  ],
+  "physicalRuns": [
+    {
+      "level": "A",
+      "seed": 7,
+      "status": "won",
+      "completed": 123,
+      "total": 123,
+      "bufferClicks": 4,
+      "maxBuffer": 3
+    },
+    {
+      "level": "A",
+      "seed": 13,
+      "status": "won",
+      "completed": 123,
+      "total": 123,
+      "bufferClicks": 0,
+      "maxBuffer": 0
+    },
+    {
+      "level": "A",
+      "seed": 19,
+      "status": "won",
+      "completed": 123,
+      "total": 123,
+      "bufferClicks": 1,
+      "maxBuffer": 1
+    },
+    {
+      "level": "B",
+      "seed": 7,
+      "status": "won",
+      "completed": 162,
+      "total": 162,
+      "bufferClicks": 4,
+      "maxBuffer": 3
+    },
+    {
+      "level": "B",
+      "seed": 13,
+      "status": "won",
+      "completed": 162,
+      "total": 162,
+      "bufferClicks": 4,
+      "maxBuffer": 3
+    },
+    {
+      "level": "B",
+      "seed": 19,
+      "status": "won",
+      "completed": 162,
+      "total": 162,
+      "bufferClicks": 6,
+      "maxBuffer": 3
+    },
+    {
+      "level": "C",
+      "seed": 7,
+      "status": "won",
+      "completed": 183,
+      "total": 183,
+      "bufferClicks": 3,
+      "maxBuffer": 2
+    },
+    {
+      "level": "C",
+      "seed": 13,
+      "status": "won",
+      "completed": 183,
+      "total": 183,
+      "bufferClicks": 0,
+      "maxBuffer": 0
+    },
+    {
+      "level": "C",
+      "seed": 19,
+      "status": "won",
+      "completed": 183,
+      "total": 183,
+      "bufferClicks": 1,
+      "maxBuffer": 1
+    },
+    {
+      "level": "P",
+      "seed": 7,
+      "status": "won",
+      "completed": 27,
+      "total": 27,
+      "bufferClicks": 0,
+      "maxBuffer": 0
+    },
+    {
+      "level": "P",
+      "seed": 13,
+      "status": "won",
+      "completed": 27,
+      "total": 27,
+      "bufferClicks": 0,
+      "maxBuffer": 0
+    },
+    {
+      "level": "P",
+      "seed": 19,
+      "status": "won",
+      "completed": 27,
+      "total": 27,
+      "bufferClicks": 0,
+      "maxBuffer": 0
+    }
+  ],
+  "scope": "JavaScript model and custom circle simulation only. Does not execute Unity/C# and is not a solvability proof."
+}
