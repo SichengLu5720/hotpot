@@ -1,143 +1,337 @@
-# GameDev Harness 1.1
+# GameDev Harness v0.6
 
-一个本地、文档驱动的游戏开发交接工具包。它不包含游戏源码、模型服务、无人值守宿主适配或真实游戏测试。
+这是一个可以直接复制到游戏项目根目录的 **Codex 原生、单 Task、轻量多 Agent Harness**。
 
-低算力 PM Coordinator 是唯一常驻入口；Requirement Analyst 只在新需求、真实歧义或产品定义变化时按需运行，返回后结束。Designer 在正式交付时确定 QA 计划、用例、断言和接口需求；同一个 Code Builder 严格按固定计划复用/编写可执行测试脚本；普通 Runner 执行；QA Reporter 按需只读总结。一个常驻 PM + 四个按需核心子代理 + 可选 Reporter，没有 Workflow Monitor 或新增工作模式。
+v0.6 的重点不是增加更多文件，而是把前几版收敛成一条可实际运行的开发链路：
 
-PM 主会话是唯一用户入口和合同写入者，但不承担重需求推理，也不在每轮对话重复唤起 Analyst。新需求先登记全部文档、聊天、纪要、截图说明和补充材料，再按需派发只读 Requirement Analyst 形成背景、价值、用户、场景、状态、边界、多义解释、产品方案比较和待确认问题；Agent 交接后结束。PM 确认后再写机器合同并进入技术／视觉／实现流程。推断不能冒充用户决定，产品分析也不提前代写技术方案。
-
-## 安装 / 升级
-
-需要 Python **3.11+**、Git，以及能够加载项目 Agent TOML 的宿主。Harness 命令只用 Python 标准库；随包提供 Windows 原生看板 EXE，不需要 Web 服务、浏览器、npm、pip 或 Playwright。
-
-先保存自己的修改并在独立分支/工作区升级。本包的 AGENTS、docs、tasks、versions 与项目已有文件应合并，不能整目录覆盖已有业务资料。已经配置的工具/模型/用户审批不能因升级而丢弃。
-
-从未定制 v1.0 可用提供的升级补丁，在项目根先 `git apply --check` 再 `git apply`。定制项目先审阅 diff。升级后旧 release 记录不自动继承 Builder 制作的 plan：应停止旧派发并重新 `release prepare`，由 Designer 固定新 QA Plan，再由 Builder 提交 execution。原有独立 `harness_gate.py`、`harness_workflow.py`、`harness_workspace.py`、Workflow Monitor、Release QA Builder 配置仍应移除，避免双入口/旧角色继续派发。
-
-活动 Task 需要人工迁移到新结构，不自动把旧审批、epoch、QA_SPEC 变成新授权。先停止所有旧派发并确认停止，再创建新的隔离工作区，把确认后的 QA 意图、接口/资产合同录入；旧文件作为历史保留，不能直接运行。每个活动 worktree 单独升级；主仓库升级不等于全部工作区升级。
-
-项目引擎测试框架、图像生成工具、接口/MCP、可运行构建由真实项目提供，本包不伪造这些能力。
-
-## 快速使用
-
-命令从项目根执行；外部运行加 `--repo /absolute/worktree`（放在子命令前）。工具帮助：
-
-```bash
-python tools/harness.py --help
-python tools/harness.py workflow-table
-python tools/harness.py models show
+```text
+你 ↔ PM 主线程
+      ↓
+Requirement Interview / Draft Task
+      ↓
+HC-01 Requirement Freeze → 人工核查
+      ↓
+Visual & Presentation Agent 预览图 ∥ Feature Designer 查看代码/接口
+      ↓
+HC-02 Visual / Plan Confirmation → 人工核查
+      ↓
+Code Builder 实施核心/接口 ∥ Visual & Presentation Agent 生产资产和表现层
+      ↓
+集成、基础回归、QA Scope 与自动测试
+      ↓
+HC-03 Implementation Result → 人工核查
+      ↓
+HC-04 Final Experience → 人工核查
+      ↓
+Verified
 ```
 
-`_TEMPLATE.md` 的人类说明段会保留；机器默认由状态机初始化，不通过手改模板增加状态规则。
+任何一步被要求修改时，回到上一个已接受检查点；其后的派生产出全部失效并按顺序重做。旧预览、旧资产和旧结果保留为历史，不覆盖、不冒充最新版。
 
-先将合并后的 harness **由你明确提交到选定基线**。工具不会替你提交或 stash。`main` 替换为实际稳定分支。创建两个独立需求：
+## PM 中继与等待
 
-```bash
-# 不加 --apply 只预览
-python tools/harness.py workspace task TASK-001 volume-settings --base main --apply
-python tools/harness.py workspace task TASK-002 daily-entry --base main --apply
+所有 Subagent 之间禁止直接通信。跨 Agent 的请求、依赖、异常与结果必须先返回 PM，由 PM 判断并只向目标 Agent 转发完成当前工作所需的最小信息。
+
+PM 派发 Subagent 后挂起等待；任一 Subagent 返回 `Needs Clarification`、`Failed` 或 `Blocked` 时立即恢复处理，所有必需 Subagent `Completed` 后恢复汇总，其他未受影响的 Subagent 继续运行。单个正常完成但其余必需角色尚未完成时，PM 不提前汇总或推进，只登记状态并继续等待。
+
+不在主任务重复展示 Subagent 对话。Agent 间沟通与执行细节只保留在对应 Subagent 任务界面；用户需要细节时，直接打开对应 Subagent 查看工作过程和返回结果。PM 不增加额外通信可视化层。桌面端已经提供 Subagent 任务的过程与结果检查入口，参见 [OpenAI Docs — Subagents](https://learn.chatgpt.com/docs/agent-configuration/subagents)。
+
+## v0.6 相比 v0.5 的核心变化
+
+### 1. 从“多合同文件”收敛为“单一 Task”
+
+删除默认依赖的：
+
+- Requirement Packet JSON
+- Design Packet JSON
+- Dispatch Manifest
+- Visual Thread 文件
+- Preview Manifest
+- Code Result JSON
+- Integration Result JSON
+- 全阶段 Digest 链
+
+需求、设计、视觉决策、接口、实现结果与验收统一保存在：
+
+`tasks/<TASK-ID>-<slug>.md`
+
+资产很多或 Code + Art 并行时，Visual Agent 可按需输出一个简洁的 `asset-manifest.json`，但不强制使用 Schema。
+
+### 2. PM 先和用户把需求聊清楚
+
+PM 是主线程，不是隐藏 Subagent。它负责：
+
+- 识别用户真正目标；
+- 主动寻找需求中可能存在的歧义、缺失、冲突和多种合理解释；
+- 每轮提问后停止等待用户回复，持续追问到完整理解用户的逻辑位置；
+- 复述目标、入口、状态变化、边界、范围、非目标和验收方式，并获得用户确认；
+- 创建 Draft Task；
+- 将同一 Task 交给 Designer 和 Visual Agent；
+- 汇总结果并冻结 Ready to Build Task；
+- 处理所有 Subagent 的中断和用户沟通。
+
+### 3. 每个 Subagent 都有 Clarification Gate
+
+Designer、Visual Agent 和 Code Builder 发现实质性歧义时，必须暂停受影响工作并返回：
+
+`Needs Clarification`
+
+只有 PM 向用户提问。用户回答写回 Task 后，优先恢复原 Subagent。
+
+### 4. 预览与方案并行，在合并里程碑统一人工核查
+
+视觉流程不再强制每次都跑：
+
+- PM 与用户确认需求后，玩家/用户可见的变更由 Visual Agent 生成预览图，同时 Designer 开始查看真实代码和接口。
+- 只有完全不可见的内部技术任务可标记 `Preview: Not Required`。
+- Visual Agent 与 Designer 可在 HC-01 Accepted 后连续调查和迭代；每版预览、方案草稿与 QA Intent 都作为过程证据保存，不逐份打断用户。
+- PM 合并预览、Implementation Plan、QA Intent、Code–Art Interface 与 Asset Contract，在 HC-02 一次性等待人工接受。
+- 如果是美术需求，预览批准且 Asset Contract 冻结后，由同一个 Visual Agent 延续视觉上下文，生产正式资产并实施 UI、布局、动画、镜头、灯光、材质、VFX、反馈参数与视觉绑定。
+- 集成后由 Visual Agent 在实际运行画面中完成最终调优和 Integrated Visual QA。
+
+同一 Task 内尽量复用同一个 Visual Agent 贯穿预览、正式资产、表现层实施与集成后视觉检查。跨会话或无法继续线程时，通过 Task 中的：
+
+- Accepted Visual Decisions
+- Rejected Directions
+- Latest Approved Preview
+
+恢复上下文。
+
+### 5. Build 按冻结方案实施
+
+Task 的 Build Mode：
+
+- `Code Only`
+- `Art Only`
+- `Code + Art`
+
+保留这些模式名以兼容已有 Task；其中 `Art` 指由 `visual_design_agent` 负责的视觉与表现工作。Code + Art 只有在核心代码与独立源资产写入范围完全分离时才并行。到共享 Scene、Prefab、Node、UI、材质、动画或绑定文件时改为串行：Code Builder 先完成核心和稳定接口，Visual Agent 再完成表现集成与最终画面调优，Code Builder 最后只做不改变视觉决定的技术验证。所有结果在 HC-03 合并核查，不为每批产出单独暂停。
+
+### 6. 所有修改都做变更诱发 Bug 自检
+
+Builder 必须先记录修改前基线，再重跑相同检查并验证受影响系统。差异区分：
+
+- Introduced
+- Pre-existing
+- Expected Change
+- Uncertain
+- No Difference
+
+“功能能跑”不等于“没有回归”。
+
+### 7. 交付前才进入 QA 脚本阶段
+
+Build 完成后，Feature Designer 只读总结实现方案与 QA Intent，给出明确的 Script Test Scope。Code Builder 再更新脚本并启动一次无交互自动运行。运行期间不轮询、不 tail 日志、不启动额外监控 Agent；结束后一次性读取退出码、报告和最终日志。
+
+Script Test Scope、测试脚本、自动运行结果与修复循环都作为 HC-03 的过程证据，不再单独触发人工暂停。若测试范围会改变冻结需求或验收含义，则返回 PM 澄清。
+
+## 人工检查点与回退
+
+Task 顶部的 Workflow Control 是恢复入口。模型读取 `Current Stage`、`Last Accepted Checkpoint`、`Pending Human Check`、`Next Allowed Action` 和 `Rollback Target`；指针过期时由 PM 根据 Ledger 修正，不能因此制造额外人工门禁。
+
+Checkpoint Ledger 只记录四个强制人工里程碑：需求冻结、视觉/方案确认、实施结果、最终体验。其余产出作为过程证据记录。用户选择修改或拒绝时：
+
+1. 保留当前产出并标记为 `Needs Revision` 或 `Rejected`；
+2. 先识别受影响分支和直接依赖，只将这些派生结果标记为 `Invalidated`；
+3. 只让受影响分支回到自己的 `Rollback Target`，无关分支继续运行；
+4. 生成新 Revision；
+5. 从该点重新进行受影响的里程碑核查；里程碑内部修订不重复打断用户。
+
+回退不使用破坏性 Git 操作，不覆盖用户已有修改，也不删除旧预览或旧资产。
+
+修改隔离原则：代码、美术、测试、调查或其他并行进程只要不依赖被修改内容，就不得被连带暂停。只有到共享集成点或共同里程碑时，才等待所有必需分支重新就绪。
+
+## 目录结构
+
+```text
+<project>/
+├── AGENTS.md
+├── HARNESS_README.md
+├── HarnessModelDashboard.exe
+├── models.toml
+├── .codex/
+│   ├── config.toml
+│   └── agents/
+│       ├── feature-designer.toml
+│       ├── visual-design-agent.toml
+│       └── code-builder.toml
+├── .harness/
+│   ├── .gdignore
+│   ├── previews/
+│   └── artifacts/
+├── docs/
+│   ├── GAME_SPEC.md
+│   └── ART_BIBLE.md
+├── tasks/
+│   └── _TEMPLATE.md
+├── versions/
+│   └── _TEMPLATE.md
+└── tools/
+    └── native-dashboard/
 ```
-
-工具在主仓库旁建立 `<repo>-worktrees/TASK-...`，绑定独立分支和 Task。分别从对应目录启动 PM 会话。当前工作区检查：
-
-```bash
-python tools/harness.py workspace check
-python tools/harness.py plan --doc tasks/TASK-001-volume-settings.md
-```
-
-Task 的原始请求／合同草案从输入 JSON 录入；`examples/contract.example.json` 是结构示例，不是你游戏的已确认需求：
-
-```bash
-python tools/harness.py task contract --doc tasks/TASK-001-volume-settings.md --input /path/to/draft-contract.json --decision "登记原始请求与全部材料"
-```
-
-首次 `task contract` 只登记原始请求和少量技术路由草案。Requirement Analyst 负责生成产品合同 proposal；PM 不再提交第二份完整合同，只按 run 记录用户确认：
-
-```bash
-python tools/harness.py dispatch --doc tasks/TASK-001-volume-settings.md --step requirements
-python tools/harness.py accept --doc tasks/TASK-001-volume-settings.md --handoff /path/to/requirements-handoff.json
-python tools/harness.py task confirm-requirements --doc tasks/TASK-001-volume-settings.md --run <requirements-run-id> --decision "用户确认后的产品定义引用"
-```
-
-Analyst handoff 同时给出完整分析和只含 goal/qa_intent 的 `contract_proposal`；程序生成只读 proposal 文件。确认命令自动合入 proposal，保留现有技术路径、owners、视觉和资产调度字段，并把确认绑定到 run、合同摘要和 task_revision。没有该绑定，后续步骤不会开放。需求实质变化后必须重新分析。
-
-主流程见 `workflows/WORKFLOW.md`，数据格式与完整 handoff 见 `workflows/FORMATS.md`。`dispatch` 会返回精简派发 context，不需要每个子代理重读全部 Task 历史。
 
 ## 启动模型看板
 
-双击项目根目录的 `HarnessModelDashboard.exe`。这是唯一支持的看板，为本地 Windows 原生窗口；HTML/HTTP 看板、静态网页和 `dashboard --port` 命令已经删除。
+双击项目根目录的 `HarnessModelDashboard.exe`。看板只参考 hotpot 仓库的 Windows 原生白色紧凑布局与固定行交互；角色、Task 结构和交付逻辑仍以当前 v0.6 和本文档为准。
+看板为 `win-x64` 单文件程序，需要本机安装 .NET 10 Desktop Runtime；不影响 Harness 文档和 Agent 本身的使用。
 
-「模型配置」页显示 PM Coordinator、Requirement Analyst、Feature Designer、Design-Art、Code Builder、QA Reporter，可直接设置模型与推理强度并保存。PM 行控制常驻协调入口，默认低强度；Requirement Analyst 行控制后续按需派发，默认高强度。保存操作通过 `models update-agents` 的 etag 与事务入口同步 `models.toml` 和对应 Agent TOML，仅影响后续新派发。
+看板可编辑现有 Agent 的 model 和 reasoning effort，保存后同步 `models.toml` 与 `.codex/agents/*.toml` 中的受管配置块。空 model 表示继承宿主。看板不请求模型列表、不调用模型、不监听端口。
 
-原生看板还保留「组件接入」「排行榜」「开发者控制台」页面；不启动 Web 服务、不监听端口、不生成浏览器 token。没有主模型服务调用，费用不会因为打开看板而产生。
+## Subagent 调度方式
 
-**默认 model 留空**，表示继承宿主，不代表已经替你选了便宜模型。填入账号实际支持的模型 ID；effort 与模型的兼容性在宿主确认。看板不自动请求模型列表或你的账单。
+本 Harness 使用 `.codex/config.toml` 显式注册三个项目级自定义 Agent。PM 优先按 `feature_designer`、`visual_design_agent`、`code_builder` 的精确名称原生派发。
 
-目标配置、原生配置、运行观测分开。实际模型记录由 PM 从宿主证据转录，未记录显示未知，不以配置猜测。不同 worktree 的目标配置独立。
+若当前客户端没有暴露 Agent 类型或配置路径参数，PM 使用显式的 `Compatibility Prompt`：完整传入角色、职责、边界及看板模型配置。每个 Subagent 启动后声明角色身份、Dispatch Mode、Task Version 和输入检查点；同一 Task 的同一角色后续优先恢复该线程。
 
-仅本包派发器会尊重 enabled；直接绕过 Harness 从宿主启动仍受宿主规则，而不是本包的硬权限锁。现有线程不被 Apply 重启，宿主可能需要重新加载 Agent 定义才影响新派发。
+Codex 客户端可能在运行中显示 Lovelace、Bernoulli 等临时昵称，也可能在完成后显示任务标题；这些只是 UI 标签。是否正确运行 Harness Agent，以 Exact Agent Name、身份声明和 Session Registry 为准。
 
-配置文件编辑方式也可用：
+Session Registry 只用于后台追踪和恢复，不参与日常门禁。缺少 Session ID、临时昵称变化、记录延迟或客户端缺少原生类型参数均不构成阻断；只有实际职责或权限错误并影响产出可信度时才暂停该分支。不得把兼容调度伪称为原生绑定。
 
-```bash
-python tools/harness.py models preview --input /path/to/proposed-models.toml
-python tools/harness.py models apply --input /path/to/proposed-models.toml --etag <preview返回的etag>
-python tools/harness.py models rollback --transaction <models事务ID> --apply
-```
+## 接入步骤
 
-发现手工漂移时先读差异；明确同意重新同步时加 `--reconcile`。写入中断时用 `models recover`；文件存在额外人工修改会拒绝恢复，不猜测覆盖。
+1. 将压缩包内容复制到项目根目录。
+2. 项目已有 `AGENTS.md` 时合并规则，不要直接覆盖已有仓库约定。
+3. 填写 `docs/GAME_SPEC.md` 与 `docs/ART_BIBLE.md` 中已经确认的内容；未知项写 `Not documented`。
+4. 在 Codex 中从项目根目录打开会话。
+5. 用一个小型真实 Task 试跑。
 
-## 正式版本
+## 启动一个需求
 
-创建 release worktree，PM 在明确授权下集成选定任务（工具不自动 merge）。固定输入 JSON 使用任务文档对应的完整提交摘要，不用浮动分支名：
-
-```bash
-python tools/harness.py workspace release v0.1.0 --base main --apply
-# 切到 release worktree，完成用户授权的集成后：
-python tools/harness.py release prepare --doc versions/v0.1.0.md --inputs /path/to/pinned-tasks.json
-python tools/harness.py dispatch --doc versions/v0.1.0.md --step interfaces
-python tools/harness.py dispatch --doc versions/v0.1.0.md --step qa_scripts
-```
-
-PM 先把 `interfaces` 的 run_id/context 交给只读 **Feature Designer**，接收并固定其 QA Plan；再把 `qa_scripts` 派发给 **Code Builder**，由其按计划提交 execution、脚本和 fixture。Designer 定义接口需求，Builder 不能改用例、断言或验收标准。
-
-脚本与夹具由 PM 在授权下提交并固定候选；然后：
-
-```bash
-python tools/harness.py release authorize --doc versions/v0.1.0.md --decision "本候选的测试执行授权引用"
-python tools/harness.py qa run --doc versions/v0.1.0.md              # 只预览命令
-python tools/harness.py qa run --doc versions/v0.1.0.md --apply      # 真实执行普通程序
-python tools/harness.py qa report --doc versions/v0.1.0.md
-python tools/harness.py release complete --doc versions/v0.1.0.md
-```
-
-这不是游戏测试示例的一键通过按钮。真实脚本必须对接项目入口并遵守报告格式；示例脚本未适配时只返回 ERROR。`release complete` 只记录 QA 完成，不发布、不推送、不签名。
-
-## 自检
-
-```bash
-python -m unittest discover -s tools/tests -v
-dotnet build tools/native-dashboard/HarnessModelDashboard.csproj -c Release
-```
-
-测试在临时 Git 仓库内进行，不运行你的游戏、不调用真实模型。夹具会排除宿主 `.git`、常见虚拟环境、`node_modules` 与缓存，因此可从已安装到现有 Git 仓库根目录的 Harness 执行。测试记录和边界见 VALIDATION.md；迁移语义见 CHANGELOG.md。
-
-## 文件布局
+直接对 Codex 主线程说：
 
 ```text
-AGENTS.md                   人工维护的唯一流程政策
-models.toml                 目标模型配置
-.codex/agents/              常驻 PM + 4 个按需核心角色 + 默认关闭的 qa_reporter
-HarnessModelDashboard.exe  Windows 原生开发看板
-reusable/                   原生看板的组件接入素材与共享实现
-workflows/                  交接说明与数据格式
-tasks/                     每功能一份 Task（唯一合同与机器记录）
-versions/                  每版本固定输入、授权、执行证据引用
-releases/<version>/        运行时生成的 QA Backlog / Designer Plan / Builder Execution 视图
-tools/harness.py           唯一公开命令入口
-tools/native-dashboard/    Windows 原生看板源码
-tools/harnesslib/          内部状态机、IO、模型、Runner、资产、workspace
-.harness/                  参考、预览、概念与辅助产物；运行证据默认本地保存
+按照项目中的 GameDev Harness 处理下面需求。
+当我提出需求时，请先识别其中所有可能有歧义、缺失、冲突或存在多种合理解释的逻辑点，并向我提问。
+每轮提问后停止并等待我的回复；根据我的回答继续追问，直到你认为已经完整理解我的目标、当前逻辑位置、期望逻辑位置、触发条件、状态变化、边界情况、优先级、范围、非目标、必须保持不变的内容和验收方式。
+不要把推测写成已确认需求，也不要为了尽快开始而跳过仍会改变最终结果的问题。
+当你认为理解完整时，先用自己的话复述完整逻辑，并明确列出仍采用的低风险假设；等待我确认后，才能创建 Draft Task，再按 AGENTS.md 调用需要的 Subagent。
+
+需求：
+<你的需求>
 ```
 
-发布前另行归档 `.harness/qa` 的证据（它默认被 Git 忽略）。不能只交一份引用本机路径的报告，宣称接收者已经拿到截图/日志。
+PM 应逐轮和你讨论并等待回复，而不是马上创建 Task、预览或代码。
+
+## 推荐首个测试 Task
+
+```text
+把玩家移动速度从硬编码提取为统一可调参数。
+默认配置保持当前实际行为，本轮不制作完整调试看板。
+```
+
+理想流程：
+
+```text
+PM 澄清默认行为和验收方式
+→ Draft Task（此任务完全不可见，记录 Preview: Not Required）
+→ Designer 查看移动入口，输出 Implementation Plan + QA Intent
+→ 人工核查方案
+→ PM 冻结 Ready to Build Task
+→ 人工核查冻结候选
+→ Code Builder 建立基线、按方案实现和回归自检
+→ 人工核查代码结果
+→ Designer 交付前给出 Script Test Scope
+→ 人工核查测试范围
+→ Code Builder 更新脚本并无监控自动运行
+→ 人工核查测试结果
+→ Human Check 确认移动体验
+→ Verified
+```
+
+## Subagent 中断示例
+
+Code Builder 发现：
+
+```text
+角色到达十字平台中心后，Task 没写自动直行还是等待玩家选择。
+```
+
+它必须返回 `Needs Clarification`，而不是自己选择一种行为。PM 再向你提问，并将答案记录到 Task。
+
+## Task 是唯一事实来源
+
+一份 Task 中包含：
+
+- 澄清与已确认决定
+- 冻结需求
+- 设计与真实实现调查
+- Visual Decisions 与批准预览
+- Build Mode 与 Code–Art Interface
+- Regression Plan
+- Code / Visual / Presentation / Integration 结果
+- Acceptance Results
+- 人工验收
+
+不要为同一功能复制出多份文档。
+
+## 视觉预览目录
+
+```text
+.harness/previews/TASK-001/
+├── r001/
+│   └── preview.png
+├── r002/
+│   └── preview.png
+└── r003/
+    └── preview.png
+```
+
+旧 Revision 不覆盖。Task 中明确记录哪一版被批准，以及哪些视觉方向已接受或拒绝。
+
+## 资产交付
+
+当 Task 涉及多个正式资产或 Code + Art 并行时，生成预览的原 Visual Agent 线程可以输出：
+
+`.harness/artifacts/<TASK-ID>/asset-manifest.json`
+
+Manifest 只需记录：
+
+- Asset ID
+- 最终路径
+- 尺寸、格式、Alpha
+- 帧数或状态
+- 技术检查
+- 已知偏差
+
+小型单资产任务可以直接在 Task 的 Asset Contract 与 Visual / Presentation Result 中记录，不必创建 Manifest。
+
+## 验收边界
+
+技术检查可以验证：
+
+- 是否构建成功
+- 配置是否生效
+- 引用是否正确
+- 状态与数据是否正确
+- 是否出现新日志错误
+
+以下内容仍需要人工验收：
+
+- 是否更爽、更难、更直观
+- 速度和震动是否合适
+- 动画是否自然
+- 角色是否有记忆点
+- 美术是否达到预期品质
+
+技术代理指标只能作为辅助证据，不能替代主观体验验收。
+
+## 进入版本阶段
+
+多个 Task 达到 `Verified` 后，才创建：
+
+`versions/<version>.md`
+
+版本层负责组合回归、Release Candidate、平台发布准备和回滚。具体平台流程在首次接入时，根据当时最新官方要求调查并填写。
+
+## 当前版本刻意不包含
+
+- MCP
+- Codex command rules
+- 通用 Harness 调度命令（测试脚本由具体项目的 Build 按 QA Scope 维护）
+- Skills
+- Agents API
+- 自动 Commit / Push / Tag
+- 自动上传或正式发布
+- 默认 JSON Schema 与 Digest 链
+
+先让 v0.6 在真实项目中跑通数个 Task，再根据实际摩擦决定是否升级自动化。

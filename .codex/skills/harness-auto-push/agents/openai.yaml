@@ -1,3 +1,0 @@
-interface:
-  display_name: "Harness Auto Push"
-  short_description: "Authorized Harness commit and push workflow"

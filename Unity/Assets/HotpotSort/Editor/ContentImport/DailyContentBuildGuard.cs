@@ -20,13 +20,14 @@ namespace HotpotSort.ContentImport
             try
             {
                 string root = Path.Combine(Application.dataPath, "HotpotSort/Content/Daily");
-                var expected = DailyContentImporter.Import(File.ReadAllBytes(Path.Combine(root, "skeleton_C.source.json")), File.ReadAllBytes(Path.Combine(root, "LevelDifficultyConfig.source.json")));
-                var manifest = CanonicalJson.Map(CanonicalJson.Parse(File.ReadAllText(Path.Combine(root, "import-manifest.json"))));
-                string digest = (string)manifest["outputSha256"];
-                var loaded = DailyContent.Load(File.ReadAllText(Path.Combine(root, "daily_core_1.0.0.json")), digest);
-                if (loaded.Digest != expected.Digest || (string)manifest["importerVersion"] != DailyContent.ImporterVersion ||
-                    (string)manifest["skeletonSourceSha256"] != DailyContent.SkeletonSourceHash || (string)manifest["weightsSourceSha256"] != DailyContent.WeightsSourceHash)
-                    throw new ArgumentException("Daily content does not match the frozen source import");
+                var imported=DailyContentImporter.Import(File.ReadAllBytes(Path.Combine(root,DailyContent.SkeletonSourceFileName)),
+                    File.ReadAllBytes(Path.Combine(root,"LevelDifficultyConfig.source.json")));
+                var runtime=DailyContent.LoadProduction(File.ReadAllText(Path.Combine(root,DailyContent.RuntimeFileName)));
+                if(runtime.Digest!=imported.Digest)throw new ArgumentException("Runtime content does not match confirmed C import");
+                var manifest=CanonicalJson.Map(CanonicalJson.Parse(File.ReadAllText(Path.Combine(root,"import-manifest-v5.json"))));
+                if((string)manifest["outputSha256"]!=runtime.Digest || (string)manifest["skeletonSourceSha256"]!=DailyContent.SkeletonSourceHash
+                    || (string)manifest["output"]!=DailyContent.RuntimeFileName)throw new ArgumentException("Fixed C import manifest mismatch");
+                Debug.Log("TASK001_V5_CONTENT_VALID: "+runtime.ContentVersion+" "+runtime.Digest);
             }
             catch (Exception e) { throw new BuildFailedException("Daily content validation failed: " + e.Message); }
         }

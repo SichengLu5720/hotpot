@@ -58,6 +58,9 @@ namespace HotpotSort.Replay
                             result = session.ReplaySupply(CanonicalJson.Int(data["plateId"]), CanonicalJson.Array(data["itemIds"]).Select(CanonicalJson.Int).ToArray(), boundary, CanonicalJson.ReadU64(data["observationSeq"])); break;
                         case "Pause": result = session.Pause(boundary); break;
                         case "Resume": result = session.Resume(boundary); break;
+                        case "ClearBuffer": result = session.ClearBuffer(boundary); break;
+                        case "UnlockFourth": result = session.UnlockFourth(boundary); break;
+                        case "Timeout": result = session.Timeout(boundary); break;
                         default: throw new FormatException("Unknown replay record type");
                     }
                     if (!result.Accepted) throw new FormatException("Non-reproducible command: " + result.Reason);

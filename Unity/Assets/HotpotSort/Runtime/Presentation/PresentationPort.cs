@@ -26,10 +26,21 @@ namespace HotpotSort.Presentation
         public ViewFact[] facts = new ViewFact[0];
         public string message;
     }
-    public sealed class ViewEvent { public long sequence; public string transactionId, itemId, kind; }
+    public sealed class ViewEvent
+    {
+        public long sequence;
+        public string sessionId,transactionId,itemId,ingredientId,plateId,kind,sourceContainer,targetContainer;
+        public int sourceSlot=-1,targetSlot=-1,slot=-1,filledBefore=-1,filledAfter=-1,orderIdentity=-1;
+    }
     public sealed class ViewUpdate { public ViewSnapshot snapshot; public ViewEvent[] events = new ViewEvent[0]; }
     public struct ViewTap { public string itemId; public long inputSeq, snapshotRevision; public float boardX, boardY; }
-    public struct ViewSupplyObservation { public bool spaceAvailable; public float x, y, radius; public long snapshotRevision; }
+    public struct ViewSupplyObservation
+    {
+        public bool spaceAvailable, heightGateClear;
+        public float x, y, radius, fixedGate, minimumCenterY;
+        public string blockingPlateId;
+        public long snapshotRevision;
+    }
     public interface IPresentationPort
     {
         event Action<ViewUpdate> Updated;

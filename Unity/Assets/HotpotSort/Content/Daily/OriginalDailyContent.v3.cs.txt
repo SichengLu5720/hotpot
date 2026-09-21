@@ -1,0 +1,40 @@
+using System.Collections.Generic;
+using System.Linq;
+using HotpotSort.Determinism;
+
+namespace HotpotSort.Core
+{
+    // Historical v3 generator, archived for provenance. Not compiled or used by production v5.
+    public static class OriginalDailyContent
+    {
+        public const string Version = "hotpot_daily_task001_v3_1";
+        public const string Generator = "hotpot_original_inventory_v1";
+        static readonly int[][] Weights = {
+            new[]{0,70,30,0,0},new[]{40,50,10,0,0},new[]{60,30,10,0,0},new[]{80,20,0,0,0},new[]{90,10,0,0,0},
+            new[]{0,30,70,0,0},new[]{20,30,50,0,0},new[]{30,40,20,10,0},new[]{30,30,0,35,5},new[]{55,35,0,0,10},
+            new[]{0,20,80,0,0},new[]{10,20,70,0,0},new[]{20,30,50,0,0},new[]{20,30,0,35,15},new[]{30,40,0,0,30},
+            new[]{0,20,80,0,0},new[]{10,20,70,0,0},new[]{20,20,60,0,0},new[]{25,30,0,35,10},new[]{35,50,0,0,15}
+        };
+        public static DailyContent Create() => new DailyContent(Version, Plates("configuration"),
+            Weights.Select((w,i)=>new WeightRow(i/5,i%5,w)), Generator, DailyContent.WeightsSourceHash);
+        public static IReadOnlyList<PlateDefinition> Plates(string challengeId)
+        {
+            var rng = new Pcg32(Pcg32.DailySeed(challengeId, Version + "|inventory"));
+            // 16 mandatory triples, then 45 original weighted-independent triples: 61 orders.
+            var bag = new List<string>();
+            for (int n=0;n<61;n++)
+            {
+                string kind=((char)('A'+(n<16?n:(int)rng.NextBounded(16)))).ToString();
+                for(int i=0;i<3;i++)bag.Add(kind);
+            }
+            for(int i=bag.Count-1;i>0;i--) { int j=(int)rng.NextBounded((uint)(i+1)); var t=bag[i];bag[i]=bag[j];bag[j]=t; }
+            var sizes=Enumerable.Repeat(3,50).ToArray();
+            for(int i=0;i<33;i++) sizes[rng.NextBounded(50)]++;
+            // Keep food hit regions inside the accepted plate safe region.
+            for(int i=0;i<50;i++)while(sizes[i]>5) { int j=(int)rng.NextBounded(50);if(sizes[j]<5){sizes[i]--;sizes[j]++;} }
+            var result=new List<PlateDefinition>(); int offset=0;
+            for(int i=0;i<50;i++){result.Add(new PlateDefinition(i+1,bag.Skip(offset).Take(sizes[i])));offset+=sizes[i];}
+            return result;
+        }
+    }
+}

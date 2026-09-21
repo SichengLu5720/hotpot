@@ -6,5 +6,12 @@
     <Nullable>disable</Nullable>
     <LangVersion>9</LangVersion>
   </PropertyGroup>
-  <ItemGroup><Compile Include="../PresentationPort.cs" /></ItemGroup>
+  <ItemGroup>
+    <Compile Include="../PresentationPort.cs" />
+    <Compile Include="../../../Contracts/*.cs" />
+    <Compile Include="../../Session/*.cs" />
+    <Compile Include="../../Core/*.cs" />
+    <Compile Include="../../Determinism/*.cs" />
+    <Compile Include="../../Bootstrap/DailyViewMapper.cs" />
+  </ItemGroup>
 </Project>

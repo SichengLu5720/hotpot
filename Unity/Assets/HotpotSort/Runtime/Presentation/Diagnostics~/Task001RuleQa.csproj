@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><TargetFramework>net10.0</TargetFramework><OutputType>Exe</OutputType><EnableDefaultCompileItems>false</EnableDefaultCompileItems><ImplicitUsings>disable</ImplicitUsings><Nullable>disable</Nullable><LangVersion>9</LangVersion></PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Task001RuleQa.cs"/><Compile Include="../PresentationPort.cs"/>
+    <Compile Include="../../../Contracts/*.cs"/><Compile Include="../../Session/*.cs"/><Compile Include="../../Core/*.cs"/>
+    <Compile Include="../../Determinism/*.cs"/><Compile Include="../../Replay/*.cs"/><Compile Include="../../Bootstrap/DailyViewMapper.cs"/>
+    <Compile Include="../../Bootstrap/Editor/FixedCGolden.cs"/><Compile Include="../../../Editor/ContentImport/DailyContentImporter.cs"/>
+  </ItemGroup>
+</Project>

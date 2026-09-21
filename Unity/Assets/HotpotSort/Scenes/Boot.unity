@@ -55,6 +55,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 12bcd57f605742c8aaa8000000000101, type: 3}
   m_Name:
   m_EditorClassIdentifier:
-  dailyContent: {fileID: 4900000, guid: a01992f58f9e41a596b60b8c7c1eddc4, type: 3}
+  dailyContent: {fileID: 4900000, guid: 91ef6e23e5ae4678b5708e9d850fc001, type: 3}
   playerFont: {fileID: 0}
+  approvedAssetRoot: Hotpot/TASK001/v3/r001
   supplyInterval: 0.2

@@ -1,1 +1,1 @@
-{"name":"HotpotSort.IntegrationDiagnostic","references":["HotpotSort.Bootstrap","HotpotSort.Core","HotpotSort.Contracts","HotpotSort.Presentation","HotpotSort.WeChatBuild"],"includePlatforms":["Editor"],"autoReferenced":false}
+{"name":"HotpotSort.IntegrationDiagnostic","references":["HotpotSort.Bootstrap","HotpotSort.Core","HotpotSort.Contracts","HotpotSort.Presentation","HotpotSort.WeChatBuild","HotpotSort.Session","HotpotSort.Determinism","HotpotSort.ContentImport","UnityEngine.UI"],"includePlatforms":["Editor"],"autoReferenced":false}

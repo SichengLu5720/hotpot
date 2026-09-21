@@ -4,7 +4,7 @@ using HotpotSort.Contracts;
 
 namespace HotpotSort.Session
 {
-    [Flags] public enum PauseReasons { None = 0, User = 1, Background = 2 }
+    [Flags] public enum PauseReasons { None = 0, User = 1, Background = 2, Reward = 4 }
     public interface IPlatformLifecycleAdapter : IDisposable
     {
         event Action<PlatformLifecycle> Changed;
@@ -116,6 +116,7 @@ namespace HotpotSort.Session
             catch (Exception ex) { Fail(ex); }
             Notify();
         }
+        public void SetRewardPaused(bool value) => SetPause(PauseReasons.Reward, value);
         private void ReconcilePause()
         {
             if (session == null || Snapshot == null) return;
@@ -126,22 +127,27 @@ namespace HotpotSort.Session
         private void OnLifecycle(PlatformLifecycle state)
         { SetPause(PauseReasons.Background, state != PlatformLifecycle.Foreground); }
         private void OnViewport(Viewport value) { viewport = value; view?.SetViewport(value); Notify(); }
-        public void Retry()
+        public void Retry() { _ = RetryAsync(); }
+        public async Task RetryAsync()
         {
             if (disposed || busy || Resolved == null) return;
             busy = true; Error = null;
             var previous = Resolved;
             var c = previous.Context;
+            long generation=0;
             try
             {
                 Release();
+                generation=Generation;
                 Pauses &= PauseReasons.Background;
-                var retry = new ChallengeContext(c.ChallengeId, c.ContentVersion, c.ConfigurationDigest, c.TimeSource, checked(c.RetryIndex + 1));
-                Resolved = new ResolvedChallenge(retry, previous.ResolvedUtc, previous.FallbackReason);
+                var fresh=await time.ResolveAsync(contentVersion,digest);
+                if(disposed || Generation!=generation)return;
+                var retry = new ChallengeContext(fresh.Context.ChallengeId, c.ContentVersion, c.ConfigurationDigest, fresh.Context.TimeSource, fresh.Context.ChallengeId==c.ChallengeId?checked(c.RetryIndex+1):0);
+                Resolved = new ResolvedChallenge(retry, fresh.ResolvedUtc, fresh.FallbackReason);
                 Create(retry);
             }
-            catch (Exception ex) { Fail(ex); }
-            finally { busy = false; Notify(); }
+            catch (Exception ex) { if(!disposed && generation==Generation)Fail(ex); }
+            finally { if(generation==Generation){busy = false; Notify();} }
         }
         public void Exit()
         {

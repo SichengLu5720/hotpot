@@ -1,382 +1,408 @@
-# Task：<功能或需求名称>
+# Task: <任务名称>
 
-> 使用 `workspace task` 创建，不要直接复制未绑定模板派发。下方唯一 `harness-state` 是状态、合同、批准和运行记录的机器权威源；正文是 PM 的可读工作表与索引，不能覆盖机器块。
-> 本文由 PM 维护，子代理返回结果后由 PM 通过统一入口接收。删除不适用的正文区块时保留原因；未知信息写“待确认”，不能把空白或默认值当作用户决定。
-> Task 阶段只维护 QA Intent；版本交付时由 **Designer 制定 QA 计划、用例、断言与接口需求，Builder 编写或复用脚本，普通 Runner 执行**。
+Task ID: <TASK-001>  
+Task Version: 1  
+Status: Draft  
+Type: Feature | Bug | Tuning | Tooling | Art | Platform  
+Risk: Low | Medium | High  
+Build Mode: Code Only | Art Only | Code + Art  
+Art Gate: Not Required | Asset QA | Human Art Approval  
+Experience Gate: None | Human Check  
+Created By: PM Orchestrator  
 
-```harness-state
-{
-  "schema_version": 1,
-  "kind": "task",
-  "id": "<TASK-ID>",
-  "workspace": "<helper binds workspace>",
-  "branch": "<helper binds branch>",
-  "base_commit": "<full commit hash>",
-  "task_revision": 1,
-  "status": "DRAFT",
-  "contract": {
-    "goal": "",
-    "qa_intent": [],
-    "technical_design_required": false,
-    "visual_impact": "none",
-    "needs_code": true,
-    "needs_art": false,
-    "owners": {
-      "code_builder": [],
-      "design_art_agent": []
-    },
-    "references": [],
-    "dependencies": [],
-    "shared_touchpoints": [],
-    "interface_map": [],
-    "asset_contract": [],
-    "runtime_isolation": {
-      "status": "unconfigured"
-    },
-    "generation_budget": {
-      "limit": null,
-      "decision": "Not yet agreed"
-    }
-  },
-  "approvals": {},
-  "artifacts": {},
-  "completed": {},
-  "requirements_confirmation": null,
-  "block": null,
-  "runs": {},
-  "history": []
-}
-```
+`Art` 是兼容既有 Task 的模式名，表示由 `visual_design_agent` 承担的正式资产与表现层工作，不对应独立 Art Agent。
+Created At: <YYYY-MM-DD>
 
-## Requirement Analyst → PM 强制前置：需求研读与产品定义
+---
 
-本节必须在确认机器合同、派发技术调查或进入实现前完成。低算力 PM 作为常驻入口只登记原始请求和全部材料，再按需派发一次只读 Requirement Analyst 完整研读需求文档、文字、聊天、会议纪要、截图说明和补充备注；不得由 PM 只复述标题或直接拆成开发任务。Analyst 返回后即结束该 run，不参与后续普通对话。PM 把已接收的分析文档落实到本节并核对来源；合理推断必须标为“推断／待确认”，不能直接变成合同或验收标准。
+# Workflow Control
 
-### 输入材料与逐段研读
+Current Stage: Draft  
+Last Accepted Checkpoint: None  
+Pending Human Check: HC-01 Requirement Freeze  
+Next Allowed Action: Present HC-01 to user and stop  
+Rollback Target: Draft  
+Paused Workstreams: None  
+Unaffected Workstreams: Continue unless directly dependent on a paused output  
 
-| 来源／定位 | 明示目标、角色与痛点 | 触发条件、规则与边界 | 缺口、冲突或隐含限制 |
-|---|---|---|---|
-| <消息、文档、截图或纪要的可定位引用> | | | |
+执行规则：`Next Allowed Action` 是恢复指针。四个里程碑检查点之一处于 Pending 时，只停止 `Paused Workstreams` 及其直接依赖；上一 Accepted 里程碑已授权且不依赖该修改的进程继续。里程碑内部的调查、修订、资产生产、集成和自动测试可以连续完成。指针缺失或过期时由 PM 根据 Ledger 修正，不额外请求人工解锁。
 
-### 产品语义与多步推演
+## Checkpoint Ledger
 
-- 背景与业务价值：<为什么现在要做，对谁有价值>
-- 用户／角色与典型场景：<谁使用、何时触发、不同角色是否不同>
-- 关键旅程与可感知结果：<使用前、过程、成功后分别发生什么>
-- 状态与反馈：<默认、进行中、成功、失败、空状态、提示、恢复或回退>
-- 隐含规则与衍生影响：<权限、业务口径、数据归属、历史数据、上下游协作；逐项注明事实或推断>
-- 成功判断：<用户和业务如何判断完成；尚未确认的量化口径写入第 6 节>
+| Checkpoint | Stage | Task Version | Artifact / Evidence | Status | Human Decision | Rollback Target | Invalidates | Next Allowed Action |
+|---|---|---:|---|---|---|---|---|---|
+| HC-01 | Requirement Freeze | 1 | Frozen Requirement candidate | Pending | | Draft | None | Present requirement freeze and stop |
 
-### 多义解释与产品方案比较
+## Agent Session Registry
 
-对“删除／取消／关闭”“优化／改进”等多义请求至少列出两种解释；存在多种合理产品定义时填写下表。这里比较产品定义，不讨论数据库、接口拆分、代码结构、成本或工期。
+后台追踪用途；不是人工检查点，也不是日常推进门禁。
 
-| 解释／方案 | 适用场景与边界 | 用户收益 | 业务影响与理解成本 | 推荐依据／待确认项 |
-|---|---|---|---|---|
-| A | | | | |
-| B | | | | |
+| Role | Exact Agent Name | Dispatch Mode | Thread / Session ID | Status | Task Version | Last Input Checkpoint | Resume / Replacement Note |
+|---|---|---|---|---|---:|---|---|
+| Feature Design | `feature_designer` | Native / Compatibility | Not Started | Not Started | 1 | None | |
+| Visual & Presentation | `visual_design_agent` | Native / Compatibility | Not Started | Not Started | 1 | None | |
+| Code Build | `code_builder` | Native / Compatibility | Not Started | Not Started | 1 | None | |
 
-### 产品分析边界检查
+客户端未暴露原生角色参数时可登记为 `Compatibility`。Lovelace、Bernoulli 等临时昵称只作为显示信息。同一 Task、同一 Role 应优先恢复原线程；新建替代线程时尽力记录原因。Registry 缺失、Session ID 不可见、昵称变化或记录延迟均不得单独阻断工作；只有实际职责或权限错误并影响产出可信度时才修正调度。
 
-- [ ] 已说明谁、为什么、解决什么问题、哪些场景成立以及用户可观察变化。
-- [ ] 已发现未说明的对象、流程、状态、异常、口径、前置条件和后置结果。
-- [ ] 未因猜测实现困难而弱化目标、删场景或回避边界。
-- [ ] 未把技术可行性、开发成本、工期、架构、代码复用或测试投入写成产品结论。
-- [ ] 所有推断、冲突和歧义都已进入第 6 节；确认内容才会进入机器合同与 QA Intent。
+---
 
-## 0. 任务标识
+# Clarifications and Decisions
 
-| 字段 | 内容 |
-|---|---|
-| Task ID | <从机器块读取，不在此另立值> |
-| task_revision | <从机器块读取> |
-| Status | <从机器块读取> |
-| 负责 PM／会话 | <唯一业务协调者> |
-| 类型／风险 | <Feature / Bug / Tuning / Tooling / Art>；<Low / Medium / High，说明实际风险> |
-| 实现内容 | <Code Only / Art Only / Code + Art> |
-| 视觉影响 | <None / Asset Only / Screen or Layout / Major Redesign> |
-| 目标版本 | <尚未指定或 Release ID；最终纳入以版本记录为准> |
-| 创建日期 | <YYYY-MM-DD> |
+## Requirement Interview Summary
 
-Status 只由机器块和 `harness.py` 维护：`DRAFT / READY / BUILDING / BLOCKED / READY_FOR_RELEASE / CANCELLED`；本节仅作可读索引。
-`READY` 表示必要合同与构建授权齐全；`READY_FOR_RELEASE` 只表示实现交接完成，不表示 QA 通过或获得发布授权。
+- User-confirmed problem:
+- Current logical position / entry state:
+- Trigger:
+- Expected logical position / resulting state:
+- State transitions, exit, failure and retry:
+- Scope and non-goals:
+- Must remain unchanged:
+- Acceptance intent:
+- Remaining low-risk assumptions:
+- User confirmed complete understanding: Yes | No
 
-## 1. 需求、范围与约束
+只有最后一项为 `Yes`，才允许形成 HC-01 Requirement Freeze 候选并进入后续流程。
 
-### 1.1 用户请求与目标
-
-- 原始请求／忠实摘要：<保留真正提出的需求，不自行补充新目标>
-- 来源：<用户消息、批注或已批准需求的可定位引用>
-- 当前问题：<现在发生什么，为什么需要修改>
-- 目标与用户可观察结果：<完成后用户能看到或做到什么>
-
-### 1.2 功能范围
-
-- 必须实现：<包含哪些行为、页面、状态和资源>
-- 明确不做：<排除的功能、页面、重构或变体>
-- 必须保留：<不允许改变的既有行为、数据、布局或美术元素>
-- 硬约束：<平台、性能、兼容性、预算、依赖等；每项标明来源>
-- 已确认前提：<前提及用户确认依据；没有则写“无”>
-
-### 1.3 业务规则与状态变化
-
-| 规则／场景 | 触发条件与输入 | 预期行为／状态变化 | 异常、空值或限制 | 确认依据 |
-|---|---|---|---|---|
-| <规则> | | | | |
-
-尚未决定的产品行为记入第 6 节，不作为隐含默认值交给 Builder。
-
-## 2. 验收意图／QA Intent
-
-本节是 QA Intent 的人工起草／可读视图，由 PM 忠实汇总；确认后必须通过 `task contract` 写入机器块的 `contract.qa_intent`，后者才是唯一权威源。这里只定义“要验证什么”，不提前写完整测试步骤、坐标、等待时长或脚本。
-
-| Intent ID | 场景／前置条件 | 应验证的结果或受保护行为 | 来源／决定依据 | 版本验证性质 |
-|---|---|---|---|---|
-| QI-001 | <场景> | <可观察预期> | <用户确认或既有规则> | <自动化候选 / 人工 / 待评估> |
-
-- 需覆盖的边界与失败路径：<已知边界及对应 Intent ID；没有则说明>
-- 跨功能交互与兼容性：<关联 Task、共享状态、存档或公开接口及对应 Intent ID>
-- 用户特别关注项：<引用 Intent ID，不再复制另一套断言>
-- 人工体验／视觉判断：<引用 Intent ID，并说明不能仅由数值或比图代替的部分>
-- 待确认的回归候选：<技术建议、依据及待决定内容；未确认前不视为新增验收门槛>
-- 已知历史问题：<症状、来源证据及其与本次需求的关系；未知不得写成“历史遗留”>
-
-不得凭空增加阈值、设备范围或产品规则。对验收含义有歧义时，由 PM 询问用户；Builder 不得根据“当前代码恰好如此”反推正确预期。
-
-## 3. 技术设计与接口（按需）
-
-技术调查是否需要：<需要及原因 / 不需要及理由>。简单任务可引用已确认接口，不强制为每个 Task 再启动一次 Designer。
-
-### 3.1 当前实现与推荐方案
-
-- 已调查的入口、模块、场景与资源：<路径、符号和必要的固定提交>
-- 当前状态／数据流及确认缺口：<区分代码事实、运行观察和未验证推断>
-- 推荐实现：<最小可行方案及选择理由>
-- 可逆的内部技术取舍：<仅记录影响实现的重要选择>
-- 数据／存档／公开接口兼容性：<迁移、版本兼容和回退要求>
-- 仍待用户决定的产品变化：<无；或引用第 6 节问题>
-
-### 3.2 功能接口与归属
-
-| 接口／事件／绑定键 | 提供方 → 使用方 | 参数／前置状态 | 返回／可观察变化／失败行为 | 读写性质与授权 | 实现或文档引用 |
+| ID | Question / Unclear Item | Confirmed Decision | Confirmed By | Task Version Impact | Affected Work |
 |---|---|---|---|---|---|
-| <接口> | | | | <查询 / 会修改状态> | |
+| CL-001 | | | User | None / v2 | |
 
-查询接口与修改接口分开。领取奖励、写存档、改数据库等操作不得作为无副作用查询直接执行；缺少接口由 Builder 在确认范围内实现。
+未解决的阻断问题：
 
-### 3.3 实现需要保留的可测试性
+- None.
 
-- 稳定的 UI／节点／事件标识：<标识及必要性>
-- 页面状态、测试数据或存档的构造入口：<接口与限制>
-- 随机种子／时钟控制：<需要的最小范围或不适用原因>
-- 可观察输出：<供版本断言读取的字段、事件或日志>
-- 测试入口在生产中的限制：<禁用、隔离或权限要求>
-- 已有测试／Runner 的复用线索：<路径；尚未调查则注明>
+---
 
-这些是实现接口要求，不是本 Task 提前编写或运行完整测试套件的任务。
+<!-- FROZEN_START -->
 
-## 4. 功能隔离与并行协作
+# Frozen Requirement
 
-### 4.1 工作区身份（只读索引）
+## Original Request
 
-- Worktree 根目录：<从机器块读取>
-- 分支：<从机器块读取>
-- 基线提交：<从机器块读取真实完整 commit hash>
-- 本 Task 文件：<路径>
-- 本地 Git 操作授权：<未授权 / 已授权的提交、合并等操作与范围>
+保留用户原话或忠实摘要。
 
-### 4.2 文件和功能归属
+## Problem
 
-| 负责方 | 交付内容 | 允许写入的路径 | 禁止写入／交接边界 |
-|---|---|---|---|
-| PM | Task、决定与交接记录 | <文档路径> | <其他 Task 的记录> |
-| Requirement Analyst | 只读需求分析草案 | 无；Harness 固定生成分析文档 | 机器合同、QA Intent 确认、技术方案、用户对话 |
-| Designer | 技术方案；交付阶段的 QA 计划 | <返回 PM 归档；工具写入另按授权> | 业务代码、可执行测试脚本、未经授权的状态修改 |
-| Design-Art | 预览、概念；批准后的正式资产 | <本 Task 预览／概念目录、明确归属的正式资源路径> | Task、业务代码、最终场景绑定、其他工作区 |
-| Code Builder | 代码、最终绑定；交付阶段的 QA 脚本 | <功能路径；Release 测试目录在版本计划中指定> | 未授权资源、其他工作区、擅自修改验收标准 |
+说明真正需要解决的问题。
 
-同 Task 的并行写入路径不重叠；正式资产交接后，最终场景、导入元数据和资源绑定由 Code Builder 顺序完成。不允许同时操作共享 Git 索引。
+## Goal and Player / User Outcome
 
-### 4.3 依赖与共享触点
+完成后，玩家或开发者实际应该看到、感受到或能够完成什么：
 
-| 依赖 Task／模块 | 固定修订／提交 | 所需接口或产物 | 集成顺序／是否共同交付 | 协调者 |
+- 
+- 
+
+## Core Rules and Confirmed Decisions
+
+- 
+- 
+
+## Scope
+
+本轮包含：
+
+- 
+- 
+
+## Non-goals
+
+本轮明确不处理：
+
+- 
+- 
+
+## Constraints
+
+必须遵守的产品、体验、平台、技术或项目约束：
+
+- 
+- 
+
+## Accepted Assumptions
+
+只记录 PM 已向用户明确展示、且低风险可逆的假设：
+
+- None.
+
+## Acceptance Criteria
+
+| ID | Type | Criterion | Verification Owner | Required Evidence |
 |---|---|---|---|---|
-| <无或具体依赖> | | | | |
+| AC-F-01 | Functional | | Builder | |
+| AC-T-01 | Technical | | Builder | |
+| AC-E-01 | Experiential | | Human | Comparative playtest / human judgement |
 
-| 共享文件／页面区域／主题 | 本 Task 的改动与占用范围 | 其他 Task／负责人 | 已固定的共同基准与协调方案 |
+Type 只能使用：
+
+- Functional
+- Technical
+- Experiential
+- Comparative
+
+## Test Proxies
+
+技术代理指标只能辅助验收，不能独立替代 Experiential 或 Comparative 标准。
+
+| Proxy ID | Proxy | Supports Criterion | Limitation |
 |---|---|---|---|
-| <含锚点、层级、输入优先级或公共样式> | | | |
+| TP-001 | | AC-E-01 | Cannot independently pass the criterion |
 
-不能依赖其他活动工作区的未提交产物或漂移的“最新分支”。文件无冲突不等于页面不冲突；共享布局、主题和接口先协调，再并行生产。
+<!-- FROZEN_END -->
 
-### 4.4 运行数据隔离
+---
 
-| 对象 | 独立位置／命名空间 | 真正采用它的启动参数或适配入口 | 当前情况 |
-|---|---|---|---|
-| 存档／用户数据 | | | <未配置 / 已适配 / 不使用> |
-| 缓存／临时文件／日志 | | | |
-| 构建／导出产物 | | | |
-| 数据库／账号／端口／外部服务 | | | |
+# Design
 
-仅创建目录不代表引擎已经使用该目录。未完成适配前可并行编辑，不能并行运行会写同一共享状态的实例；本文件不保存密钥或真实用户凭据。
+## Current Implementation
 
-## 5. 实机预览、资产概念与生产合同（有视觉改动时）
+由 Designer 调查真实项目：
 
-适用范围：<无视觉变化则写“不适用＋原因”；仅资产变化可只保留相关概念与生产合同>。
+- Entry point:
+- Owning system:
+- Related code:
+- Related scenes / prefabs / nodes:
+- Related art / resources:
+- Current state or data flow:
+- Confirmed current behavior:
+- Confirmed gap or defect:
 
-### 5.1 实机底图与编辑边界
+## Recommended Design
 
-- 底图 artifact_id／固定路径／实际 SHA-256：<引用真实存在的文件；摘要由工具取得>
-- 来源：<实机截图 / 当前构建截图 / 录屏帧 / 用户明确批准的替代材料>
-- 对应提交或构建、页面／游戏状态：<已知事实；未知项明确标出>
-- 原始像素、视口、设备／安全区：<实际资料，不从评审拼图猜测>
-- 已进行的裁剪、缩放或合成：<无或具体说明>
-- 允许修改的区域与元素：<明确边界>
-- 必须保留的区域与元素：<背景、Logo、镜头、文字、既有按钮等>
-- 缺失材料／替代方案限制及批准依据：<无或引用第 6 节>
-- 是否需要重新取图：<原因、最小范围及授权；优先复用可靠原图>
+1. 
+2. 
+3. 
 
-缺少可用底图先交 PM 索取或确认替代材料，不自动从空白重画。默认保留原图、局部制作、分层合成。
+## QA Intent
 
-### 5.2 高精度预览交付
+- Protected player / user outcome:
+- Main failure modes:
+- Automatic-test boundaries:
+- Required human checks:
 
-| artifact_id | 页面／状态与目标像素 | 引用底图 | 修改点与布局规则 | 固定文件／SHA-256 | 可编辑源／合成配方 |
-|---|---|---|---|---|---|
-| <PREVIEW-001> | | | <锚点、安全区、动态文字规则> | | |
+## Main Change Areas
 
-主交付是可独立查看的原尺寸高精度画面；评审拼图仅为辅助。模拟尺寸标为“设计合成”，不能作为该设备实际适配通过的证据。未变化内容不重复生成。
+- 
+- 
 
-### 5.3 资产概念与生产规格
+## Technical Options
 
-| 概念 artifact_id | 对应资产／家族 | 需要确认的造型、配色、材质与状态 | 固定文件／SHA-256 | 尚未决定的内容 |
-|---|---|---|---|---|
-| <CONCEPT-001> | <ART-001> | | | <无或引用问题> |
+只记录不改变玩家结果的可替换实现方案：
 
-每个新建／修改资产，或明确共用规格的资产家族，复制填写以下规格块：
+- None.
 
-#### <ART-001：资产名称／家族>
+## Proposed Product Decisions
 
-- 用途与生产方式：<复用现有 / 原生 UI / 修改资产 / 新建资产；说明运行用途>
-- 关联概念与样式依据：<固定 artifact_id；复用或原生 UI 可写不需要概念及原因>
-- 尺寸、宽高比与缩放规则：<明确数值／范围和单位>
-- 格式、透明度与导出要求：<PNG / SVG / 序列帧等；是否 Alpha>
-- 视角、构图、风格与必须保留项：<足以指导生产的要求>
-- 状态与动画：<状态名称、帧数／时序；不需要则说明>
-- 锚点、留白、切片／裁切边界：<所需规格或不适用>
-- 文字、动态数值与本地化：<由控件渲染；烘焙文字必须有确认依据>
-- 正式资源路径、源文件与导出方式：<项目资源目录；独立于整屏预览>
-- 消费接口／绑定槽位、回退方案与集成者：<明确到 Code Builder 可接入>
-- 来源／使用限制：<原创、已有资源或授权材料的可定位依据>
-- 禁止项：<不允许的改动、风格或交付方式>
+进入 `Ready to Build` 前必须为空。任何会改变玩法、操作、范围或体验的新增规则都应先回到 PM 澄清。
 
-概念须足以确定生产方向，不能以未定占位图代替。正式资产在构建阶段独立生产，不默认从整屏预览裁图交付。
+- None.
 
-### 5.4 生成预算与交接
+## Workstream Ownership
 
-- 本次必需产物／主方向：<只列必要预览、概念与正式资产>
-- 生成次数、额外变体、重试与并发上限：<有限预算及批准依据；未确定不得无限重试>
-- 局部迭代与复用策略：<反馈改哪里；哪些已有产物不重新生成>
-- 正式资产 Manifest：<生产后由工具生成的清单路径；无正式资产则不适用>
+| Workstream | Required | Allowed Write Paths | Forbidden Paths / Shared Files |
+|---|---:|---|---|
+| Code Builder — Core / Interfaces / Technical QA | Yes / No | | Task, production art paths, visual composition and tuning |
+| Visual & Presentation — Preview / Assets / Presentation / Visual QA | Yes / No | | Task, frozen gameplay, core state/data/platform logic |
+| Shared Integration Sequence | Yes / No | Code then Visual then technical verification | Concurrent writes to shared files |
 
-工具生成清单中的路径、摘要、格式和可识别尺寸；Art 提供用途、状态、锚点等语义，并声明删除／替换关系。清单不证明美术合格或绑定通过。
+Code + Art 只有在核心代码与独立源资产的 Allowed Write Paths 不重叠时才并行。共享 Scene、Prefab、Node、UI、材质、动画、引擎导入元数据和绑定必须写明串行顺序：Code Builder 先提供核心与稳定表现接口，Visual Agent 再完成表现集成与最终视觉调优，Code Builder 最后只做不改变视觉决定的技术验证。
 
-## 6. 澄清、批准与变更
+## Code–Art Interface
 
-### 6.1 未决问题与用户决定
+Build Mode 为 `Code Only` 时填写 `Not Required`。
 
-| 问题／冲突 | 受影响范围与可选方案 | PM 向用户反馈的引用 | 用户决定与依据 | 对合同／已有产物的影响 |
-|---|---|---|---|---|
-| <无或具体问题> | | | <待决定不能写成默认方案> | |
+| Asset ID | Purpose | Final Path | Runtime Role | Consuming Scene / System | Binding Slot / Key | Required Specs | Fallback | Integration Owner |
+|---|---|---|---|---|---|---|---|---|
+| ART-001 | | | | | | | | Visual & Presentation Agent |
 
-任何真实业务歧义：子代理立即停止并反馈 PM，不直接询问用户、不自行派生代理；PM 暂停整个相关 Task，向用户反馈并等待选择。无依赖的其他 Task 可以继续。
+## Asset Contract
 
-### 6.2 当前批准依据（机器 approvals 的可读索引）
+Art Bible: `docs/ART_BIBLE.md`  
+Approved Preview: <path or Not Required>  
+Asset Manifest: Required | Not Required
 
-| 批准范围 | 对应 task_revision | 具体产物 artifact_id／固定 SHA-256 或合同修订 | 用户决定引用 | 当前结论 |
-|---|---:|---|---|---|
-| 页面／场景预览 | | | | <待确认 / 已批准 / 不需要及原因> |
-| 必需资产概念 | | <逐项列明，不以一个“通过”代替不同概念> | | |
-| 构建授权 | | <明确授权的工作范围与合同修订> | | <待确认 / 已授权> |
+| Asset ID | Type | Dimensions / Aspect | Format | Alpha / Background | View / Composition | Style / Must Preserve | States / Frames | Prohibited Elements |
+|---|---|---|---|---|---|---|---|---|
+| ART-001 | | | | | | | | |
 
-同一条明确用户回复可以覆盖多项批准；批准布局不自动批准全部资产或开工。实际批准只通过 `harness.py approve` 写入机器块，本表不单独授予权限。哈希只用于固定文件内容，不代替用户同意。
+---
 
-### 6.3 暂停与恢复（发生时填写）
+# Visual Direction
 
-- 暂停原因与原阶段：<引用问题，不再维护第二个主 Status>
-- 受影响的在途 run_id／外部作业：<调度记录引用；没有工具时记录实际作业身份>
-- 停止请求与实际停止情况：<已确认停止 / 仍在运行 / 无法确认；附依据>
-- 已写入文件与晚到产物处理：<保留、撤销或隔离；不能自动当作当前交付>
-- 用户决定与明确恢复授权：<来源及范围>
-- 重新派发前处置：<旧写入者已停止或可靠隔离；新运行使用新 run_id>
+Preview Status: Not Required | Draft | Pending Approval | Accepted | Needs Revision  
+Latest Approved Preview: <path or Not Required>
 
-撤销结果接收资格、停止进程、撤销已写文件是不同操作；没有实际证据不能声称均已完成。
+## Accepted Visual Decisions
 
-## 7. 实现交付与 Release Handoff
+- 
+- 
 
-由 PM 根据 Builder／Design-Art 返回的事实更新，不把未执行的 QA 写成通过。
+## Rejected Directions
 
-### 7.1 已交付内容
+- 
+- 
 
-- 实现摘要与对应需求／Intent ID：<完成了什么，不复制全部需求历史>
-- 主要修改文件与功能入口：<路径／符号>
-- 正式资源、源文件、Manifest：<固定引用；无则说明>
-- 实际采用的预览／概念：<引用第 6 节已批准产物；存在偏离则明确列出>
-- 场景导入、绑定与集成情况：<完成项和未完成项，不以“有文件”代替已接入>
-- 真实实现提交与工作区情况：<完整提交／尚未授权提交；未提交修改如实记录>
-- 依赖／共享修改交接：<固定产物、集成顺序和协调结论>
-- 派发／接收记录：<工具记录引用或实际交接依据，不手工复制一套运行状态>
+## Open Visual Decisions
 
-### 7.2 交付阶段 QA 所需的实现事实
+- None.
 
-| Intent ID | 实际接口／稳定标识／状态构造入口 | 可观察字段与相关路径 | 复用线索／限制／缺失项 |
-|---|---|---|---|
-| QI-001 | | | |
+## Preview History
 
-Builder 只补事实和实现限制，不据此改变验收含义。仅补路径无需重新设计全部 QA；预期、边界或覆盖含义变化交 PM 协调 Designer，涉及产品取舍由用户决定。
-
-### 7.3 已知问题与未验证内容
-
-| 问题／未验证项 | 已知证据或缺失证据 | 影响与归因 | 后续处理／是否阻断 |
-|---|---|---|---|
-| <具体内容> | | <本次引入 / 已有证据的历史问题 / 未确定> | |
-
-默认不运行固定冒烟、完整回归、重复基线或多分辨率 QA。确有实现阻断、明确请求或必要风险诊断时，只记录实际进行的最小检查：
-
-| 原因与授权 | 实际命令／范围 | 结果与证据 | 仍未覆盖的内容 |
-|---|---|---|---|
-| <未执行则写“不适用：交付阶段集中 QA”> | | | |
-
-### 7.4 实现就绪交接
-
-进入 `READY_FOR_RELEASE` 前，只确认合同与实现交接，不新增游戏测试门槛：
-
-- [ ] 必需实现及绑定已交接，范围偏离已解决；未把未完成项标为完成。
-- [ ] 预览、概念与构建授权覆盖实际采用的内容；没有未解决歧义或未经处置的旧写入者。
-- [ ] QA Intent 有来源，实际入口、已知错误与未验证项已经披露。
-- [ ] 实现快照、依赖、共享触点与必要资产信息明确，可供版本集成固定输入。
-
-PM 交接依据／日期：<引用证据；Status 由工具更新机器块，第 0 节仅同步展示，不另存“已验证”结论>。
-
-## 8. 版本 QA 关联（纳入版本后填写）
-
-| 版本产物 | 责任归属 | 固定引用 |
-|---|---|---|
-| 纳入的 Task 修订与最终输入提交 | PM 在版本记录中固定 | <Release ID／记录路径> |
-| QA_BACKLOG | 工具汇总本 Task 第 2 节，PM 核对来源 | <带修订和 Intent ID 的快照> |
-| QA_PLAN | Designer：用例、断言、覆盖映射、接口／夹具需求 | <计划修订／固定引用> |
-| 测试脚本与夹具实现 | Code Builder：依据计划编写、复用或适配 | <脚本／夹具及固定版本> |
-| 执行结果与证据 | 普通 Runner；PM 总结，Reporter 仅按需辅助 | <候选版本、运行结果与报告引用> |
-
-QA 计划不在本 Task 再复制一份。Builder 不擅自放宽断言、删减覆盖或修改标准；计划问题交 Designer，产品歧义经 PM 向用户确认。脚本编写不等于已获执行授权。
-
-公共 setup 和已有测试可以复用，但被修改的运行状态须重置或隔离。零用例、遗漏必需项、跳过项或旧候选结果都不能冒充全部通过；版本结论以版本记录为准。
-
-## 9. 合同修订说明（机器 history 的可读索引）
-
-| task_revision | 日期 | 有效内容变化与原因 | 用户／PM 决定依据 | 受影响产物、批准和在途工作 |
+| Revision | Type | Artifact | Decision | Feedback / Changes |
 |---:|---|---|---|---|
-| 1 | <YYYY-MM-DD> | 初始草案 | | 无 |
+| r001 | Requirement / Implementation | | Pending | |
 
-需求范围、验收含义、接口合同、资产规格或写入边界改变时，通过 `task contract` 更新机器合同与 task_revision；本表只解释原因和影响，不手工推进修订。仅追加日志或非语义实现事实不制造新需求版本。
+---
 
-重要限制和决定必须进入对应合同区，不能只藏在随手备注、聊天历史或交接日志中。
+# Regression Plan
+
+## Protected Behaviors
+
+本次修改不应破坏：
+
+- RB-01：
+- RB-02：
+
+## Impacted Systems
+
+- 
+- 
+
+## Baseline Checks
+
+修改前应记录：
+
+- 
+- 
+
+## Targeted Regression Checks
+
+修改后必须重测：
+
+- 
+- 
+
+## Core Smoke Path
+
+最小完整流程：
+
+1. 
+2. 
+3. 
+
+## Visual Regression Checks
+
+无视觉变化时填写 `Not Required`。
+
+- 
+- 
+
+## Known Pre-existing Issues
+
+- None known.
+
+---
+
+# Build and Verification Results
+
+> 本区域由 PM 根据 Subagent 返回结果更新。Builder 不直接修改 Task。
+
+## Pre-delivery QA Scope
+
+Status: Not Started | Pending Human Check | Accepted | Not Required
+
+- Script Test Scope:
+- Human Check Scope:
+- Out of Scope:
+- Automatic Run Evidence:
+
+## Code Result
+
+Status: Not Started
+
+- Implementation Summary:
+- Changed Areas:
+- Baseline Result:
+- Commands / Tests Run:
+- Plan Deviations:
+- Waiting for Art / Integration:
+- Remaining Risks:
+
+## Visual / Presentation Result
+
+Status: Not Required | Not Started
+
+- Assets / Presentation Produced:
+- Asset Paths:
+- Asset Manifest:
+- Technical Asset Checks:
+- Presentation Integration:
+- Runtime Visual Tuning:
+- Visual Deviations:
+- Waiting for Core Interface / Technical Verification:
+- Remaining Risks:
+
+## Integration Result
+
+Status: Not Started
+
+- Integration Summary:
+- Build / Runtime Result:
+- Scene / Resource Binding Result:
+- Core Smoke Result:
+- Git Diff Review:
+- Remaining Risks:
+
+## Acceptance Results
+
+| Criterion | Result | Evidence | Owner |
+|---|---|---|---|
+| AC-F-01 | Not Verified | | Builder |
+| AC-T-01 | Not Verified | | Builder |
+| AC-E-01 | Pending Human Check | | Human |
+
+Result 只能使用：Pass / Fail / Not Verified / Not Applicable / Pending Human Check。
+
+## Regression Result
+
+Overall Result: Not Run
+
+允许结论：
+
+- No New Regression Found
+- Regression Found and Fixed
+- Regression Found - Verification Failed
+- Baseline Inconclusive
+
+| Finding | Classification | Evidence | Resolution |
+|---|---|---|---|
+| | Introduced / Pre-existing / Expected Change / Uncertain / No Difference | | |
+
+## Human Art Approval
+
+Status: Not Required | Pending | Accepted | Needs Revision
+
+- Build / Asset Context:
+- Feedback:
+
+## Human Experience Check
+
+Status: Not Required | Pending | Accepted | Needs Tuning | Needs Redesign
+
+- Test Setup:
+- Feedback:
+- Accepted Values:
+
+---
+
+# Final Decision
+
+Status: Draft
+
+Verified only when all required gates pass.
+
+## Task Version History
+
+| Version | Date | Change | Reason | Invalidated Outputs |
+|---:|---|---|---|---|
+| 1 | | Initial draft | | None |

@@ -12,8 +12,8 @@ namespace HotpotSort.Bootstrap
     // Versioned real-core transport adapter. No fallback to prototype inventory or fixture state.
     public static class DailyViewMapper
     {
-        public static float PlateRadius(int count) { return Math.Min(57, 27 + count * 6); }
-        public static float SpawnX(int plateId) { return 110 + ((plateId - 1) % 3) * 100; }
+        public static float PlateRadius(int count) { return Math.Min(63, 33 + count * 6); }
+        public static float SpawnX(int successfulCount) { return successfulCount % 2 == 0 ? 150 : 260; }
         public static int PendingHead(GameSnapshot snapshot)
         {
             var state = CanonicalJson.Map(CanonicalJson.Parse(snapshot.CanonicalStateJson));
@@ -28,7 +28,7 @@ namespace HotpotSort.Bootstrap
             var raw=CanonicalJson.Array(state["items"]).Select(CanonicalJson.Map).ToArray();
             Func<string,int> food = kind => kind==null ? -1 : int.Parse(((string)mapping[kind]).Substring(5),CultureInfo.InvariantCulture);
             var byId=raw.ToDictionary(i=>CanonicalJson.Int(i["itemId"]));
-            Func<int,ViewItem> item = id => new ViewItem { itemId=id.ToString(CultureInfo.InvariantCulture), foodId=food((string)byId[id]["kind"]),radius=18 };
+            Func<int,ViewItem> item = id => new ViewItem { itemId=id.ToString(CultureInfo.InvariantCulture), foodId=food((string)byId[id]["kind"]),radius=16 };
             var view=new ViewSnapshot
             {
                 sessionId=snapshot.SessionId,
@@ -40,7 +40,7 @@ namespace HotpotSort.Bootstrap
                 { var o=CanonicalJson.Map(x); return new ViewOrder { slot=CanonicalJson.Int(o["slotId"]),foodId=food((string)o["kind"]),enabled=(string)o["state"]!="Locked",count=CanonicalJson.Int(o["filled"]),required=3 }; }).ToArray(),
                 plates=CanonicalJson.Array(state["activePlateIds"]).Select(x=>
                 {
-                    int id=CanonicalJson.Int(x), count=content.Plates[id-1].Kinds.Count;
+                    int id=CanonicalJson.Int(x), count=CanonicalJson.Array(state["plateSizes"]).Select(CanonicalJson.Map).Where(p=>CanonicalJson.Int(p["plateId"])==id).Select(p=>CanonicalJson.Int(p["size"])).Single();
                     float radius=PlateRadius(count);
                     var items=raw.Where(i=>CanonicalJson.Int(i["plateId"])==id && (string)i["location"]=="ActiveAvailable").Select(i=>
                     {
@@ -65,7 +65,9 @@ namespace HotpotSort.Bootstrap
             var events=batch==null?new ViewEvent[0]:batch.CanonicalEvents.Select(text=>
             {
                 var e=CanonicalJson.Map(CanonicalJson.Parse(text)); var d=CanonicalJson.Map(e["data"]);
-                return new ViewEvent { sequence=long.Parse((string)e["eventSeq"],CultureInfo.InvariantCulture),transactionId=(string)e["transactionId"],kind=(string)e["type"],itemId=d.ContainsKey("itemId")?Convert.ToString(d["itemId"],CultureInfo.InvariantCulture):null };
+                Func<string,int> number=key=>d.ContainsKey(key)?CanonicalJson.Int(d[key]):-1;
+                Func<string,string> value=key=>d.ContainsKey(key)?Convert.ToString(d[key],CultureInfo.InvariantCulture):null;
+                return new ViewEvent { sessionId=snapshot.SessionId, sequence=long.Parse((string)e["eventSeq"],CultureInfo.InvariantCulture),transactionId=(string)e["transactionId"],kind=(string)e["type"],itemId=value("itemId"),ingredientId=value("ingredientId"),plateId=value("plateId"),sourceContainer=value("sourceContainer"),sourceSlot=number("sourceSlot"),targetContainer=value("targetContainer"),targetSlot=number("targetSlot"),slot=number("slotId"),filledBefore=number("filledBefore"),filledAfter=number("filledAfter"),orderIdentity=number("orderIdentity") };
             }).ToArray();
             return new ViewUpdate { snapshot=view,events=events };
         }

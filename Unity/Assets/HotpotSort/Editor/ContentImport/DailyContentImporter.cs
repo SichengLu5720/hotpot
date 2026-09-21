@@ -10,10 +10,10 @@ namespace HotpotSort.ContentImport
 {
     public static class DailyContentImporter
     {
-        public static DailyContent Import(byte[] skeletonSource, byte[] weightsSource, string contentVersion = "daily_core_1.0.0")
+        public static DailyContent Import(byte[] skeletonSource, byte[] weightsSource, string contentVersion = DailyContent.CurrentVersion)
         {
             if (CanonicalJson.Hash(skeletonSource) != DailyContent.SkeletonSourceHash || CanonicalJson.Hash(weightsSource) != DailyContent.WeightsSourceHash)
-                throw new ArgumentException("Original source SHA256 mismatch");
+                throw new ArgumentException("Confirmed source SHA256 mismatch");
             var skeleton = CanonicalJson.Map(CanonicalJson.Parse(new UTF8Encoding(false, true).GetString(skeletonSource)));
             var plates = new List<PlateDefinition>();
             foreach (var entry in CanonicalJson.Array(skeleton["bubbles"]))

@@ -64,6 +64,8 @@ namespace HotpotSort.Core
     internal sealed class CoreOrder
     {
         internal string Kind;
+        internal bool Enabled;
+        internal int Identity;
         internal readonly List<int> Items = new List<int>();
     }
 }

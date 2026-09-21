@@ -1,0 +1,19 @@
+using UnityEditor;
+using UnityEditor.SceneManagement;
+using UnityEngine;
+
+public static class MinimalUploadEntry
+{
+    public static void Export()
+    {
+        var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+        var camera = new GameObject("Upload flow camera").AddComponent<Camera>();
+        camera.clearFlags = CameraClearFlags.SolidColor;
+        camera.backgroundColor = new Color(0.24f, 0.045f, 0.055f);
+        new GameObject("Upload flow startup").AddComponent<MinimalUploadScreen>();
+        EditorSceneManager.SaveScene(scene, "Assets/UploadFlow.unity");
+        EditorBuildSettings.scenes = new[] { new EditorBuildSettingsScene("Assets/UploadFlow.unity", true) };
+        Debug.Log("HOTPOT_MINIMAL_UPLOAD_ENTRY_ONLY");
+        HotpotSort.Build.WeChatBuild.ExportPackage();
+    }
+}

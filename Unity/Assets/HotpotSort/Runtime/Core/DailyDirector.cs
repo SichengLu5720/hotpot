@@ -29,7 +29,7 @@ namespace HotpotSort.Core
             // Stable reservation order is independent of list/dictionary enumeration.
             var reservationPool = external.OrderBy(x => x.Location == "Buffer" ? 0 : x.Location == "ActiveAvailable" ? 1 : 2)
                 .ThenBy(x => x.Location == "Buffer" ? x.Slot : x.PlateId).ThenBy(x => x.SourceIndex).ToList();
-            for (int other = 0; other < 2; other++)
+            for (int other = 0; other < orders.Length; other++)
             {
                 if (other == slot || orders[other].Kind == null) continue;
                 var ids = reservationPool.Where(x => x.Kind == orders[other].Kind && !reserved.Contains(x.Id)).Take(3 - orders[other].Items.Count).Select(x => x.Id).ToArray();
@@ -44,7 +44,7 @@ namespace HotpotSort.Core
             {
                 var c = new Candidate { Kind = k.ToString() }; candidates.Add(c);
                 c.Remaining = external.Count(x => x.Kind == c.Kind); c.Reserved = external.Count(x => x.Kind == c.Kind && reserved.Contains(x.Id));
-                c.Duplicate = orders.Where((o, i) => i != slot && i < 2).Any(o => o.Kind == c.Kind);
+                c.Duplicate = orders.Where((o, i) => i != slot && o.Enabled).Any(o => o.Kind == c.Kind);
                 c.B = external.Count(x => x.Kind == c.Kind && x.Location == "Buffer" && !reserved.Contains(x.Id));
                 c.V = external.Count(x => x.Kind == c.Kind && x.Location == "ActiveAvailable" && !reserved.Contains(x.Id));
                 c.Need = Math.Max(0, 3 - c.V);

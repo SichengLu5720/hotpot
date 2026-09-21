@@ -44,11 +44,16 @@ namespace HotpotSort.Core
         public const string Schema = "daily_content_v1";
         public const string DirectorVersion = "director_v1_approx_d";
         public const string ImporterVersion = "daily_importer_v1_decimal100";
-        public const string SkeletonSourceHash = "7fb75bf293a460ac6bd64a436c180a760fef0f0a0f2d49c2b63bf1b4f09bf452";
+        public const string CurrentVersion = "hotpot_daily_task001_v5_fixed_c_1";
+        public const string RuntimeFileName = CurrentVersion + ".json";
+        public const string ProductionDigest = "99fb452bf75693f7978afe32c5bf52e3b1293b36e55669068c9fa84065ba6f61";
+        public const string SkeletonSourceFileName = "skeleton_C.v5.source.json";
+        public const string SkeletonSourceHash = "2d0cc7dc3061937efd09832b8635558d6b861bbdcbbc793a92d70f25c554ef54";
         public const string WeightsSourceHash = "40031a2b589537f7c186354b77506d1662179d424b2aa9244ded1edc1a689bbe";
         public string ContentVersion { get; }
         public string Digest { get; }
         public string CanonicalJsonText { get; }
+        public string SkeletonIdentity { get; }
         public IReadOnlyList<PlateDefinition> Plates { get; }
         public IReadOnlyList<WeightRow> Rows { get; }
         public DailyContent(string contentVersion, IEnumerable<PlateDefinition> plates, IEnumerable<WeightRow> rows,
@@ -58,6 +63,7 @@ namespace HotpotSort.Core
             if (skeletonSourceHash != SkeletonSourceHash || weightsSourceHash != WeightsSourceHash || importerVersion != ImporterVersion)
                 throw new ArgumentException("Content source/importer identity mismatch");
             ContentVersion = contentVersion;
+            SkeletonIdentity = skeletonSourceHash;
             Plates = new ReadOnlyCollection<PlateDefinition>(new List<PlateDefinition>(plates));
             Rows = new ReadOnlyCollection<WeightRow>(new List<WeightRow>(rows).OrderBy(r => r.ProgressBand).ThenBy(r => r.BufferBand).ToList());
             Validate(); CanonicalJsonText = CanonicalJson.Write(Json()); Digest = CanonicalJson.Hash(CanonicalJsonText);
@@ -84,8 +90,8 @@ namespace HotpotSort.Core
                 throw new ArgumentException("Known weight sample mismatch");
         }
         public object Json() => CanonicalJson.Object("schemaVersion", Schema, "contentVersion", ContentVersion,
-            "skeletonId", "C", "skeletonVersion", "skeleton_c_v1", "sourceProfile", "OriginalDifficulty3",
-            "skeletonSourceSha256", SkeletonSourceHash, "weightsSourceSha256", WeightsSourceHash, "importerVersion", ImporterVersion,
+            "skeletonId", "C", "skeletonVersion", "skeleton_c_normalized_v1.1", "sourceProfile", "FixedCAcceptedDifficulty3",
+            "skeletonSourceSha256", SkeletonIdentity, "weightsSourceSha256", WeightsSourceHash, "importerVersion", ImporterVersion,
             "directorAlgorithmVersion", DirectorVersion, "rngAlgorithm", Pcg32.Version, "seedAlgorithm", Pcg32.SeedVersion,
             "totalPlates", 50, "totalItems", 183, "ingredientKinds", 16, "activeOrderSlots", 2, "maxOrderSlots", 4,
             "orderSize", 3, "bufferSize", 5, "openingLookaheadPlates", 10, "progressThresholdPercent", new[] { 40, 65, 85, 100 }, "interferenceUnitSize", 3,
@@ -101,6 +107,13 @@ namespace HotpotSort.Core
             var result = new DailyContent((string)m["contentVersion"], plates, rows, (string)m["skeletonSourceSha256"], (string)m["weightsSourceSha256"], (string)m["importerVersion"]);
             if (result.CanonicalJsonText != json) throw new ArgumentException("Non-canonical content or unsupported configuration/version");
             return result;
+        }
+        // Production and diagnostics load the same canonical project asset. No fallback generator.
+        public static DailyContent LoadProduction(string json)
+        {
+            var content = Load(json, ProductionDigest);
+            if (content.ContentVersion != CurrentVersion) throw new ArgumentException("Unsupported production content version");
+            return content;
         }
     }
 }

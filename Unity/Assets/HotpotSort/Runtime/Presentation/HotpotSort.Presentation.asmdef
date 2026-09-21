@@ -1,1 +1,1 @@
-{"name":"HotpotSort.Presentation","references":["UnityEngine.UI"],"autoReferenced":false}
+{"name":"HotpotSort.Presentation","references":["UnityEngine.UI","HotpotSort.Contracts"],"autoReferenced":false}

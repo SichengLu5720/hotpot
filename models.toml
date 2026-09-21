@@ -1,51 +1,14 @@
-# Harness desired configuration; blank model means host inheritance, not a cheap model.
+# Harness model targets. Blank model means inherit the host default.
 schema_version = 1
-active_profile = "balanced"
-
-[profiles.economy]
-model = ""
-effort = "low"
-
-[profiles.balanced]
-model = ""
-effort = "medium"
-
-[profiles.quality]
-model = ""
-effort = "high"
-
-[agents.pm_coordinator]
-enabled = true
-profile = ""
-model = "gpt-5.6-luna"
-effort = "low"
-
-[agents.requirement_analyst]
-enabled = true
-profile = ""
-model = "gpt-6-astra"
-effort = "medium"
 
 [agents.feature_designer]
-enabled = true
-profile = ""
 model = "gpt-6-astra"
-effort = "low"
+effort = "high"
 
-[agents.design_art_agent]
-enabled = true
-profile = ""
+[agents.visual_design_agent]
 model = "gpt-6-astra"
-effort = "medium"
+effort = "high"
 
 [agents.code_builder]
-enabled = true
-profile = ""
 model = "gpt-6-astra"
-effort = "low"
-
-[agents.qa_reporter]
-enabled = false
-profile = ""
-model = "gpt-5.6-luna"
-effort = "low"
+effort = "high"

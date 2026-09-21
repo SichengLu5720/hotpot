@@ -13,6 +13,12 @@ namespace HotpotSort.Core
         public IReadOnlyList<IngredientEntry> Catalog { get; }
         public string CatalogDigest { get; }
         public string ConfigurationDigest { get; }
+        public static DailySessionFactory FromProductionJson(string json)
+        {
+            var content=DailyContent.LoadProduction(json);
+            var catalog=Enumerable.Range(0,16).Select(id=>new IngredientEntry("food_"+id.ToString("00"),"food/food_"+id.ToString("00"),"food_"+id.ToString("00"),"alpha-hit-radius-16-board-units","standard",content.ContentVersion));
+            return new DailySessionFactory(content,catalog);
+        }
         public DailySessionFactory(DailyContent content, IEnumerable<IngredientEntry> catalog)
         {
             Content = content ?? throw new ArgumentNullException(nameof(content));

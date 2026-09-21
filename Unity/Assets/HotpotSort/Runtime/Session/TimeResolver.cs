@@ -36,8 +36,9 @@ namespace HotpotSort.Session
             }
             utc = utc.ToUniversalTime();
             // Asia/Shanghai Daily modern date rule: UTC+08:00, independent of device timezone.
-            var day = utc.ToOffset(TimeSpan.FromHours(8)).ToString("yyyyMMdd", CultureInfo.InvariantCulture);
+            var day = ChallengeDay(utc);
             return new ResolvedChallenge(new ChallengeContext(day, contentVersion, digest, source, 0), utc, reason);
         }
+        public static string ChallengeDay(DateTimeOffset utc) => utc.ToOffset(TimeSpan.FromHours(8)).AddHours(-6).ToString("yyyyMMdd", CultureInfo.InvariantCulture);
     }
 }
