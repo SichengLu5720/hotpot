@@ -178,6 +178,14 @@ Unaffected Workstreams: TASK-001 v5固定C与普通盘供给已Verified；其余
 - 模拟器已实际渲染“火锅消消”“流程验证包”“启动成功”“仅验证开发版上传链路”“版本 0.0.1”。
 - 用户明确将“能通过开发者工具查看”定为最终验收口径；公众平台网页记录不再是本Task的阻断项。
 
+## r006操作性重传
+
+- 用户要求在汇总当前Task的同时再次上传微信开发版；复用已验证且内容未变的原生空壳，执行一次开发版上传。
+- 官方WechatIDE结构化回执为`success=true`；上传元数据为版本`0.0.2`、说明“当前Task汇总”，平台包大小1,191字节。
+- 上传前后3个包文件哈希全部一致；AppID未进入证据，未提交审核、发布或激活体验版。
+- 空壳画面内部仍显示“版本 0.0.1”；`0.0.2`只代表本次开发版上传元数据，不代表新的正式游戏内容版本。
+- 证据：`.harness/qa/TASK-002/v5/r006/result.md`、`mcp-upload.json`、`final-result.json`。
+
 # Design Handoff — HC-02 Candidate
 
 Status: Design Ready。Feature Designer仅只读调查，未执行编译、导出或上传；未提出新的产品决定。
