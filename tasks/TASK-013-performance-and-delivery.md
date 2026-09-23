@@ -13,6 +13,7 @@ Updated At: 2026-09-23
 - State Change: 冻结候选 → 性能优化候选 → 微信开发版已上传 → Git 已推送。
 - Boundary / Failure / Cancel: 任一构建、完整性、包体、性能或上传检查失败即停止后续推送并保留证据；不得以 CLI 退出码替代结构化上传成功回执。
 - Device Correction: `0.0.3` 真机反馈出现调试优化建议弹窗，并在已校验资源载入后的本地缓存写入失败时落到“食材准备未完成”。关闭正式候选的调试建议弹窗；远程资源的清单、SHA-256、CRC、bundle 和完整资产验证全部通过后，本地持久缓存落盘改为非阻断，失败时当前会话继续使用已验证内存资产、下次重新下载。
+- Device Correction 2: `0.0.4` 真机仍无法进入。根因核验为原 CloudFile 所在云存储使用“仅创建者和管理员可读写”，开发机管理凭证可回下载，但小游戏真机用户无读取权限。未放宽该存储桶权限；将当前版本 bundle 部署到同环境静态托管的版本化路径，正式包改用已有 HTTPS 强校验下载路线。公网回下载后的 SHA-256 与字节数必须匹配原清单。
 
 ## Must Preserve
 
@@ -58,6 +59,6 @@ Integrator: code_agent。
 - Current Result: `CODE-PERF` Completed。最终冻结候选已完成 Unity 编译、真实 Bootstrap 入口与核心路径、三档分辨率性能、热气池与边缘装饰节点稳定性、v7 fallback 和正式微信导出检查。基线已大幅超过门槛，因此未为追求无依据的数值变化修改运行时代码、正式纹理或导入设置。
 - Performance: 15 秒预热、120 秒采样；720×1280 平均 714.41 FPS / P95 9.03 ms，1080×1920 平均 586.84 FPS / P95 9.23 ms，1440×3200 平均 479.36 FPS / P95 9.52 ms。以上为 Windows RTX 5060 编辑器/运行环境证据，不替代微信真机体验。
 - Package: 正式主包 2,056,137 B（2007.95 KiB），低于 4096 KiB；远程 bundle 未打入主包，正式云文件绑定与清单哈希一致。
-- WeChat Upload: Completed。`0.0.3` 的真机反馈触发 Device Correction；修正版已以开发版 `0.0.4` 上传，描述“真机启动与缓存修复候选”。官方 CLI 返回 `upload` 成功标记，总包 13,840,715 B、主包 2,418,827 B（2362.14 KiB），低于 4096 KiB。未提审、未发布、未设置体验版。
+- WeChat Upload: Completed。`0.0.5` 已上传，描述“真机资源访问修复候选”。正式配置为 HTTPS，公网 HEAD 为 200，完整 bundle 回下载后的 SHA-256 与字节数均匹配清单。官方 CLI 返回 `upload` 成功标记，总包 13,839,131 B、主包 2,418,565 B（2361.88 KiB），低于 4096 KiB。未提审、未发布、未设置体验版。
 - Git Push: 首个候选提交 `293b48b` 已推送；Device Correction 通过远程资源 8 组定向诊断与正式 SDK 导出后追加提交并推送。
-- Evidence: `.harness/qa/TASK-013/result.json`；`.harness/qa/TASK-013/delivery/export-result.json`；`.harness/qa/TASK-013/delivery/wechat-upload-0.0.4.json`。
+- Evidence: `.harness/qa/TASK-013/result.json`；`.harness/qa/TASK-013/delivery/export-result.json`；`.harness/qa/TASK-013/delivery/wechat-upload-0.0.5.json`；`.harness/qa/TASK-013/hosting-verify/`。
