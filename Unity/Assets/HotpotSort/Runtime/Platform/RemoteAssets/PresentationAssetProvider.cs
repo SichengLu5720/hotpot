@@ -18,6 +18,7 @@ namespace HotpotSort.Platform.RemoteAssets
         readonly string partition;
         readonly Uri uri;
         readonly AssetError configurationError;
+        readonly bool packaged;
         readonly HashSet<string> remotePaths;
         readonly SemaphoreSlim serial=new SemaphoreSlim(1,1);
         readonly Dictionary<string,object> complete=new Dictionary<string,object>(StringComparer.Ordinal);
@@ -37,9 +38,10 @@ namespace HotpotSort.Platform.RemoteAssets
             Snapshot=new AssetPreparationSnapshot(0,expected?.ReleaseId,AssetReadiness.LocalReady,AssetError.None,0,0,0);
             try{
                 source=source??new RemoteAssetSource("Https",baseUrl,"","");
-                if(source.Mode!="CloudFile"&&(source.Mode!="Https"||string.IsNullOrWhiteSpace(source.BaseUrl)||source.CloudFileId.Length!=0||source.CloudEnvironment.Length!=0))throw new AssetFailure(AssetError.NotConfigured);
+                if(source.Mode!="CloudFile"&&source.Mode!="Packaged"&&(source.Mode!="Https"||string.IsNullOrWhiteSpace(source.BaseUrl)||source.CloudFileId.Length!=0||source.CloudEnvironment.Length!=0||source.PackagedPath.Length!=0))throw new AssetFailure(AssetError.NotConfigured);
                 manifest=RemoteAssetValidation.FreezeAndValidate(input,expected);
-                uri=source.Mode=="CloudFile"?source.CloudUri():new Uri(RemoteAssetValidation.BaseUri(source.BaseUrl),manifest.bundle.relativePath);
+                packaged=source.Mode=="Packaged";
+                uri=source.Mode=="CloudFile"?source.CloudUri():packaged?source.PackagedUri():new Uri(RemoteAssetValidation.BaseUri(source.BaseUrl),manifest.bundle.relativePath);
                 partition=RemoteAssetValidation.Partition(expected,manifest);
             }
             catch(AssetFailure e){configurationError=e.Code;}
@@ -76,7 +78,7 @@ namespace HotpotSort.Platform.RemoteAssets
                 if(configurationError!=AssetError.None)throw new AssetFailure(configurationError);
                 Publish(current,AssetReadiness.CheckingCache);
                 byte[] bytes;
-                try{bytes=cache.ReadCommitted(partition);}catch{throw new AssetFailure(AssetError.CacheIO);}
+                try{bytes=packaged?null:cache.ReadCommitted(partition);}catch{throw new AssetFailure(AssetError.CacheIO);}
                 bool cached=bytes!=null;
                 if(cached)
                 {
@@ -97,7 +99,7 @@ namespace HotpotSort.Platform.RemoteAssets
                     verified.Add(asset.logicalPath,value);
                 }
                 Check(current,token);
-                if(!cached)
+                if(!cached&&!packaged)
                 {
                     // The release has already passed byte integrity, bundle loading, and complete asset validation.
                     // A device-specific persistent-cache write failure must not discard that verified in-memory release.

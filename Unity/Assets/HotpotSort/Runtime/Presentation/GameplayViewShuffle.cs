@@ -86,9 +86,12 @@ namespace HotpotSort.Presentation
         {
             var at = World.Position(body);
             if (ShuffleFeedbackActive && shufflePositions.TryGetValue(body.data.plateId, out var animated)) at = animated;
-            node.anchoredPosition = new Vector2(at.x,-at.y);
-            node.localScale = Vector3.one * (ShuffleFeedbackActive ? shuffleScale : 1);
-            node.localRotation = Quaternion.Euler(0, 0, ShuffleFeedbackActive && shuffleRotations.TryGetValue(body.data.plateId, out var angle) ? angle : 0);
+            var position=new Vector2(at.x,-at.y);
+            if((node.anchoredPosition-position).sqrMagnitude>.000001f)node.anchoredPosition=position;
+            float scale=ShuffleFeedbackActive?shuffleScale:1;
+            if(Mathf.Abs(node.localScale.x-scale)>.00001f)node.localScale=Vector3.one*scale;
+            float rotation=ShuffleFeedbackActive&&shuffleRotations.TryGetValue(body.data.plateId,out var angle)?angle:0;
+            if(Mathf.Abs(Mathf.DeltaAngle(node.localEulerAngles.z,rotation))>.0001f)node.localRotation=Quaternion.Euler(0,0,rotation);
         }
     }
 }

@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
 using HotpotSort.Platform;
+using HotpotSort.Contracts.RemoteAssets;
 
 namespace HotpotSort.Build
 {
@@ -15,7 +16,7 @@ namespace HotpotSort.Build
         public const string ConfigFile="hotpot/remote-assets-config.json";
         public static bool Active=>File.Exists(Task002V10BundleTool.Marker);
         public static bool SizeProbe=>Active&&Environment.GetEnvironmentVariable("HOTPOT_ASSET_SIZE_PROBE")=="1";
-        [Serializable] sealed class Config {public int schemaVersion=2;public string releaseId,manifestSha256,baseUrl,sourceMode,cloudEnvironment,cloudFileId;public bool sizeProbe;}
+        [Serializable] sealed class Config {public int schemaVersion=2;public string releaseId,manifestSha256,baseUrl,sourceMode,cloudEnvironment,cloudFileId,packagedPath;public bool sizeProbe;}
         public static void Preflight()
         {
             if(!Active)return;
@@ -38,7 +39,13 @@ namespace HotpotSort.Build
             var crcProbe=AssetBundle.LoadFromFile(bundle,m.bundle.crc32);
             if(crcProbe==null)throw new InvalidOperationException("Deployment bundle CRC failed");
             crcProbe.Unload(true);
-            if(!SizeProbe)ValidateSource();
+            if(!SizeProbe)
+            {
+                // Keep validating the private build binding, but do not stage a second
+                // copy of the bundle. The formal player now consumes the complete
+                // approved theme directly from Unity Resources.
+                ValidateSource();
+            }
         }
         public static WeChatRuntimeConfig ValidateSource()
         {
@@ -47,7 +54,34 @@ namespace HotpotSort.Build
             catch{throw new InvalidOperationException("Remote asset source configuration invalid");}
             if(config.AssetState!=WeChatCapabilityState.Ready)throw new InvalidOperationException("Remote asset source configuration missing");
             if(config.AssetSource.Mode=="Https")ValidateBaseUrl(config.AssetSource.BaseUrl);
+            if(config.AssetSource.Mode=="Packaged")
+            {
+                string expected="Hotpot/PackagedAssets/"+ReleaseId()+"/hotpot-assets";
+                if(config.AssetSource.PackagedPath!=expected)throw new InvalidOperationException("Packaged asset path differs from fixed release path");
+            }
             return config;
+        }
+        static string ReleaseId()
+        {
+            string path=Environment.GetEnvironmentVariable("HOTPOT_REMOTE_MANIFEST");
+            if(string.IsNullOrWhiteSpace(path)||!File.Exists(path))return "";
+            return JsonUtility.FromJson<Task002V10BundleTool.Release>(File.ReadAllText(path))?.releaseId??"";
+        }
+        static void StagePackagedResource(Task002V10BundleTool.Release manifest,string bundle,string packagedPath)
+        {
+            string expected="Hotpot/PackagedAssets/"+manifest.releaseId+"/hotpot-assets";
+            if(packagedPath!=expected||!RemoteAssetSource.IsPackagedPath(packagedPath))throw new InvalidOperationException("Unsafe packaged bundle path");
+            string resourceRoot=Path.GetFullPath(Path.Combine(Application.dataPath,"HotpotSort","Resources"));
+            string target=Path.GetFullPath(Path.Combine(resourceRoot,(packagedPath+".bytes").Replace('/',Path.DirectorySeparatorChar)));
+            string prefix=resourceRoot.TrimEnd(Path.DirectorySeparatorChar)+Path.DirectorySeparatorChar;
+            if(!target.StartsWith(prefix,StringComparison.OrdinalIgnoreCase))throw new InvalidOperationException("Packaged bundle escaped Resources");
+            Directory.CreateDirectory(Path.GetDirectoryName(target));
+            File.Copy(bundle,target,true);
+            if(new FileInfo(target).Length!=manifest.bundle.byteLength||Task002V10BundleTool.Digest(target)!=manifest.bundle.sha256)throw new InvalidOperationException("Packaged bundle staging integrity failed");
+            string assetPath="Assets"+target.Substring(Application.dataPath.Length).Replace('\\','/');
+            AssetDatabase.ImportAsset(assetPath,ImportAssetOptions.ForceSynchronousImport|ImportAssetOptions.ForceUpdate);
+            var imported=Resources.Load<TextAsset>(packagedPath);
+            if(imported==null||imported.bytes.LongLength!=manifest.bundle.byteLength||Task002V10BundleTool.Hash(imported.bytes)!=manifest.bundle.sha256)throw new InvalidOperationException("Packaged TextAsset import integrity failed");
         }
         public static void ValidateBaseUrl(string value)
         {
@@ -61,19 +95,19 @@ namespace HotpotSort.Build
             if(path.StartsWith(packageRoot,StringComparison.OrdinalIgnoreCase))throw new InvalidOperationException("Deployment must remain outside minigame");
             var manifest=JsonUtility.FromJson<Task002V10BundleTool.Release>(File.ReadAllText(path));
             Directory.CreateDirectory(Path.Combine(package,"hotpot"));File.Copy(path,Path.Combine(package,ManifestFile),false);
-            var source=SizeProbe?null:ValidateSource().AssetSource;
-            File.WriteAllText(Path.Combine(package,ConfigFile),JsonUtility.ToJson(new Config{releaseId=manifest.releaseId,manifestSha256=Task002V10BundleTool.Digest(path),sourceMode=source?.Mode,baseUrl=source?.BaseUrl,cloudEnvironment=source?.CloudEnvironment,cloudFileId=source?.CloudFileId,sizeProbe=SizeProbe},true),new UTF8Encoding(false));
-            if(Directory.GetFiles(package,"*.bundle",SearchOption.AllDirectories).Length!=0)throw new InvalidOperationException("Remote bundle duplicated in minigame");
+            if(!SizeProbe)ValidateSource();
+            File.WriteAllText(Path.Combine(package,ConfigFile),JsonUtility.ToJson(new Config{releaseId=manifest.releaseId,manifestSha256=Task002V10BundleTool.Digest(path),sourceMode=SizeProbe?null:"NativeResources",sizeProbe=SizeProbe},true),new UTF8Encoding(false));
+            if(Directory.GetFiles(package,"*.bundle",SearchOption.AllDirectories).Length!=0||Directory.GetFiles(package,"hotpot-assets.unityweb.bin.br",SearchOption.AllDirectories).Length!=0)throw new InvalidOperationException("Raw bundle duplicated outside Unity data package");
         }
         public static void Smoke()
         {
             int exit=0;var oldUrl=Environment.GetEnvironmentVariable("WECHAT_ASSET_BASE_URL");var oldProbe=Environment.GetEnvironmentVariable("HOTPOT_ASSET_SIZE_PROBE");
-            var oldSource=Environment.GetEnvironmentVariable("HOTPOT_REMOTE_SOURCE");var oldFile=Environment.GetEnvironmentVariable("HOTPOT_REMOTE_CLOUD_FILE_ID");
+            var oldSource=Environment.GetEnvironmentVariable("HOTPOT_REMOTE_SOURCE");var oldFile=Environment.GetEnvironmentVariable("HOTPOT_REMOTE_CLOUD_FILE_ID");var oldPackaged=Environment.GetEnvironmentVariable("HOTPOT_PACKAGED_ASSET_PATH");
             try
             {
                 if(!Active)throw new InvalidOperationException("Smoke requires v10 staging");
                 Environment.SetEnvironmentVariable("HOTPOT_ASSET_SIZE_PROBE",null);Environment.SetEnvironmentVariable("WECHAT_ASSET_BASE_URL",null);
-                Environment.SetEnvironmentVariable("HOTPOT_REMOTE_SOURCE",null);Environment.SetEnvironmentVariable("HOTPOT_REMOTE_CLOUD_FILE_ID",null);
+                Environment.SetEnvironmentVariable("HOTPOT_REMOTE_SOURCE",null);Environment.SetEnvironmentVariable("HOTPOT_REMOTE_CLOUD_FILE_ID",null);Environment.SetEnvironmentVariable("HOTPOT_PACKAGED_ASSET_PATH",null);
                 bool rejected=false;try{Preflight();}catch(InvalidOperationException e){if(!e.Message.StartsWith("Remote asset source configuration",StringComparison.Ordinal))throw;rejected=true;}if(!rejected)throw new InvalidOperationException("Missing source accepted for formal export");
                 foreach(string invalid in new[]{"http://invalid.example/","https://localhost/","https://user:password@invalid.example/","https://invalid.example/?token=fixture"}){rejected=false;try{ValidateBaseUrl(invalid);}catch(InvalidOperationException){rejected=true;}if(!rejected)throw new InvalidOperationException("Unsafe URL accepted");}
                 Environment.SetEnvironmentVariable("HOTPOT_ASSET_SIZE_PROBE","1");Preflight();
@@ -83,7 +117,7 @@ namespace HotpotSort.Build
                 Debug.Log("TASK002_V10_EXPORT_GUARD_PASS");
             }
             catch(Exception e){exit=1;Debug.LogError("TASK002_V10_FAILED "+e.GetType().Name+": "+e.Message);}
-            finally{Environment.SetEnvironmentVariable("WECHAT_ASSET_BASE_URL",oldUrl);Environment.SetEnvironmentVariable("HOTPOT_ASSET_SIZE_PROBE",oldProbe);Environment.SetEnvironmentVariable("HOTPOT_REMOTE_SOURCE",oldSource);Environment.SetEnvironmentVariable("HOTPOT_REMOTE_CLOUD_FILE_ID",oldFile);if(Application.isBatchMode)EditorApplication.Exit(exit);}
+            finally{Environment.SetEnvironmentVariable("WECHAT_ASSET_BASE_URL",oldUrl);Environment.SetEnvironmentVariable("HOTPOT_ASSET_SIZE_PROBE",oldProbe);Environment.SetEnvironmentVariable("HOTPOT_REMOTE_SOURCE",oldSource);Environment.SetEnvironmentVariable("HOTPOT_REMOTE_CLOUD_FILE_ID",oldFile);Environment.SetEnvironmentVariable("HOTPOT_PACKAGED_ASSET_PATH",oldPackaged);if(Application.isBatchMode)EditorApplication.Exit(exit);}
         }
     }
 }

@@ -70,13 +70,13 @@ namespace HotpotSort.Contracts.RemoteAssets
     // Immutable, package-selected source. No runtime fallback on a failed request.
     public sealed class RemoteAssetSource
     {
-        public readonly string Mode, BaseUrl, CloudEnvironment, CloudFileId;
-        public RemoteAssetSource(string mode,string baseUrl,string cloudEnvironment,string cloudFileId)
-        { Mode=mode;BaseUrl=baseUrl??"";CloudEnvironment=cloudEnvironment??"";CloudFileId=cloudFileId??""; }
-        public static RemoteAssetSource Select(string mode,string baseUrl,string environment,string fileId)
+        public readonly string Mode, BaseUrl, CloudEnvironment, CloudFileId, PackagedPath;
+        public RemoteAssetSource(string mode,string baseUrl,string cloudEnvironment,string cloudFileId,string packagedPath="")
+        { Mode=mode;BaseUrl=baseUrl??"";CloudEnvironment=cloudEnvironment??"";CloudFileId=cloudFileId??"";PackagedPath=packagedPath??""; }
+        public static RemoteAssetSource Select(string mode,string baseUrl,string environment,string fileId,string packagedPath="")
         {
             if(string.IsNullOrEmpty(mode))mode=string.IsNullOrEmpty(fileId)?"Https":"CloudFile";
-            return new RemoteAssetSource(mode,mode=="Https"?baseUrl:"",mode=="CloudFile"?environment:"",mode=="CloudFile"?fileId:"");
+            return new RemoteAssetSource(mode,mode=="Https"?baseUrl:"",mode=="CloudFile"?environment:"",mode=="CloudFile"?fileId:"",mode=="Packaged"?packagedPath:"");
         }
         public static bool IsCloudFile(string fileId,string environment)
         {
@@ -95,8 +95,20 @@ namespace HotpotSort.Contracts.RemoteAssets
         static bool AsciiIdentifier(char c)=>(c>='a'&&c<='z')||(c>='A'&&c<='Z')||(c>='0'&&c<='9')||c=='-'||c=='_';
         public Uri CloudUri()
         {
-            if(Mode!="CloudFile"||BaseUrl.Length!=0||!IsCloudFile(CloudFileId,CloudEnvironment))throw new AssetFailure(AssetError.NotConfigured);
+            if(Mode!="CloudFile"||BaseUrl.Length!=0||PackagedPath.Length!=0||!IsCloudFile(CloudFileId,CloudEnvironment))throw new AssetFailure(AssetError.NotConfigured);
             return new Uri(CloudFileId,UriKind.Absolute);
+        }
+        public static bool IsPackagedPath(string value)
+        {
+            if(string.IsNullOrEmpty(value)||value.Length>1024||value.StartsWith("/",StringComparison.Ordinal)||value.Contains("\\")||value.Contains(":")||value.Contains("%")||value.Contains("?")||value.Contains("#"))return false;
+            foreach(char c in value)if(char.IsWhiteSpace(c)||char.IsControl(c))return false;
+            foreach(string segment in value.Split('/'))if(segment.Length==0||segment=="."||segment=="..")return false;
+            return true;
+        }
+        public Uri PackagedUri()
+        {
+            if(Mode!="Packaged"||BaseUrl.Length!=0||CloudEnvironment.Length!=0||CloudFileId.Length!=0||!IsPackagedPath(PackagedPath))throw new AssetFailure(AssetError.NotConfigured);
+            return new Uri("hotpot-local://package/"+PackagedPath,UriKind.Absolute);
         }
     }
     public interface IAssetDelay { Task WaitAsync(TimeSpan duration, CancellationToken cancel); }

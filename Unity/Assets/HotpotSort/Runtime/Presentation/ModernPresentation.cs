@@ -72,7 +72,12 @@ namespace HotpotSort.Presentation
         public void OnPointerDown(PointerEventData e){var s=GetComponent<Selectable>();pressed=s&&s.IsInteractable();}
         public void OnPointerUp(PointerEventData e){pressed=false;}
         public void OnPointerExit(PointerEventData e){pressed=false;}
-        void Update(){amount=Mathf.MoveTowards(amount,pressed?.975f:1,Time.unscaledDeltaTime*.8f);transform.localScale=Vector3.one*amount;}
+        void Update()
+        {
+            float next=Mathf.MoveTowards(amount,pressed?.975f:1,Time.unscaledDeltaTime*.8f);
+            if(Mathf.Abs(next-amount)<.000001f)return;
+            amount=next;transform.localScale=Vector3.one*amount;
+        }
         void OnDisable(){pressed=false;amount=1;transform.localScale=Vector3.one;}
     }
 

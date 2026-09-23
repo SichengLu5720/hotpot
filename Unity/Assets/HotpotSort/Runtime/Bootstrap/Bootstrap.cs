@@ -51,6 +51,13 @@ namespace HotpotSort.Bootstrap
             owner = this;
             try
             {
+#if UNITY_WEBGL && !UNITY_EDITOR
+                // WeChat/iOS otherwise inherits Unity's conservative mobile cadence.
+                // The export caps DPR separately, so 60 Hz does not multiply the
+                // native 3x fill-rate cost on high-density iPhones.
+                QualitySettings.vSyncCount=0;
+                Application.targetFrameRate=60;
+#endif
                 if (composition == null) throw new InvalidOperationException("production-core-view-factories-missing");
                 if (composition.UsesDevelopmentDoubles) throw new InvalidOperationException("production-rejects-development-doubles");
                 if (string.IsNullOrWhiteSpace(composition.RuntimeNamespace) ||
@@ -107,17 +114,17 @@ namespace HotpotSort.Bootstrap
             }
             catch (Exception ex) { Status = ex is AssetFailure failure?failure.Code.ToString():ex.GetType().Name + ": " + ex.Message; Debug.LogError(Status); Controller?.Dispose(); Controller = null; platform?.Dispose();profileTransport?.Dispose();silentLogin?.Dispose();weChatServices?.Dispose();weChatServices=null; }
         }
-        [Serializable] sealed class AssetPackageConfig {public int schemaVersion;public string releaseId,manifestSha256,baseUrl,sourceMode,cloudEnvironment,cloudFileId;public bool sizeProbe;}
+        [Serializable] sealed class AssetPackageConfig {public int schemaVersion;public string releaseId,manifestSha256,baseUrl,sourceMode,cloudEnvironment,cloudFileId,packagedPath;public bool sizeProbe;}
         IPresentationAssetProvider CreateAssets()
         {
 #if UNITY_EDITOR
             if(DiagnosticAssets!=null)return DiagnosticAssets();
 #endif
 #if UNITY_WEBGL && !UNITY_EDITOR
-            string manifest=null,configuration=null;
-            try{var fs=WX.GetFileSystemManager();manifest=fs.ReadFileSync("hotpot/remote-assets-manifest.json","utf8");configuration=fs.ReadFileSync("hotpot/remote-assets-config.json","utf8");}catch{}
-            var runtime=WeChatRuntimeConfig.LoadPackaged();
-            return CreateRemoteAssets(manifest,configuration,runtime.environment,new WeChatAssetTransport(runtime.cloudEnvironmentId),new WeChatRemoteAssetFileSystem(),runtime.cloudEnvironmentId,(composition as DailyProductionComposition)?.ApprovedAssetRoot);
+            // The approved theme is shipped as native Unity Resources. Do not gate a
+            // phone session on an additional AssetBundle read/decompression pass: all
+            // visible assets are already part of the converted WeChat data package.
+            return new LocalPresentationAssetProvider();
 #else
             return new LocalPresentationAssetProvider();
 #endif
@@ -134,7 +141,7 @@ namespace HotpotSort.Bootstrap
             RemoteAssetManifest manifest=null;AssetPackageConfig config=null;
             try{config=JsonUtility.FromJson<AssetPackageConfig>(configurationJson);manifest=UnityRemoteAssetManifest.Parse(manifestJson);}catch{}
             bool valid=config!=null&&(config.schemaVersion==1||config.schemaVersion==2)&&!config.sizeProbe&&manifest!=null&&config.releaseId==manifest.releaseId&&config.manifestSha256==RemoteAssetValidation.Sha(Encoding.UTF8.GetBytes(manifestJson));
-            var source=config==null?null:new RemoteAssetSource(config.schemaVersion==1?"Https":config.sourceMode,config.baseUrl,config.cloudEnvironment,config.cloudFileId);
+            var source=config==null?null:new RemoteAssetSource(config.schemaVersion==1?"Https":config.sourceMode,config.baseUrl,config.cloudEnvironment,config.cloudFileId,config.packagedPath);
             if(source!=null&&source.Mode=="CloudFile"&&(config.schemaVersion!=2||source.CloudEnvironment!=cloudEnvironment))valid=false;
             string fingerprint=RemoteAssetValidation.Sha(Encoding.UTF8.GetBytes("1|"+Application.unityVersion+"|WebGL|"+QualitySettings.activeColorSpace+"|OpenGLES3"));
             var identity=new AssetReleaseIdentity(environment,config?.releaseId,Application.unityVersion,"WebGL",fingerprint,manifest?.localAssetSetHash,RemoteAssetValidation.Sha(themeFile.bytes),manifest?.fullAssetSetHash,expectedPaths);

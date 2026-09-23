@@ -37,6 +37,8 @@ namespace HotpotSort.UnityPhysics
         private bool simulating;
         private string sessionId;
         private long sessionGeneration,observationSequence;
+        private Vector2[] previousPositions=System.Array.Empty<Vector2>();
+        private Vector2[] solverPositions=System.Array.Empty<Vector2>();
         public readonly List<Vector2> StepGeometry = new List<Vector2>();
         public int ConstraintRollbacks { get; private set; }
         public int TransientGeometrySteps { get; private set; }
@@ -70,29 +72,44 @@ namespace HotpotSort.UnityPhysics
         private void FixedUpdate()
         {
             if(!simulating)return;
-            var beforeGeometry=MeasureGeometry();
+            int count=drawOrder.Count;
+            EnsurePositionBuffers(count);
+            for(int i=0;i<count;i++)previousPositions[i]=Position(drawOrder[i]);
+            var beforeGeometry=MeasureGeometry(previousPositions,count);
             bool previousLegal=beforeGeometry.x>=-.001f && beforeGeometry.y>=-.001f;
-            var previous=new Vector2[drawOrder.Count];
-            for(int i=0;i<drawOrder.Count;i++)previous[i]=drawOrder[i].rigidbody.position;
             // Board Y increases downward. Per-body force preserves global Physics2D.gravity.
             foreach(var body in plates.Values)
                 body.rigidbody.AddForce(Vector2.up * (960 * Units * body.rigidbody.mass),ForceMode2D.Force);
             localPhysics.Simulate(Time.fixedDeltaTime);
-            ConstrainGeometry();
-            var geometry=MeasureGeometry();
+            for(int i=0;i<count;i++)solverPositions[i]=Position(drawOrder[i]);
+            ConstrainGeometry(solverPositions,count);
+            ApplyPositions(solverPositions,count);
+            Physics2D.SyncTransforms();
+            var geometry=MeasureGeometry(solverPositions,count);
             if(geometry.x<-.001f || geometry.y<-.001f)
             {
                 // The synchronous step keeps the same object set. A new spawn may
                 // overlap, so only a measured legal pre-step state can be restored.
                 if(previousLegal)
                 {
-                    for(int i=0;i<drawOrder.Count;i++){MoveBody(drawOrder[i],previous[i]);drawOrder[i].rigidbody.linearVelocity=Vector2.zero;}
+                    ApplyPositions(previousPositions,count);
+                    for(int i=0;i<count;i++)drawOrder[i].rigidbody.linearVelocity=Vector2.zero;
                     Physics2D.SyncTransforms();ConstraintRollbacks++;geometry=MeasureGeometry();
                 }
                 else TransientGeometrySteps++;
             }
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
             if(StepGeometry.Count<30000)StepGeometry.Add(geometry);
+#endif
         }
+        void EnsurePositionBuffers(int count)
+        {
+            if(previousPositions.Length>=count)return;
+            int capacity=Mathf.NextPowerOfTwo(Mathf.Max(4,count));
+            previousPositions=new Vector2[capacity];solverPositions=new Vector2[capacity];
+        }
+        void ApplyPositions(Vector2[] positions,int count)
+        {for(int i=0;i<count;i++)MoveBody(drawOrder[i],Physical(positions[i]));}
         private static void MoveBody(PlateBody body,Vector2 position)
         {body.rigidbody.position=position;body.node.transform.position=position;}
         private void Update()
@@ -101,7 +118,7 @@ namespace HotpotSort.UnityPhysics
             for(int i=remnants.Count-1;i>=0;i--)
             { remnants[i].remaining-=Time.unscaledDeltaTime; if(remnants[i].remaining<=0)remnants.RemoveAt(i); }
         }
-        private void ConstrainGeometry()
+        private void ConstrainGeometry(Vector2[] positions,int count)
         {
             if(!simulating)return;
             // Box2D permits a small contact slop. Remove that slop before rendering so
@@ -109,31 +126,36 @@ namespace HotpotSort.UnityPhysics
             for(int pass=0;pass<256;pass++)
             {
                 bool moved=false;
-                for(int i=0;i<drawOrder.Count;i++)
+                for(int i=0;i<count;i++)
                 {
-                    var a=drawOrder[i];float radius=a.data.radius;var at=Position(a);
+                    var a=drawOrder[i];float radius=a.data.radius;var at=positions[i];
                     var clamped=new Vector2(Mathf.Clamp(at.x,radius,420-radius),Mathf.Clamp(at.y,HiddenTop+radius,828-radius));
-                    if((clamped-at).sqrMagnitude>.0000001f){MoveBody(a,Physical(clamped));moved=true;}
-                    for(int j=i+1;j<drawOrder.Count;j++)
+                    if((clamped-at).sqrMagnitude>.0000001f){positions[i]=clamped;at=clamped;moved=true;}
+                    for(int j=i+1;j<count;j++)
                     {
-                        var b=drawOrder[j];var delta=Position(b)-Position(a);float length=delta.magnitude,required=a.data.radius+b.data.radius+.02f;
+                        var b=drawOrder[j];var delta=positions[j]-positions[i];float length=delta.magnitude,required=a.data.radius+b.data.radius+.02f;
                         if(length>=required)continue;
                         var direction=length>.001f?delta/length:Vector2.right;var shift=direction*((required-length)*.5f);
-                        MoveBody(a,Physical(Position(a)-shift));MoveBody(b,Physical(Position(b)+shift));moved=true;
+                        positions[i]-=shift;positions[j]+=shift;at=positions[i];moved=true;
                     }
                 }
                 if(!moved)break;
             }
-            Physics2D.SyncTransforms();
         }
         private Vector2 MeasureGeometry()
         {
+            int count=drawOrder.Count;EnsurePositionBuffers(count);
+            for(int i=0;i<count;i++)solverPositions[i]=Position(drawOrder[i]);
+            return MeasureGeometry(solverPositions,count);
+        }
+        private Vector2 MeasureGeometry(Vector2[] positions,int count)
+        {
             float gap=420,boundary=828;
-            for(int i=0;i<drawOrder.Count;i++)
+            for(int i=0;i<count;i++)
             {
-                var a=drawOrder[i];var at=Position(a);float r=a.data.radius;
+                var a=drawOrder[i];var at=positions[i];float r=a.data.radius;
                 boundary=Mathf.Min(boundary,Mathf.Min(Mathf.Min(at.x-r,420-at.x-r),Mathf.Min(at.y-HiddenTop-r,828-at.y-r)));
-                for(int j=i+1;j<drawOrder.Count;j++)gap=Mathf.Min(gap,Vector2.Distance(at,Position(drawOrder[j]))-r-drawOrder[j].data.radius);
+                for(int j=i+1;j<count;j++)gap=Mathf.Min(gap,Vector2.Distance(at,positions[j])-r-drawOrder[j].data.radius);
             }
             return new Vector2(gap,boundary);
         }

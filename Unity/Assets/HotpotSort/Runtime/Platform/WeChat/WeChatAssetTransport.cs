@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using HotpotSort.Contracts.RemoteAssets;
+using UnityEngine;
 #if UNITY_WEBGL && !UNITY_EDITOR
 using WeChatWASM;
 #endif
@@ -15,6 +16,7 @@ namespace HotpotSort.Platform
         public WeChatAssetTransport(string cloudEnvironment=null){this.cloudEnvironment=cloudEnvironment;}
         public async Task<AssetDownloadResult> DownloadAsync(Uri uri,TimeSpan timeout,Action<long> progress,CancellationToken cancel)
         {
+            if(uri!=null&&uri.Scheme=="hotpot-local")return ReadPackaged(uri,progress,cancel);
             if(uri!=null&&uri.Scheme=="cloud")return await WeChatCloudAssetDownload.DownloadAsync(cloudEnvironment,uri.OriginalString,timeout,progress,cancel);
 #if UNITY_WEBGL && !UNITY_EDITOR
             if(uri==null||uri.Scheme!="https"||uri.UserInfo.Length!=0||uri.Query.Length!=0||uri.Fragment.Length!=0)return new AssetDownloadResult(null,0,AssetError.NotConfigured);
@@ -62,6 +64,23 @@ namespace HotpotSort.Platform
             await Task.CompletedTask;
             return new AssetDownloadResult(null,0,AssetError.NotConfigured);
 #endif
+        }
+        static AssetDownloadResult ReadPackaged(Uri uri,Action<long> progress,CancellationToken cancel)
+        {
+            if(uri.Host!="package"||uri.UserInfo.Length!=0||uri.Query.Length!=0||uri.Fragment.Length!=0)return new AssetDownloadResult(null,0,AssetError.NotConfigured);
+            string relative=uri.AbsolutePath.TrimStart('/');
+            if(!RemoteAssetSource.IsPackagedPath(relative))return new AssetDownloadResult(null,0,AssetError.NotConfigured);
+            cancel.ThrowIfCancellationRequested();
+            try
+            {
+                var resource=Resources.Load<TextAsset>(relative);
+                if(resource==null)return new AssetDownloadResult(null,0,AssetError.CacheIO);
+                byte[] packaged=resource.bytes;
+                cancel.ThrowIfCancellationRequested();progress?.Invoke(packaged.LongLength);
+                return new AssetDownloadResult(packaged,200);
+            }
+            catch(OperationCanceledException){throw;}
+            catch{return new AssetDownloadResult(null,0,AssetError.CacheIO);}
         }
     }
     public sealed class WeChatRemoteAssetFileSystem:IRemoteAssetFileSystem

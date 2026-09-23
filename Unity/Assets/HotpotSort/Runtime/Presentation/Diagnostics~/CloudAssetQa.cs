@@ -37,6 +37,13 @@ static class CloudAssetQa
             values.Remove("HOTPOT_REMOTE_SOURCE");values.Remove("HOTPOT_REMOTE_CLOUD_FILE_ID");Check(WeChatRuntimeConfig.FromEnvironment(Read).AssetSource.Mode=="Https","HTTPS no cloud default");
             values["HOTPOT_REMOTE_SOURCE"]="CloudFile";Check(WeChatRuntimeConfig.FromEnvironment(Read).AssetState==WeChatCapabilityState.NotConfigured,"missing file id must not fall back");return Task.CompletedTask;
         });
+        await Run("C02b-packaged-source-selection",()=>{
+            var values=new Dictionary<string,string>{{"HOTPOT_REMOTE_SOURCE","Packaged"},{"HOTPOT_PACKAGED_ASSET_PATH","hotpot/release/hotpot-remote.bundle"},{"WECHAT_ASSET_BASE_URL","https://ignored.invalid/"},{"WECHAT_CLOUD_ENV_ID",Env},{"HOTPOT_REMOTE_CLOUD_FILE_ID",FileId}};
+            string Read(string key)=>values.TryGetValue(key,out var value)?value:null;
+            var c=WeChatRuntimeConfig.FromEnvironment(Read);Check(c.AssetState==WeChatCapabilityState.Ready&&c.AssetSource.Mode=="Packaged"&&c.AssetSource.PackagedPath=="hotpot/release/hotpot-remote.bundle"&&c.AssetSource.BaseUrl==""&&c.AssetSource.CloudFileId=="","packaged source must exclude remote configuration");
+            foreach(string bad in new[]{"","/absolute.bundle","../escape.bundle","hotpot//bundle","hotpot/%2e%2e/bundle","hotpot\\bundle"}){values["HOTPOT_PACKAGED_ASSET_PATH"]=bad;bool failed=false;try{c=WeChatRuntimeConfig.FromEnvironment(Read);failed=c.AssetState!=WeChatCapabilityState.Ready;}catch(FormatException){failed=true;}Check(failed,"unsafe packaged path accepted");}
+            return Task.CompletedTask;
+        });
         await Run("C03-cold-progress-success-duplicate",async()=>{
             var b=new Bridge();long progress=0;var task=Start(b,progress:n=>progress=n);b.Callback(0,2,"");Check(progress==2&&!task.IsCompleted,"progress");b.Callback(1,0,"temporary-fixture");Check((await task).Bytes.SequenceEqual(new byte[]{1,2,3})&&b.Reads==1&&b.Releases==1,"cold success");b.Callback(1,0,"temporary-fixture");b.Callback(0,10,"");Check(b.Reads==1&&progress==2,"duplicate retired");
         });

@@ -86,6 +86,16 @@ namespace HotpotSort.Build
             // TASK-002 v2: one-off compressed data subpackage; the panel is unchanged.
             exportConfig.ProjectConf.assetLoadType = 1;
             exportConfig.ProjectConf.compressDataPackage = true;
+            // A 3x iPhone canvas renders more than 3.6 million pixels per frame.
+            // 2x remains crisp at the approved logical size while cutting fill-rate
+            // by roughly 56 percent. Keep this build-only so the saved SDK panel is
+            // unchanged and every formal export is deterministic.
+            exportConfig.ProjectConf.IOSDevicePixelRatio = 2;
+            exportConfig.CompileOptions.enableIOSPerformancePlus = true;
+            // The approved presentation is a transparent UI-heavy scene. Use the
+            // SDK's Unity 2022+ GL bridge to reduce WebGL command marshalling CPU
+            // without changing resolution, assets, shaders or logical layout.
+            exportConfig.CompileOptions.enableEmscriptenGLX = true;
             // The SDK context must match the player's WebGL2 graphics API (and bundle fingerprint).
             // Keep the saved panel untouched, including legacy WebGL1 settings from older exports.
             exportConfig.CompileOptions.Webgl2 = PlayerSettings.GetGraphicsAPIs(BuildTarget.WebGL).Contains(UnityEngine.Rendering.GraphicsDeviceType.OpenGLES3);

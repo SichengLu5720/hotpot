@@ -15,6 +15,7 @@ namespace HotpotSort.Platform
         public string assetBaseUrl = "";
         public string assetSourceMode = "";
         public string assetCloudFileId = "";
+        public string assetPackagedPath = "";
         public string cloudEnvironmentId = "";
         public string cloudFunctionName = "hotpotProfileSync";
         public string rewardedAdUnitId = "";
@@ -27,9 +28,9 @@ namespace HotpotSort.Platform
         public bool enableFriendBoard = true;
         [NonSerialized] public bool packageConfigured = true;
 
-        public RemoteAssetSource AssetSource => RemoteAssetSource.Select(assetSourceMode,assetBaseUrl,cloudEnvironmentId,assetCloudFileId);
+        public RemoteAssetSource AssetSource => RemoteAssetSource.Select(assetSourceMode,assetBaseUrl,cloudEnvironmentId,assetCloudFileId,assetPackagedPath);
         public WeChatCapabilityState AssetState {
-            get { var source=AssetSource;return packageConfigured&&(source.Mode=="CloudFile"?RemoteAssetSource.IsCloudFile(source.CloudFileId,source.CloudEnvironment):source.Mode=="Https"&&IsAssetBaseUrl(source.BaseUrl))?WeChatCapabilityState.Ready:WeChatCapabilityState.NotConfigured; }
+            get { var source=AssetSource;return packageConfigured&&(source.Mode=="CloudFile"?RemoteAssetSource.IsCloudFile(source.CloudFileId,source.CloudEnvironment):source.Mode=="Packaged"?RemoteAssetSource.IsPackagedPath(source.PackagedPath):source.Mode=="Https"&&IsAssetBaseUrl(source.BaseUrl))?WeChatCapabilityState.Ready:WeChatCapabilityState.NotConfigured; }
         }
 
         public WeChatCapabilityState LoginState => !packageConfigured ? WeChatCapabilityState.NotConfigured : enableLogin ? WeChatCapabilityState.Ready : WeChatCapabilityState.Disabled;
@@ -50,6 +51,7 @@ namespace HotpotSort.Platform
                 assetBaseUrl = Value(read, "WECHAT_ASSET_BASE_URL", ""),
                 assetSourceMode = Value(read, "HOTPOT_REMOTE_SOURCE", ""),
                 assetCloudFileId = Value(read, "HOTPOT_REMOTE_CLOUD_FILE_ID", ""),
+                assetPackagedPath = Value(read, "HOTPOT_PACKAGED_ASSET_PATH", ""),
                 cloudEnvironmentId = Value(read, "WECHAT_CLOUD_ENV_ID", ""),
                 cloudFunctionName = Value(read, "WECHAT_CLOUD_FUNCTION", "hotpotProfileSync"),
                 rewardedAdUnitId = Value(read, "WECHAT_REWARDED_AD_UNIT_ID", ""),
@@ -96,8 +98,9 @@ namespace HotpotSort.Platform
             if (!Identifier(cloudEnvironmentId) || !Identifier(cloudFunctionName) || !Identifier(rewardedAdUnitId)) throw new FormatException("Invalid WeChat configuration identifier");
             if (!IsPackagePath(shareImagePath)) throw new FormatException("Invalid packaged share image path");
             if (!string.IsNullOrEmpty(assetBaseUrl) && !IsAssetBaseUrl(assetBaseUrl)) throw new FormatException("Invalid asset base configuration");
-            if(assetSourceMode!=""&&assetSourceMode!="CloudFile"&&assetSourceMode!="Https")throw new FormatException("Invalid asset source mode");
+            if(assetSourceMode!=""&&assetSourceMode!="CloudFile"&&assetSourceMode!="Https"&&assetSourceMode!="Packaged")throw new FormatException("Invalid asset source mode");
             if(!string.IsNullOrEmpty(assetCloudFileId)&&!RemoteAssetSource.IsCloudFile(assetCloudFileId,cloudEnvironmentId))throw new FormatException("Invalid cloud asset binding");
+            if(!string.IsNullOrEmpty(assetPackagedPath)&&!RemoteAssetSource.IsPackagedPath(assetPackagedPath))throw new FormatException("Invalid packaged asset path");
         }
         public static bool IsAssetBaseUrl(string value)
         {
