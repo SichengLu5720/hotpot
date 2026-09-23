@@ -21,6 +21,10 @@ namespace HotpotSort.Presentation
         {
             public RectTransform node;public float age,finishAt;public int slot;public bool exited,routesFlushed;public Vector2 origin;public ServeBatch batch;
         }
+        sealed class Arrival
+        {
+            public float age,duration;public long epoch;public ViewEvent route;
+        }
         sealed class ServeBatch
         {
             public ViewEvent completion;public readonly Queue<ViewEvent> routes=new Queue<ViewEvent>();
@@ -40,8 +44,10 @@ namespace HotpotSort.Presentation
         readonly List<Effect> active=new List<Effect>(),pool=new List<Effect>();
         readonly List<ClearTransport> clears=new List<ClearTransport>();
         readonly List<Serve> serves=new List<Serve>();
+        readonly List<Arrival> arrivals=new List<Arrival>();
         readonly Queue<ServeBatch>[] queues={new Queue<ServeBatch>(),new Queue<ServeBatch>(),new Queue<ServeBatch>(),new Queue<ServeBatch>()};
         readonly ServeBatch[] latestBatches=new ServeBatch[4];
+        readonly Dictionary<long,long> routeHapticEpochs=new Dictionary<long,long>();
         readonly VisualClock clock=new VisualClock(),revivalClock=new VisualClock();
         readonly PresentationEventCursor cursor=new PresentationEventCursor();
         readonly PotAmbientSchedule ambient=new PotAmbientSchedule();
@@ -94,6 +100,7 @@ namespace HotpotSort.Presentation
             foreach(var fx in active)if(fx.node)Destroy(fx.node.gameObject);
             foreach(var fx in pool)if(fx.node)Destroy(fx.node.gameObject);
             active.Clear();pool.Clear();
+            routeHapticEpochs.Clear();arrivals.Clear();
             foreach(var serve in serves){if(serve.node){serve.node.gameObject.SetActive(false);Destroy(serve.node.gameObject);}ReplacementSettling?.Invoke(serve.slot,1);view?.SetOrderServing(serve.slot,false);}serves.Clear();
             foreach(var q in queues)q.Clear();Array.Clear(latestBatches,0,latestBatches.Length);
             ambient.Reset();CancelClears();CancelTransfer();snapshot=null;session=null;generation=0;impulseAge=1;finishedTransferToken=null;
@@ -108,6 +115,7 @@ namespace HotpotSort.Presentation
                 clock.Reset(session,generation);cursor.Reset(session,generation);
             }
             snapshot=state;
+            arrivals.RemoveAll(a=>a.epoch!=view.HapticEpoch||!view.CanPlayHaptic);
             if(transfer!=null&&(!state.revivalPending||state.revivalTransfer==null||!transfer.token.Matches(state.revivalTransfer.token)))CancelTransfer();
             // Revival emits the same queue-return event before its own exact-token transfer.
             bool revivalReturn=state.revivalPending||(update.events??Array.Empty<ViewEvent>()).Any(e=>e!=null&&e.kind=="RevivalTransferStarted"&&e.sessionId==session&&e.sessionGeneration==generation);
@@ -117,6 +125,7 @@ namespace HotpotSort.Presentation
                 switch(evt.kind)
                 {
                     case "ItemRoutedToOrder":case "ItemRoutedToBuffer":case "BufferAutoAbsorbed":
+                        routeHapticEpochs[evt.sequence]=view.CanPlayHaptic?view.HapticEpoch:-1;
                         if(evt.kind=="BufferAutoAbsorbed"&&evt.targetSlot>=0&&evt.targetSlot<4&&latestBatches[evt.targetSlot]!=null)
                         {
                             latestBatches[evt.targetSlot].routes.Enqueue(evt);
@@ -154,6 +163,7 @@ namespace HotpotSort.Presentation
         public void Tick(float delta)
         {
             if(!view||!view.PresentationForeground||snapshot==null||!layer)return;
+            arrivals.RemoveAll(a=>a.epoch!=view.HapticEpoch||!view.CanPlayHaptic);
             float dt=(float)clock.Advance(Mathf.Min(delta,.1f),snapshot);
             // Preserve the existing one-shot victory accent; terminal ambient/serve effects were cleared in Apply.
             if(snapshot.phase==ViewPhase.Won&&snapshot.pauseReasons==ViewPauseReasons.None)dt=Mathf.Min(delta,.1f);
@@ -191,6 +201,14 @@ namespace HotpotSort.Presentation
                         fx.node.localScale=Vector3.one*Mathf.Lerp(.92f,1.12f,t);
                     }
                     if(fx.age>=fx.duration){var done=fx.completed;Release(i);done?.Invoke();}
+                }
+                for(int i=arrivals.Count-1;i>=0;i--)
+                {
+                    var arrival=arrivals[i];arrival.age+=dt;if(arrival.age<arrival.duration)continue;
+                    arrivals.RemoveAt(i);var route=arrival.route;
+                    bool order=route.targetContainer=="Order";
+                    if(!order)view.PulseBufferArrival(route.targetSlot,route.itemId);
+                    view.RequestHaptic(order&&route.filledAfter==3?GameplayHapticKind.Medium:GameplayHapticKind.Light);
                 }
                 for(int i=serves.Count-1;i>=0;i--)
                 {
@@ -270,11 +288,15 @@ namespace HotpotSort.Presentation
         }
         void StartRouteFlight(ViewEvent evt,Func<string,Vector2> position)
         {
+            long routeEpoch; if(!routeHapticEpochs.TryGetValue(evt.sequence,out routeEpoch))routeEpoch=-1;
+            routeHapticEpochs.Remove(evt.sequence);
             Vector2 target=evt.targetContainer=="Buffer"?Buffer(evt.targetSlot):Pot(evt.targetSlot);
             Vector2 from=evt.sourceContainer=="Buffer"?Buffer(evt.sourceSlot):(position!=null?position(evt.itemId):Vector2.zero);
             int food=FoodId(evt.ingredientId);
             bool bufferToOrder=evt.sourceContainer=="Buffer"&&evt.targetContainer=="Order";
             float duration=bufferToOrder?BufferOrderFlightSeconds:FlightSeconds;
+            // Arrival feedback is authoritative even when the bounded VFX pool cannot allocate a flight.
+            if(routeEpoch==view.HapticEpoch&&view.CanPlayHaptic)arrivals.Add(new Arrival{duration=duration,epoch=routeEpoch,route=evt});
             // Food entering a pot follows a direct line; buffer auto-absorb is intentionally slower.
             var flight=Spawn("FlyingItem",Food(food),from,target,36,duration,1,0);
             if(flight!=null&&view.VisualArt!=null&&food>=0)flight.image.uvRect=view.VisualArt.FoodUv(food);

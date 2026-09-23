@@ -10,15 +10,30 @@ using HotpotSort.UnityPhysics;
 
 namespace HotpotSort.Presentation
 {
+    public enum GameplayHapticKind { Light, Medium }
+
     /// <summary>Mount using Bind from the platform/session bootstrap. No automatic core or daily seed creation.</summary>
     public sealed partial class GameplayView : MonoBehaviour
     {
+        sealed class PressedItem
+        {
+            public int pointerId,itemSibling,plateSibling;
+            public string itemId;
+            public Vector2 startScreen;
+            public Vector3 originalScale;
+            public float age;
+            public RectTransform item,plate;
+        }
+
+        const float PressScaleSeconds=.08f,PressedScale=1.12f,PressSlopBoardUnits=14f;
+        const float BufferLandingScaleSeconds=.14f;
         public MonoBehaviour portComponent;
         public Font playerFont;
         private Font displayFont;
         public event Action<ViewAction> ActionRequested;
         public event Action<RewardKind,RewardRoute> RewardRequested;
         public event Action SettingsRequested,FriendsRequested,ShareRequested;
+        public event Action<GameplayHapticKind> HapticRequested;
         public ViewSnapshot LastSnapshot { get; private set; }
         public long LastEventSequence { get; private set; }
         public string LastTransactionId { get; private set; }
@@ -55,7 +70,24 @@ namespace HotpotSort.Presentation
         // A platform event source may replace frame-polled taps without changing hit testing.
         public bool UsesExternalTapInput { get; set; }
         private readonly Dictionary<string,RectTransform> plateVisuals = new Dictionary<string,RectTransform>();
+        private readonly Dictionary<string,RectTransform> itemVisuals = new Dictionary<string,RectTransform>();
+        private readonly RectTransform[] bufferFoodNodes=new RectTransform[5];
+        private readonly float[] bufferLandingAges=new float[5];
+        private readonly bool[] bufferLandingActive=new bool[5];
         private readonly Dictionary<PlatePresentationWorld.Remnant,RectTransform> ghostVisuals = new Dictionary<PlatePresentationWorld.Remnant,RectTransform>();
+        private PressedItem pressedItem;
+        private long hapticEpoch;
+        private double lastLightHapticAt=double.NegativeInfinity;
+        public long HapticEpoch=>hapticEpoch;
+        public bool CanPlayHaptic=>isActiveAndEnabled&&PresentationForeground&&LastSnapshot!=null&&LastSnapshot.phase==ViewPhase.Running&&LastSnapshot.pauseReasons==ViewPauseReasons.None&&!(modal&&modal.gameObject.activeInHierarchy);
+        private void CancelInteractionFeedback()
+        {
+            CancelScreenPress();hapticEpoch++;
+            for(int i=0;i<bufferLandingActive.Length;i++){bufferLandingActive[i]=false;if(bufferFoodNodes[i])bufferFoodNodes[i].localScale=Vector3.one;}
+        }
+        private void OnDisable(){CancelInteractionFeedback();}
+        private void OnApplicationFocus(bool focused){if(!focused)CancelInteractionFeedback();}
+        private void OnApplicationPause(bool paused){if(paused)CancelInteractionFeedback();}
         private static readonly Color Cream = new Color32(248,235,208,255), Ink = new Color32(77,40,23,255), Coral = new Color32(149,36,26,255), Green = new Color32(221,183,119,255);
         private void Awake()
         {
@@ -86,6 +118,7 @@ namespace HotpotSort.Presentation
         }
         public void Bind(IPresentationPort source)
         {
+            CancelInteractionFeedback();
             CancelShuffleFeedback();
             if(FriendBoardVisible)CloseFriendBoardView();
             simulation?.TrySetResult(RewardOutcome.Cancelled);simulation=null;
@@ -98,19 +131,20 @@ namespace HotpotSort.Presentation
         { SetViewport(screenPixelSafeArea,pixelScreenHeight,new Rect()); }
         public void SetViewport(Rect screenPixelSafeArea,float pixelScreenHeight,Rect screenPixelMenuButton)
         { externalViewport = true; viewport = screenPixelSafeArea;viewportScreenHeight=pixelScreenHeight;menuButtonPixels=screenPixelMenuButton;viewportAppliedAt=new Vector2Int(Screen.width,Screen.height);Render();UpdateFriendBoardPresentation(); }
-        public void SetForeground(bool value) { foreground = value; UpdateSimulation(); }
-        public void Hide(bool hidden) { canvasRoot.gameObject.SetActive(!hidden); UpdateSimulation(); }
+        public void SetForeground(bool value) { if(!value)CancelInteractionFeedback();foreground = value; UpdateSimulation(); }
+        public void Hide(bool hidden) { if(hidden)CancelInteractionFeedback();canvasRoot.gameObject.SetActive(!hidden); UpdateSimulation(); }
         private void UpdateSimulation() { World.SetSimulating(foreground && canvasRoot.gameObject.activeInHierarchy && !FriendBoardVisible && LastSnapshot.phase==ViewPhase.Running && LastSnapshot.pauseReasons==ViewPauseReasons.None); }
-        public void ResetView() { CancelShuffleFeedback(); simulation?.TrySetResult(RewardOutcome.Cancelled);simulation=null;pending.Clear();Array.Clear(serving,0,4); LastEventSequence=0; LastTransactionId=null; feedback.ResetFeedback(); World.Clear(); LastSnapshot=new ViewSnapshot { phase=ViewPhase.Entry }; Render(); }
+        public void ResetView() { CancelScreenPress();CancelShuffleFeedback(); simulation?.TrySetResult(RewardOutcome.Cancelled);simulation=null;pending.Clear();Array.Clear(serving,0,4); LastEventSequence=0; LastTransactionId=null; feedback.ResetFeedback(); World.Clear(); LastSnapshot=new ViewSnapshot { phase=ViewPhase.Entry }; Render(); }
         public void ShowError(string message)
-        { CancelShuffleFeedback(); feedback.ResetFeedback(); LastSnapshot = new ViewSnapshot { sessionId=LastSnapshot?.sessionId, phase=ViewPhase.Aborted, message=message }; World.Clear(); Render(); }
+        { CancelScreenPress();CancelShuffleFeedback(); feedback.ResetFeedback(); LastSnapshot = new ViewSnapshot { sessionId=LastSnapshot?.sessionId, phase=ViewPhase.Aborted, message=message }; World.Clear(); Render(); }
         public void DestroyView() { Destroy(gameObject); }
         public void Apply(ViewUpdate update)
         {
             if (update == null || update.snapshot == null) return;
             var s = update.snapshot;
             if (LastSnapshot != null && LastSnapshot.sessionId == s.sessionId && s.revision < LastSnapshot.revision) return;
-            if (LastSnapshot == null || LastSnapshot.sessionId != s.sessionId || LastSnapshot.sessionGeneration!=s.sessionGeneration) { simulation?.TrySetResult(RewardOutcome.Cancelled);simulation=null;pending.Clear(); LastEventSequence=0; }
+            if(LastSnapshot==null||LastSnapshot.sessionId!=s.sessionId||LastSnapshot.sessionGeneration!=s.sessionGeneration||s.phase!=ViewPhase.Running||s.pauseReasons!=ViewPauseReasons.None)CancelInteractionFeedback();
+            if (LastSnapshot == null || LastSnapshot.sessionId != s.sessionId || LastSnapshot.sessionGeneration!=s.sessionGeneration) { CancelScreenPress();simulation?.TrySetResult(RewardOutcome.Cancelled);simulation=null;pending.Clear(); LastEventSequence=0; }
             var previous = LastSnapshot;
             if (ShuffleFeedbackActive && (s.sessionId != shuffleSession || s.sessionGeneration != shuffleGeneration ||
                 s.phase == ViewPhase.Entry || s.phase == ViewPhase.Aborted || s.phase == ViewPhase.Overflow || s.phase == ViewPhase.Won)) CancelShuffleFeedback();
@@ -121,11 +155,13 @@ namespace HotpotSort.Presentation
             LastEventSequence = Math.Max(LastEventSequence,s.eventSeq);
             // Final authoritative snapshot is the convergence point, including gaps/reconnects/long chains.
             LastSnapshot = s; pending.Clear(); UpdateSimulation(); World.Reconcile(s); Render();
+            if(pressedItem!=null&&(s.phase!=ViewPhase.Running||s.pauseReasons!=ViewPauseReasons.None||!IsItemClickable(pressedItem.itemId)))CancelScreenPress();
             feedback.Apply(update, previous, id=>sourcePositions.TryGetValue(id,out var value)?value:World.ItemPosition(id));
         }
         private void LateUpdate()
         {
             TickShuffleFeedback(Time.unscaledDeltaTime);
+            TickPressAndLanding(Time.unscaledDeltaTime);
             UpdateFriendBoardPresentation();
             if(art!=null&&board){float scale=Mathf.Min(viewport.width/420,viewport.height/900);board.anchoredPosition=new Vector2((viewport.width-420*scale)/2,-(viewport.height-900*scale)/2)+feedback.ScreenImpulse*scale;}
             foreach(var body in World.Bodies)
@@ -149,25 +185,121 @@ namespace HotpotSort.Presentation
             {viewportAppliedAt=new Vector2Int(Screen.width,Screen.height);viewport=Screen.safeArea;Render();}
             if (!externalViewport && viewport != Screen.safeArea) { viewport=Screen.safeArea; Render(); }
             if (UsesExternalTapInput || !foreground || !canvasRoot.gameObject.activeInHierarchy || LastSnapshot.phase != ViewPhase.Running || port == null) return;
-            if (Input.touchCount>0) { var t=Input.GetTouch(0); if(t.phase==TouchPhase.Began) SubmitScreenTap(t.position,t.fingerId); }
-            else if (Input.GetMouseButtonDown(0)) SubmitScreenTap(Input.mousePosition,-1);
+            if (Input.touchCount>0)
+            {
+                var t=Input.GetTouch(0);
+                if(t.phase==TouchPhase.Began)BeginScreenPress(t.position,t.fingerId);
+                else if(t.phase==TouchPhase.Moved||t.phase==TouchPhase.Stationary)UpdateScreenPress(t.position,t.fingerId);
+                else if(t.phase==TouchPhase.Ended)EndScreenPress(t.position,t.fingerId);
+                else if(t.phase==TouchPhase.Canceled)CancelScreenPress(t.fingerId);
+            }
+            else
+            {
+                if(Input.GetMouseButtonDown(0))BeginScreenPress(Input.mousePosition,-1);
+                else if(Input.GetMouseButton(0))UpdateScreenPress(Input.mousePosition,-1);
+                if(Input.GetMouseButtonUp(0))EndScreenPress(Input.mousePosition,-1);
+            }
         }
         public bool SubmitScreenTap(Vector2 screen, int pointerId = -1)
         {
-            if (ShuffleFeedbackActive) return false;
-            if (port == null || !foreground || FriendBoardVisible || LastSnapshot.phase != ViewPhase.Running || LastSnapshot.pauseReasons!=ViewPauseReasons.None || (modal&&modal.gameObject.activeInHierarchy) || !viewport.Contains(screen)) return false;
-            if (EventSystem.current)
-            {
-                var data=new PointerEventData(EventSystem.current) { position=screen, pointerId=pointerId };
-                uiHits.Clear(); EventSystem.current.RaycastAll(data,uiHits); if(uiHits.Count>0)return false;
-            }
+            Vector2 point;string id;
+            if(!TryScreenHit(screen,pointerId,out point,out id))return false;
+            RequestHaptic(GameplayHapticKind.Light);
+            return DispatchTap(id,point);
+        }
+        public bool BeginScreenPress(Vector2 screen,int pointerId=-1)
+        {
+            if(pressedItem!=null)return false;
+            Vector2 point;string id;
+            if(!TryScreenHit(screen,pointerId,out point,out id))return false;
+            RectTransform item;if(!itemVisuals.TryGetValue(id,out item)||!item)return false;
+            var plateNode=item.parent as RectTransform;if(!plateNode)return false;
+            pressedItem=new PressedItem{pointerId=pointerId,itemId=id,startScreen=screen,item=item,plate=plateNode,originalScale=item.localScale,itemSibling=item.GetSiblingIndex(),plateSibling=plateNode.GetSiblingIndex()};
+            item.SetAsLastSibling();plateNode.SetAsLastSibling();
+            RequestHaptic(GameplayHapticKind.Light);
+            return true;
+        }
+        public bool UpdateScreenPress(Vector2 screen,int pointerId=-1)
+        {
+            if(pressedItem==null||pressedItem.pointerId!=pointerId)return false;
+            Vector2 local,start;
+            if(!CanPlayHaptic||ShuffleFeedbackActive||!board||!RectTransformUtility.ScreenPointToLocalPointInRectangle(board,screen,null,out local)||!RectTransformUtility.ScreenPointToLocalPointInRectangle(board,pressedItem.startScreen,null,out start)||Vector2.Distance(start,local)>PressSlopBoardUnits||!viewport.Contains(screen)||!PlateCrop.Contains(new Vector2(local.x,-local.y))||ScreenBlockedByUI(screen,pointerId))
+            {CancelScreenPress(pointerId);return false;}
+            return true;
+        }
+        public bool EndScreenPress(Vector2 screen,int pointerId=-1)
+        {
+            if(!UpdateScreenPress(screen,pointerId)||pressedItem==null)return false;
+            var press=pressedItem;pressedItem=null;
+            RestorePressedVisual(press);
+            if(!IsItemClickable(press.itemId))return false;
+            return DispatchTap(press.itemId,World.ItemPosition(press.itemId));
+        }
+        public void CancelScreenPress(int pointerId=-1)
+        {
+            if(pressedItem==null||(pointerId!=-1&&pressedItem.pointerId!=pointerId))return;
+            var press=pressedItem;pressedItem=null;RestorePressedVisual(press);
+        }
+        private bool TryScreenHit(Vector2 screen,int pointerId,out Vector2 point,out string id)
+        {
+            point=Vector2.zero;id=null;
+            if (ShuffleFeedbackActive||port == null || !CanPlayHaptic || !viewport.Contains(screen)||ScreenBlockedByUI(screen,pointerId)) return false;
             Vector2 local;if(!board || !RectTransformUtility.ScreenPointToLocalPointInRectangle(board,screen,null,out local))return false;
-            var point = new Vector2(local.x,-local.y);
+            point = new Vector2(local.x,-local.y);
             if (!PlateCrop.Contains(point)) return false;
-            string id=World.Hit(point,OpaqueHit); if(id==null || !pending.Add(id))return false;
+            id=World.Hit(point,OpaqueHit);return id!=null&&!pending.Contains(id);
+        }
+        private bool DispatchTap(string id,Vector2 point)
+        {
+            if(id==null||!pending.Add(id))return false;
             try { port.Tap(new ViewTap { itemId=id,inputSeq=++inputSeq,snapshotRevision=LastSnapshot.revision,boardX=point.x,boardY=point.y }); }
             catch { pending.Remove(id); throw; }
             return true;
+        }
+        private bool ScreenBlockedByUI(Vector2 screen,int pointerId)
+        {
+            if(!EventSystem.current)return false;
+            uiHits.Clear();EventSystem.current.RaycastAll(new PointerEventData(EventSystem.current){position=screen,pointerId=pointerId},uiHits);return uiHits.Count>0;
+        }
+        public void RequestHaptic(GameplayHapticKind kind)
+        {
+            if(!CanPlayHaptic)return;
+            double now=Time.realtimeSinceStartupAsDouble;
+            if(kind==GameplayHapticKind.Light&&now-lastLightHapticAt<.12)return;
+            lastLightHapticAt=now;HapticRequested?.Invoke(kind);
+        }
+        public void PulseBufferArrival(int slot,string itemId)
+        {
+            if(!CanPlayHaptic||slot<0||slot>=bufferFoodNodes.Length||slot>=LastSnapshot.buffer.Length||LastSnapshot.buffer[slot]?.itemId!=itemId||!bufferFoodNodes[slot])return;
+            bufferLandingAges[slot]=0;bufferLandingActive[slot]=true;bufferFoodNodes[slot].localScale=Vector3.one*.92f;
+        }
+        private void TickPressAndLanding(float delta)
+        {
+            if(!CanPlayHaptic){CancelInteractionFeedback();return;}
+            if(pressedItem!=null)
+            {
+                if(!PresentationForeground||LastSnapshot==null||LastSnapshot.phase!=ViewPhase.Running||LastSnapshot.pauseReasons!=ViewPauseReasons.None||ShuffleFeedbackActive)CancelScreenPress();
+                else
+                {
+                    if(itemVisuals.TryGetValue(pressedItem.itemId,out var replacement)&&replacement&&replacement!=pressedItem.item){RestorePressedVisual(pressedItem);pressedItem.item=replacement;pressedItem.plate=replacement.parent as RectTransform;pressedItem.originalScale=replacement.localScale;pressedItem.itemSibling=replacement.GetSiblingIndex();pressedItem.plateSibling=pressedItem.plate?pressedItem.plate.GetSiblingIndex():0;if(pressedItem.plate)pressedItem.plate.SetAsLastSibling();replacement.SetAsLastSibling();}
+                    pressedItem.age+=Mathf.Clamp(delta,0,.1f);
+                    if(pressedItem.item)pressedItem.item.localScale=pressedItem.originalScale*Mathf.Lerp(1,PressedScale,Mathf.SmoothStep(0,1,Mathf.Clamp01(pressedItem.age/PressScaleSeconds)));
+                }
+            }
+            for(int slot=0;slot<bufferLandingActive.Length;slot++)
+            {
+                if(!bufferLandingActive[slot])continue;
+                var node=bufferFoodNodes[slot];if(!node){bufferLandingActive[slot]=false;continue;}
+                bufferLandingAges[slot]+=Mathf.Clamp(delta,0,.1f);float t=Mathf.Clamp01(bufferLandingAges[slot]/BufferLandingScaleSeconds);
+                float scale=t<.43f?Mathf.Lerp(.92f,1.08f,Mathf.SmoothStep(0,1,t/.43f)):Mathf.Lerp(1.08f,1,Mathf.SmoothStep(0,1,(t-.43f)/.57f));node.localScale=Vector3.one*scale;
+                if(t>=1){node.localScale=Vector3.one;bufferLandingActive[slot]=false;}
+            }
+        }
+        private static void RestorePressedVisual(PressedItem press)
+        {
+            if(press==null)return;
+            if(press.item&&press.item.parent){press.item.localScale=press.originalScale;press.item.SetSiblingIndex(Mathf.Clamp(press.itemSibling,0,Mathf.Max(0,press.item.parent.childCount-1)));}
+            if(press.plate&&press.plate.parent)press.plate.SetSiblingIndex(Mathf.Clamp(press.plateSibling,0,Mathf.Max(0,press.plate.parent.childCount-1)));
         }
         // Explicit acknowledgement for rejection/no-state-change; does not alter inventory.
         public void AcknowledgeTap(string itemId) { pending.Remove(itemId); }
@@ -243,7 +375,7 @@ namespace HotpotSort.Presentation
             bool entry=LastSnapshot.phase==ViewPhase.Entry;
             if(entry || !board)
             {
-                ClearChildren(content);plateVisuals.Clear();plateSignatures.Clear();ghostVisuals.Clear();board=null;
+                ClearChildren(content);plateVisuals.Clear();itemVisuals.Clear();plateSignatures.Clear();ghostVisuals.Clear();Array.Clear(bufferFoodNodes,0,bufferFoodNodes.Length);Array.Clear(bufferLandingActive,0,bufferLandingActive.Length);board=null;
                 Array.Clear(orderSignatures,0,4);Array.Clear(bufferSignatures,0,5);
                 if(entry){Entry();renderedPhase=LastSnapshot.phase;return;}
                 board=Node(content,"GameplayBoard",new Rect(0,0,420,900));
@@ -293,11 +425,11 @@ namespace HotpotSort.Presentation
                 var bufferItem=slot<LastSnapshot.buffer.Length?LastSnapshot.buffer[slot]:null;
                 string signature=bufferItem==null?"empty":bufferItem.itemId+":"+bufferItem.foodId;
                 if(bufferSignatures[slot]==signature)continue;
-                bufferSignatures[slot]=signature;var cell=bufferNodes[slot];ClearChildren(cell);
+                bufferSignatures[slot]=signature;var cell=bufferNodes[slot];ClearChildren(cell);bufferFoodNodes[slot]=null;bufferLandingActive[slot]=false;
                 Picture(cell,dish?dish:plate,new Rect(0,0,64,64),"Dish");
-                if(slot<LastSnapshot.buffer.Length && LastSnapshot.buffer[slot]!=null) Food(cell,LastSnapshot.buffer[slot].foodId,new Rect(5,5,51,51));
+                if(slot<LastSnapshot.buffer.Length && LastSnapshot.buffer[slot]!=null) bufferFoodNodes[slot]=Food(cell,LastSnapshot.buffer[slot].foodId,new Rect(5,5,51,51));
             }
-            var alive=new HashSet<string>();
+            var alive=new HashSet<string>();var aliveItems=new HashSet<string>();
             foreach(var body in World.Bodies)
             {
                 var p=body.data; var at=World.Position(body);
@@ -309,10 +441,12 @@ namespace HotpotSort.Presentation
                     ClearChildren(node);plateSignatures[p.plateId]=signature;
                     float extent=string.IsNullOrEmpty(assetRoot)?p.radius:p.radius*512f/448f;
                     Picture(node,plate,new Rect(-extent,-extent,extent*2,extent*2),"Plate_"+p.plateId);
-                    foreach(var item in p.items) Food(node,item.foodId,new Rect(item.x-item.radius,item.y-item.radius,item.radius*2,item.radius*2));
+                    foreach(var item in p.items) PlateFood(node,item);
                 }
+                foreach(var item in p.items)aliveItems.Add(item.itemId);
             }
             foreach(string id in plateVisuals.Keys.ToArray())if(!alive.Contains(id)){Destroy(plateVisuals[id].gameObject);plateVisuals.Remove(id);plateSignatures.Remove(id);}
+            foreach(string id in itemVisuals.Keys.ToArray())if(!aliveItems.Contains(id))itemVisuals.Remove(id);
             foreach(var pair in ghostVisuals.ToArray())if(pair.Key.remaining<=0 || !World.Remnants.Contains(pair.Key)){if(pair.Value)Destroy(pair.Value.gameObject);ghostVisuals.Remove(pair.Key);}
             foreach(var ghost in World.Remnants)
             {
@@ -516,11 +650,13 @@ namespace HotpotSort.Presentation
         {if(art!=null){var t=art.Texture(id.StartsWith("../ui/")?"ui."+id.Substring(6):"icon."+id);if(t)Picture(parent,t,rect,"Icon_"+id);return;}if(string.IsNullOrEmpty(assetRoot))return;string path=id.StartsWith("../")?assetRoot+"/"+id.Substring(3):assetRoot+"/icons/"+id;var texture=PresentationAssets.Load<Texture2D>(path);if(texture)Picture(parent,texture,rect,"Icon_"+id);}
         private static void Picture(Transform parent,Texture texture,Rect r,string name,bool raycast=false)
         { var rt=Node(parent,name,r); var image=rt.gameObject.AddComponent<RawImage>(); image.texture=texture; image.raycastTarget=raycast; }
-        private void Food(Transform parent,int id,Rect r)
+        private RectTransform Food(Transform parent,int id,Rect r)
         {
-            if(id<0||id>=foods.Length)return;
+            if(id<0||id>=foods.Length)return null;
             var rt=Node(parent,"Food_"+id,r);var image=rt.gameObject.AddComponent<RawImage>();image.texture=foods[id];image.raycastTarget=false;
+            rt.pivot=new Vector2(.5f,.5f);rt.anchoredPosition+=new Vector2(r.width*.5f,-r.height*.5f);
             if(art!=null)image.uvRect=art.FoodUv(id);
+            return rt;
         }
         private Rect ItemUV(ViewItem item)=>!string.IsNullOrEmpty(item.layoutVersion)
             ?new Rect(item.uvX,item.uvY,item.uvWidth,item.uvHeight)
@@ -532,12 +668,13 @@ namespace HotpotSort.Presentation
             rt.pivot=new Vector2(.5f,.5f);rt.anchoredPosition=new Vector2(item.x,-item.y);
             rt.localRotation=Quaternion.Euler(0,0,-item.rotationDegrees);
             var image=rt.gameObject.AddComponent<RawImage>();image.texture=foods[item.foodId];image.uvRect=ItemUV(item);image.raycastTarget=false;
+            itemVisuals[item.itemId]=rt;
         }
         private void OnDestroy()
-        { CloseFriendBoardView();ReleaseAssetReferences();simulation?.TrySetResult(RewardOutcome.Cancelled);if(port!=null)port.Updated-=Apply;if(rounded)Destroy(rounded); if(roundedTexture)Destroy(roundedTexture); }
+        { CancelScreenPress();CloseFriendBoardView();ReleaseAssetReferences();simulation?.TrySetResult(RewardOutcome.Cancelled);if(port!=null)port.Updated-=Apply;if(rounded)Destroy(rounded); if(roundedTexture)Destroy(roundedTexture); }
         public void ReleaseAssetReferences()
         {
-            CancelShuffleFeedback();
+            CancelScreenPress();CancelShuffleFeedback();
             feedback?.ReleaseAssetReferences();World?.Clear();
             foreach(var image in GetComponentsInChildren<RawImage>(true))image.texture=null;
             foreach(var image in GetComponentsInChildren<Image>(true))image.sprite=null;

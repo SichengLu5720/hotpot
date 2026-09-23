@@ -26,6 +26,7 @@ namespace HotpotSort.Bootstrap
             WX.OnTouchEnd(OnEnd);
             WX.OnTouchCancel(OnCancel);
             view.UsesExternalTapInput=true;
+            view.HapticRequested+=OnHaptic;
         }
         private void OnStart(OnTouchStartListenerResult value)
         {
@@ -38,7 +39,7 @@ namespace HotpotSort.Bootstrap
                 ui?.Push(touch.identifier,new Vector2(touch.clientX,touch.clientY),TouchPhase.Began);
                 // The installed WX SDK's formatTouchEvent already converts CSS
                 // coordinates to physical pixels, with a bottom-left origin.
-                view.SubmitScreenTap(new Vector2(touch.clientX,touch.clientY),touch.identifier);
+                view.BeginScreenPress(new Vector2(touch.clientX,touch.clientY),touch.identifier);
             }
         }
         private void OnEnd(OnTouchStartListenerResult value)
@@ -46,7 +47,7 @@ namespace HotpotSort.Bootstrap
             if(value.changedTouches==null)return;
             foreach(var touch in value.changedTouches)
             {
-                if(primaryId==touch.identifier){ui?.Push(touch.identifier,new Vector2(touch.clientX,touch.clientY),TouchPhase.Ended);primaryId=null;}
+                if(primaryId==touch.identifier){view?.EndScreenPress(new Vector2(touch.clientX,touch.clientY),touch.identifier);ui?.Push(touch.identifier,new Vector2(touch.clientX,touch.clientY),TouchPhase.Ended);primaryId=null;}
                 pressed.Remove(touch.identifier);
             }
         }
@@ -54,10 +55,28 @@ namespace HotpotSort.Bootstrap
         {
             if(value.changedTouches==null)return;
             foreach(var touch in value.changedTouches)if(primaryId==touch.identifier)
+            {
+                view?.UpdateScreenPress(new Vector2(touch.clientX,touch.clientY),touch.identifier);
                 ui?.Push(touch.identifier,new Vector2(touch.clientX,touch.clientY),TouchPhase.Moved);
+            }
         }
         private void OnCancel(OnTouchStartListenerResult value){Cancel();}
-        private void Cancel(){pressed.Clear();primaryId=null;ui?.Cancel();}
+        private void Cancel(){view?.CancelScreenPress();pressed.Clear();primaryId=null;ui?.Cancel();}
+        private void OnHaptic(GameplayHapticKind kind)
+        {
+            if(!view||!view.CanPlayHaptic)return;
+            long epoch=view.HapticEpoch;
+            try
+            {
+                WX.VibrateShort(new VibrateShortOption{type=kind==GameplayHapticKind.Medium?"medium":"light",fail=result=>
+                {
+                    // Older runtimes may not accept a strength. Retry once with the default short pulse.
+                    if(!this||!isActiveAndEnabled||!view||!view.CanPlayHaptic||view.HapticEpoch!=epoch)return;
+                    try{WX.VibrateShort(new VibrateShortOption());}catch(System.Exception){}
+                }});
+            }
+            catch(System.Exception){}
+        }
         private void OnApplicationFocus(bool focused){if(!focused)Cancel();}
         private void OnApplicationPause(bool paused){if(paused)Cancel();}
         private void OnDisable()
@@ -67,7 +86,7 @@ namespace HotpotSort.Bootstrap
             WX.OffTouchEnd(OnEnd);
             WX.OffTouchCancel(OnCancel);
             Cancel();if(ui){ui.enabled=false;Destroy(ui);ui=null;}
-            if(view)view.UsesExternalTapInput=false;
+            if(view){view.HapticRequested-=OnHaptic;view.UsesExternalTapInput=false;}
         }
 #endif
     }

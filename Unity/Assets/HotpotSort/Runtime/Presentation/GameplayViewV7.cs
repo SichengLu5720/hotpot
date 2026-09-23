@@ -138,11 +138,11 @@ namespace HotpotSort.Presentation
                 var item=slot<LastSnapshot.buffer.Length?LastSnapshot.buffer[slot]:null;
                 string signature=item==null?"empty":item.itemId+":"+item.foodId;
                 if(bufferSignatures[slot]==signature)continue;
-                bufferSignatures[slot]=signature;var cell=bufferNodes[slot];ClearChildren(cell);
+                bufferSignatures[slot]=signature;var cell=bufferNodes[slot];ClearChildren(cell);bufferFoodNodes[slot]=null;bufferLandingActive[slot]=false;
                 Picture(cell,dish,new Rect(0,0,64,64),"Dish");
-                if(item!=null)Food(cell,item.foodId,new Rect(6,6,52,52));
+                if(item!=null)bufferFoodNodes[slot]=Food(cell,item.foodId,new Rect(6,6,52,52));
             }
-            var alive=new HashSet<string>();
+            var alive=new HashSet<string>();var aliveItems=new HashSet<string>();
             foreach(var body in World.Bodies)
             {
                 var p=body.data; var at=World.Position(body);
@@ -156,7 +156,9 @@ namespace HotpotSort.Presentation
                     Picture(node,plate,new Rect(-extent,-extent,extent*2,extent*2),"Plate_"+p.plateId);
                     foreach(var item in p.items.OrderBy(i=>i.drawOrder)) PlateFood(node,item);
                 }
+                foreach(var item in p.items)aliveItems.Add(item.itemId);
             }
+            foreach(string id in itemVisuals.Keys.ToArray())if(!aliveItems.Contains(id))itemVisuals.Remove(id);
             foreach(string id in plateVisuals.Keys.ToArray())if(!alive.Contains(id)){plateVisuals[id].gameObject.SetActive(false);Destroy(plateVisuals[id].gameObject);plateVisuals.Remove(id);plateSignatures.Remove(id);}
             foreach(var pair in ghostVisuals.ToArray())if(pair.Key.remaining<=0 || !World.Remnants.Contains(pair.Key)){if(pair.Value)Destroy(pair.Value.gameObject);ghostVisuals.Remove(pair.Key);}
             foreach(var ghost in World.Remnants)

@@ -20,6 +20,8 @@ Review feedback：清空暂存的食材上大盘后改为真实混合盘式分�
 
 Review feedback：三个道具每轮演示前增加 1 秒完整静止展示，之后继续播放原有约 3 秒动画；总周期延长至约 4 秒。
 
+Current change：用户参考 28.8 秒竖屏收集视频确认食材按压与触觉增量。快速点按或按住松开均在松手时提交；按下锁定食材并用约 0.08 秒放大至 1.12 倍，轻微漂移允许，明显滑出取消且不形成拖拽。到达暂存区播放约 0.14 秒的 0.92→1.08→1.0 缩放，到锅沿用既有表现。微信真机在有效按压、到达暂存或火锅时轻震；完成锅以一次中等强度短震替代到达轻震。无效、取消、暂停、后台、退出、重试、终局和旧回调不新增震动；编辑器与 Windows 静默跳过。不增加设置开关，不改玩法、物理、点击边界、飞行时长、冻结画面、音效、上传或发布。
+
 ## Work Packages
 
 ### CODE-VFX-RUNTIME
@@ -62,6 +64,16 @@ Review feedback：三个道具每轮演示前增加 1 秒完整静止展示，�
 - Acceptance: 三种演示均约 3 秒循环，末尾淡出后重建；关闭、重试和会话变化无残留；所有示意节点不接收射线。
 - Integrator: PM。
 
+### CODE-PRESS-HAPTIC
+- Goal: 增加盘内食材的按下锁定、松手提交、取消恢复、暂存到位缩放和微信轻/中强度触觉反馈。
+- Spec References: Core Loop；Core Rules / Player；UX and Input Principles；Animation and VFX。
+- Must Preserve: Alpha/裁剪/UI 前景点击边界、核心点击命令及库存结果、0.34/0.46 秒直线飞行、锅面、冻结视觉资产和现有特效。
+- Allowed Write Paths: GameplayView.cs；GameplayViewV7.cs；GameplayFeedback.cs；WeChatGameplayTapInput.cs；对应独立 Editor 诊断；本 Task 与 SPEC。
+- Forbidden / Shared Paths: Core、Session、Scene、Prefab、正式图片与主题 JSON、设置 UI、音频、微信奖励/存档/好友接口。
+- Depends On: 当前 GameplayView 点击映射、PlatePresentationWorld 命中、GameplayFeedback 路由事件及微信触摸桥。
+- Acceptance: 点按与按住松手均只提交一次；轻微漂移成功、明显滑出取消；按压缩放/层级安全恢复；暂存到位缩放正确；震动事件强度与去重正确；暂停、后台、重试、退出和会话变化无残留；编译、受影响入口、定向诊断及 Diff 边界通过。
+- Integrator: PM。
+
 ## Result
 
 - 新增版本化 `PresentationEffects`、确定性的四锅错相热气调度和三张透明热气变体；原 `steam.png` 保留为回退。新素材按 512 上限、Clamp、Bilinear、Alpha Is Transparency 导入。常驻热气改成长交叉淡化，气泡与油光仅低频弱化出现，消除旧素材随每次脉冲闪现的问题。
@@ -74,4 +86,7 @@ Review feedback：三个道具每轮演示前增加 1 秒完整静止展示，�
 - 根据试玩反馈收紧提示高亮至单个食材主体；清空暂存改为食材到达后与大盘共享同一运输组；打乱改为中央聚拢、短时交叉洗混、再展开排序。更新后的 Tool Demo Runtime 17 项通过，Windows Development Player 构建成功，0 个构建错误，包体 401345457 字节，启动正常且无新增脚本异常。
 - 清空暂存上盘排布进一步改为分散、轻微重叠和有限角度的真实混合盘样式；演示根节点加入硬裁剪，所有离框盘子和食材立即隐藏。Tool Demo Runtime 21 项通过；Windows Development Player 再次构建成功，0 个构建错误，包体 401346681 字节，启动正常且无新增脚本异常。
 - 三个道具的每轮演示前统一增加 1 秒静止展示，之后播放原有约 3 秒动画，总周期约 4 秒。Tool Demo Runtime 24 项通过；Windows Development Player 构建成功，0 个构建错误，包体 410059265 字节，启动正常且无新增脚本异常。
-- 状态进入 Review，等待用户实际试玩判断热气自然度、抬锅停顿和整体特效强度；尚未保存 Baseline。
+- `CODE-PRESS-HAPTIC` 已实现：盘内食材按下后约 0.08 秒放大至 1.12 倍并临时提层，松手只提交一次；14 逻辑单位内漂移允许，超出后取消并恢复尺寸与层级。快速点按与按住松手共用同一生命周期，不形成拖拽。暂存食材到位使用独立约 0.14 秒的 0.92→1.08→1.0 缩放；到锅不增加缩放，既有 0.34/0.46 秒直线飞行保持。
+- 微信触觉桥已接入项目内真实 SDK：有效按压及普通到达使用轻型短震，完成锅的到达以一次中等短震替代轻震；轻震最小间隔 120ms，中震不被节流。强度参数失败时仅在同一有效会话内回退默认短震；编辑器与 Windows 不调用平台震动。暂停、后台、终局、会话代次变化及旧飞行会取消待触发的到达反馈。
+- Unity 6000.0.26f1 定向按压/触觉检查 30 项通过，覆盖按住放大、快速点按、单次提交、漂移取消、层级恢复、暂存缩放、轻/中震替代、重复事件、暂停/后台/终局/代次取消，以及当前主题特效池饱和且没有飞行对象时仍按原时长触发到达反馈。真实 Boot→开始→松手收集 Smoke 6 项通过，核心食材恰好减少一份且重复松手被拒绝；微信条件分支使用项目真实 SDK 独立编译通过。两次 Unity 进程退出码均为 0，完整日志未发现 `AssetFailure`、`MissingReference`、异常或编译错误；证据为 `.harness/press-haptic-code.log` 与 `.harness/press-haptic-boot-focused.log`。
+- 状态进入 Review：代码与本地自动范围已完成，等待用户实际试玩按压缩放和暂存弹性感；微信真机震动强弱、连续操作手感及设备兼容仍未 DEVICE-TESTED / HUMAN-ACCEPTED。本工作包已获授权 Commit / Push 当前分支；未执行上传、提审、发布或 Baseline 保存。
