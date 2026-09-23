@@ -8,6 +8,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="../PresentationPort.cs" />
+    <Compile Include="../Contracts/*.cs" />
     <Compile Include="../../../Contracts/*.cs" />
     <Compile Include="../../Session/*.cs" />
     <Compile Include="../../Core/*.cs" />

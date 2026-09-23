@@ -4,7 +4,7 @@ using HotpotSort.Contracts;
 
 namespace HotpotSort.Session
 {
-    [Flags] public enum PauseReasons { None = 0, User = 1, Background = 2, Reward = 4 }
+    [Flags] public enum PauseReasons { None = 0, User = 1, Background = 2, Reward = 4, Revival = 8 }
     public interface IPlatformLifecycleAdapter : IDisposable
     {
         event Action<PlatformLifecycle> Changed;
@@ -25,7 +25,8 @@ namespace HotpotSort.Session
         private Viewport viewport;
         private bool disposed, busy;
         private double accumulated, runningSince;
-        private bool counting;
+        private double challengeAccumulated, challengeRunningSince;
+        private bool counting, challengeCounting, challengeTimerStarted;
         public long Generation { get; private set; }
         public PauseReasons Pauses { get; private set; }
         public ResolvedChallenge Resolved { get; private set; }
@@ -34,6 +35,8 @@ namespace HotpotSort.Session
         public string Error { get; private set; }
         public bool IsBusy => busy;
         public double ActiveSeconds => accumulated + (counting ? Math.Max(0, clock.Seconds - runningSince) : 0);
+        public double ChallengeSeconds => challengeAccumulated + (challengeCounting ? Math.Max(0, clock.Seconds - challengeRunningSince) : 0);
+        public bool ChallengeTimerStarted => challengeTimerStarted;
         public bool CanAcceptInput => !disposed && !busy && Pauses == PauseReasons.None && Snapshot?.Status == GameStatus.Running;
         public event Action ObservationChanged;
 
@@ -80,7 +83,8 @@ namespace HotpotSort.Session
         }
         private void Create(ChallengeContext context)
         {
-            accumulated = 0; counting = false;
+            accumulated = challengeAccumulated = 0;
+            counting = challengeCounting = challengeTimerStarted = false;
             view = views.CreateView() ?? throw new InvalidOperationException("view-factory-returned-null");
             view.Bind(this); if (viewport != null) view.SetViewport(viewport); view.ShowLoading();
             session = core.CreateSession(context) ?? throw new InvalidOperationException("core-factory-returned-null");
@@ -97,26 +101,47 @@ namespace HotpotSort.Session
         private void Apply(GameSnapshot snapshot, GameEventBatch events)
         {
             if (snapshot == null) throw new InvalidOperationException("core-snapshot-null");
-            StopClock(); Snapshot = snapshot;
+            StopClocks(); Snapshot = snapshot;
+            // Core has already paused; latch the reason without reentering its transaction.
+            if(session is IRevivalSessionState revival && revival.RevivalPending)Pauses|=PauseReasons.Revival;
             if (snapshot.Status == GameStatus.Running && Pauses == PauseReasons.None)
-            { runningSince = clock.Seconds; counting = true; }
+            {
+                runningSince = clock.Seconds; counting = true;
+                if(challengeTimerStarted){challengeRunningSince=runningSince;challengeCounting=true;}
+            }
             view.Show(snapshot, events); Notify();
         }
-        private void StopClock()
+        private void StopClocks()
         {
-            if (counting) accumulated += Math.Max(0, clock.Seconds - runningSince);
+            var now=clock.Seconds;
+            if (counting) accumulated += Math.Max(0, now - runningSince);
+            if (challengeCounting) challengeAccumulated += Math.Max(0, now - challengeRunningSince);
             counting = false;
+            challengeCounting = false;
+        }
+        public bool StartChallengeTimer()
+        {
+            if(disposed||challengeTimerStarted||session==null)return false;
+            challengeTimerStarted=true;
+            if(Snapshot?.Status==GameStatus.Running&&Pauses==PauseReasons.None)
+            {challengeRunningSince=clock.Seconds;challengeCounting=true;}
+            Notify();return true;
         }
         private void SetPause(PauseReasons reason, bool enabled)
         {
             var next = enabled ? Pauses | reason : Pauses & ~reason;
             if (next == Pauses) return;
-            StopClock(); Pauses = next;
+            StopClocks(); Pauses = next;
             try { ReconcilePause(); }
             catch (Exception ex) { Fail(ex); }
             Notify();
         }
         public void SetRewardPaused(bool value) => SetPause(PauseReasons.Reward, value);
+        public void SetRevivalPaused(bool value)
+        {
+            if(!value && session is IRevivalSessionState revival && revival.RevivalPending)return;
+            SetPause(PauseReasons.Revival,value);
+        }
         private void ReconcilePause()
         {
             if (session == null || Snapshot == null) return;
@@ -153,12 +178,14 @@ namespace HotpotSort.Session
         {
             if (disposed) return;
             try { Release(); } catch (Exception ex) { Error = ex.GetType().Name + ": " + ex.Message; }
-            Resolved = null; Snapshot = null; busy = false; accumulated = 0;
+            Resolved = null; Snapshot = null; busy = false;
+            accumulated = challengeAccumulated = 0;
+            counting = challengeCounting = challengeTimerStarted = false;
             Pauses &= PauseReasons.Background; Notify();
         }
         private void Release()
         {
-            ++Generation; StopClock();
+            ++Generation; StopClocks();
             var old = session; var oldView = view; var oldListener = listener;
             session = null; view = null; listener = null; Snapshot = null;
             if (old != null) old.Changed -= oldListener;

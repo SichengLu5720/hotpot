@@ -5,6 +5,16 @@ using HotpotSort.Contracts;
 
 namespace HotpotSort.Core
 {
+    public enum DailyRulesVersion { LegacyV2, RevivalV3 }
+    public sealed class ResolveRevivalCommand
+    {
+        public string OfferId { get; }
+        public string RequestId { get; }
+        public bool Success { get; }
+        public ulong LogicalBoundary { get; }
+        public ResolveRevivalCommand(string offerId,string requestId,bool success,ulong logicalBoundary)
+        {OfferId=offerId;RequestId=requestId;Success=success;LogicalBoundary=logicalBoundary;}
+    }
     public sealed class TapCommand
     {
         public int ItemId { get; }

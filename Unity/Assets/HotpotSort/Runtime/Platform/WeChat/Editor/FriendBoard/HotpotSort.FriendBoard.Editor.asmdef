@@ -1,0 +1,7 @@
+{
+  "name": "HotpotSort.FriendBoard.Editor",
+  "references": [],
+  "includePlatforms": ["Editor"],
+  "autoReferenced": true,
+  "noEngineReferences": true
+}

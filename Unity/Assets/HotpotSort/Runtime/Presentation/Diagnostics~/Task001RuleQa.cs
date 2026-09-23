@@ -86,7 +86,7 @@ static class Task001RuleQa
         await Check("P03","F-02","slots 2/3 targets; full buffer matching and mismatch; duplicate/rejected tap","correct route, conservation, no double consume",()=>Sync(()=>
         {
             for(int slot=2;slot<=3;slot++){int[] target;using(var s=Fixture(0,out target,slot,4)){var r=s.Tap(new TapCommand(target[2],1,1,true));Assert(r.Accepted&&s.CoreEventsJson.Contains("OrderCompleted"),"fourth/third routing");Conservation(s);string h=s.StateHash;Assert(!s.Tap(new TapCommand(target[2],1,2,true)).Accepted&&s.StateHash==h,"repeat tap");Assert(!s.Tap(new TapCommand(target[2],2,2,false)).Accepted&&s.StateHash==h,"hit rejection");}}
-            using(var s=BufferFixture(5)){string kind=(string)Orders(s)[0]["kind"];int matching=Items(s).Where(i=>(string)i["location"]=="ActiveAvailable"&&(string)i["kind"]==kind).Select(i=>Num(i["itemId"])).First();Assert(s.Tap(new TapCommand(matching,1,1,true)).Accepted&&s.Snapshot.Status==GameStatus.Running,"full buffer matching");int bad=Items(s).Where(i=>(string)i["location"]=="ActiveAvailable"&&(string)i["kind"]!=kind).Select(i=>Num(i["itemId"])).First();s.Tap(new TapCommand(bad,2,2,true));Assert(s.Snapshot.Status==GameStatus.Failed,"full buffer mismatch");Assert((string)Items(s).Single(i=>Num(i["itemId"])==bad)["location"]=="ActiveAvailable","overflow consumed item");Conservation(s);}
+            using(var s=BufferFixture(5)){string kind=(string)Orders(s)[0]["kind"];int matching=Items(s).Where(i=>(string)i["location"]=="ActiveAvailable"&&(string)i["kind"]==kind).Select(i=>Num(i["itemId"])).First();Assert(s.Tap(new TapCommand(matching,1,1,true)).Accepted&&s.Snapshot.Status==GameStatus.Running,"full buffer matching");int bad=Items(s).Where(i=>(string)i["location"]=="ActiveAvailable"&&(string)i["kind"]!=kind).Select(i=>Num(i["itemId"])).First();s.Tap(new TapCommand(bad,2,2,true));Assert(s.Snapshot.Status==GameStatus.Paused&&s.RevivalPending&&!s.RevivalUsed,"full buffer revival offer");Assert((string)Items(s).Single(i=>Num(i["itemId"])==bad)["location"]=="ActiveAvailable","overflow consumed item");Conservation(s);}
         }));
         await Check("P04","F-02","30->31,48->49; fourth unlocked early","single unlock, completion event retains 3/3",()=>Sync(()=>
         {
@@ -156,13 +156,14 @@ static class Task001RuleQa
         });
         await Check("P09","F-03,F-04","controlled rewards, quota, no-target, cancellation/failure/concurrency/old generation","award and quota exactly once only on successful effect",async()=>
         {
-            var service=new Rewards();var profile=new Profile();var coordinator=new RewardCoordinator(service,profile);long generation=1;int applied=0;bool paused=false;
+            var utc=DateTimeOffset.Parse("2026-09-20T00:00:00Z");var service=new Rewards();var profile=new Profile();var coordinator=new RewardCoordinator(service,profile,()=>utc);long generation=1;int applied=0;bool paused=false;
             Func<RewardKind,RewardRoute,string,RewardRequest> request=(kind,route,day)=>new RewardRequest(generation,kind,route,day);
             Func<RewardRequest,Func<bool>,Task<bool>> send=(r,apply)=>coordinator.RequestAsync(r,()=>generation,()=>true,apply,p=>paused=p);
-            for(int i=0;i<3;i++)Assert(await send(request((RewardKind)i,RewardRoute.SimulatedShare,"20260920"),()=>{applied++;return true;}),"share allowance");
+            for(int i=0;i<3;i++){if(i>0)utc=utc.AddMinutes(i==1?5:15);Assert(await send(request((RewardKind)i,RewardRoute.SimulatedShare,"20260920"),()=>{applied++;return true;}),"share allowance");}
             Assert(profile.SharesUsed("20260920")==3&&!await send(request(RewardKind.Hint,RewardRoute.SimulatedShare,"20260920"),()=>true),"quota overflow");
             Assert(!await send(request(RewardKind.FourthPot,RewardRoute.SimulatedShare,"20260921"),()=>true),"fourth share");Assert(await send(request(RewardKind.FourthPot,RewardRoute.SimulatedAd,"20260921"),()=>true)&&profile.SharesUsed("20260921")==0,"ad quota");
             var once=request(RewardKind.Hint,RewardRoute.SimulatedShare,"20260921");Assert(await send(once,()=>true)&&!await send(once,()=>true)&&profile.SharesUsed("20260921")==1,"duplicate request");
+            utc=utc.AddMinutes(5);
             foreach(var outcome in new[]{RewardOutcome.Cancelled,RewardOutcome.Failed}){service.Outcome=outcome;Assert(!await send(request(RewardKind.Hint,RewardRoute.SimulatedShare,"20260921"),()=>throw new Exception("unexpected apply")),"failed outcome");}service.Outcome=RewardOutcome.Success;
             Assert(!await send(request(RewardKind.Hint,RewardRoute.SimulatedShare,"20260921"),()=>false)&&profile.SharesUsed("20260921")==1,"ineffective apply quota");
             int calls=service.Calls;Assert(!await coordinator.RequestAsync(request(RewardKind.Hint,RewardRoute.SimulatedAd,"x"),()=>generation,()=>false,()=>true,p=>paused=p)&&service.Calls==calls,"no-target called service");
@@ -174,7 +175,10 @@ static class Task001RuleQa
         await Check("P10","F-01,F-03","v2 accepted commands and tampered replay","matching state/events hashes, corruption rejected",()=>Sync(()=>
         {
             using(var s=factory.CreateDailySession(Context())){s.Supply(new SupplyObservation(1,1,true,true));s.Tap(new TapCommand(1,1,2,true));s.Pause(3);s.Resume(4);s.UnlockFourth(5);s.Timeout(600000);var replay=s.ExportReplay();var result=DailyReplay.Run(factory,replay);Assert(result.Success,result.Error);string altered=replay.CanonicalJson.Replace(content.ContentVersion,"hotpot_daily_task001_v3_1");Assert(altered!=replay.CanonicalJson,"C08.tamper must alter replay");var tampered=new ReplayPackage(replay.SessionId,replay.SchemaVersion,altered);Assert(!DailyReplay.Run(factory,tampered).Success,"tampered accepted");}
-            string baseline=Path.Combine(Path.GetDirectoryName(output),"baseline-rules.replay.json");Assert(File.Exists(baseline),"C08.old candidate fixture absent");Assert(!DailyReplay.Run(factory,new ReplayPackage("baseline",DailySession.ReplaySchema,File.ReadAllText(baseline))).Success,"C08.old candidate replay accepted");
+            string baseline=args.Length>1?args[1]:".harness/qa/TASK-001/v6/r002/run05/baseline-rules.replay.json";
+            Assert(File.Exists(baseline),"C08.old candidate fixture absent: pass its path as argument 2");
+            Assert(CanonicalJson.Hash(File.ReadAllBytes(baseline))=="87ab3fcee25f448b6bac40537cd8c696632b8dcaf5dea4a394bc3edd3ef8672c","C08.old fixture identity changed");
+            Assert(!DailyReplay.Run(factory,new ReplayPackage("baseline",DailySession.ReplaySchema,File.ReadAllText(baseline))).Success,"C08.old candidate replay accepted");
         }));
         await Check("P11","F-01,F-02","all plates supplied for rule isolation; tap matching orders until 61","complete inventory and only one win; no solvability claim",()=>Sync(()=>
         {
@@ -196,7 +200,24 @@ static class Task001RuleQa
             rejects(()=>new DailyContent(content.ContentVersion,content.Plates,content.Rows,"hotpot_original_inventory_v1"),"C08.old generator");
             rejects(()=>DailyContent.LoadProduction(content.CanonicalJsonText.Replace("skeleton_c_normalized_v1.1","skeleton_c_v1")),"C08.runtime corruption");
         }));
-        string report=CanonicalJson.Write(CanonicalJson.Object("task","TASK-001","taskVersion",6,"checkpoint","HC-02-v6","scope","Existing 14 rule groups; C04 validates core CanSpawn only, not the physical height gate","contentVersion",content.ContentVersion,"contentDigest",content.Digest,"configurationDigest",factory.ConfigurationDigest,"utc",DateTimeOffset.UtcNow.ToString("o"),"results",results));File.WriteAllText(output,report);
+        await Check("V9-Schedule","v9","fixed active-time ticks and long frames","immediate, 300ms, no catch-up, pause and blocked ticks",()=>Sync(()=>
+        {
+            var schedule=new ActiveSupplySchedule();Assert(schedule.TryTake(0,true),"first immediate");Assert(!schedule.TryTake(0,true),"same frame");
+            Assert(!schedule.TryTake(.299999,true)&&schedule.TryTake(.3,true)&&!schedule.TryTake(.300001,true),"300ms edge");
+            Assert(!schedule.TryTake(.6,false)&&schedule.NextTick==2,"pause advanced");Assert(schedule.TryTake(.6,true),"resume normal tick");
+            Assert(schedule.TryTake(4.099,true)&&schedule.NextTick==14&&!schedule.TryTake(4.1,true),"long-frame catchup");
+            Assert(schedule.TryTake(4.2,true)&&schedule.NextTick==15,"fixed cadence drift");
+            schedule.Reset();Assert(schedule.TryTake(0,true),"retry not immediate");
+            using(var s=factory.CreateDailySession(Context()))
+            {
+                string state=s.StateHash,rng=s.PresentationRngJson;
+                Assert(!s.Supply(new SupplyObservation(1,0,false,true)).Accepted,"blocked supply accepted");
+                Assert(s.StateHash==state&&s.PresentationRngJson==rng,"blocked consumed state or RNG");
+                Assert(!schedule.TryTake(.2,true)&&schedule.TryTake(.3,true),"capacity recovery supplied early");
+                Assert(s.Supply(new SupplyObservation(2,300,true,true)).Accepted,"normal next tick denied");
+            }
+        }));
+        string report=CanonicalJson.Write(CanonicalJson.Object("task","TASK-001","taskVersion",9,"checkpoint","HC-02-v9-Code","scope","14 core regression groups plus v9 scheduling; physical and visual QA reported separately","contentVersion",content.ContentVersion,"contentDigest",content.Digest,"configurationDigest",factory.ConfigurationDigest,"utc",DateTimeOffset.UtcNow.ToString("o"),"results",results));File.WriteAllText(output,report);
         int failed=results.Select(CanonicalJson.Map).Count(r=>(string)r["status"]=="FAIL");Console.WriteLine("REPORT "+output+"; failed="+failed);return failed==0?0:1;
     }
     sealed class FakeTime:ITimeProvider{public DateTimeOffset Utc=new DateTimeOffset(2026,9,21,5,59,59,TimeSpan.FromHours(8));public TaskCompletionSource<DateTimeOffset> Pending;public Task<DateTimeOffset> GetUtcAsync()=>Pending?.Task??Task.FromResult(Utc);}

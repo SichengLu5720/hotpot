@@ -1,0 +1,696 @@
+{
+  "schemaVersion": "presentation_theme_v10",
+  "resourceRoot": "Hotpot/TASK001/v10/r001",
+  "assets": [
+    {
+      "key": "background.table",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/background/table"
+    },
+    {
+      "key": "background.edge_cloth",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/background/edge_cloth"
+    },
+    {
+      "key": "plate.main",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/containers/plate_main"
+    },
+    {
+      "key": "dish.buffer",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/containers/dish_buffer"
+    },
+    {
+      "key": "pot.body",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/pots/pot_body"
+    },
+    {
+      "key": "pot.broth",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/pots/pot_broth"
+    },
+    {
+      "key": "ui.timer",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/ui/timer"
+    },
+    {
+      "key": "ui.bottom_bar",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/ui/bottom_bar"
+    },
+    {
+      "key": "ui.order_card",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/ui/order_card"
+    },
+    {
+      "key": "ui.panel",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/ui/panel"
+    },
+    {
+      "key": "ui.button_primary",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/ui/button_primary"
+    },
+    {
+      "key": "ui.button_secondary",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/ui/button_secondary"
+    },
+    {
+      "key": "ui.icon_disc",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/ui/icon_disc"
+    },
+    {
+      "key": "ui.order_pointer",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/ui/order_pointer"
+    },
+    {
+      "key": "ui.progress_track",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/ui/progress_track"
+    },
+    {
+      "key": "pot.unlit",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/pots/pot_unlit"
+    },
+    {
+      "key": "pot.rim",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/pots/pot_rim"
+    },
+    {
+      "key": "food.00",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/food/food_00"
+    },
+    {
+      "key": "food.01",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/food/food_01"
+    },
+    {
+      "key": "food.02",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/food/food_02"
+    },
+    {
+      "key": "food.03",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/food/food_03"
+    },
+    {
+      "key": "food.04",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/food/food_04"
+    },
+    {
+      "key": "food.05",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/food/food_05"
+    },
+    {
+      "key": "food.06",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/food/food_06"
+    },
+    {
+      "key": "food.07",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/food/food_07"
+    },
+    {
+      "key": "food.08",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/food/food_08"
+    },
+    {
+      "key": "food.09",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/food/food_09"
+    },
+    {
+      "key": "food.10",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/food/food_10"
+    },
+    {
+      "key": "food.11",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/food/food_11"
+    },
+    {
+      "key": "food.12",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/food/food_12"
+    },
+    {
+      "key": "food.13",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/food/food_13"
+    },
+    {
+      "key": "food.14",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/food/food_14"
+    },
+    {
+      "key": "food.15",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/food/food_15"
+    },
+    {
+      "key": "icon.clear_buffer",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/icons/clear_buffer"
+    },
+    {
+      "key": "icon.close",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/icons/close"
+    },
+    {
+      "key": "icon.effects_off",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/icons/effects_off"
+    },
+    {
+      "key": "icon.effects_on",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/icons/effects_on"
+    },
+    {
+      "key": "icon.fire",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/icons/fire"
+    },
+    {
+      "key": "icon.friends",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/icons/friends"
+    },
+    {
+      "key": "icon.hint",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/icons/hint"
+    },
+    {
+      "key": "icon.home",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/icons/home"
+    },
+    {
+      "key": "icon.lock",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/icons/lock"
+    },
+    {
+      "key": "icon.music_off",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/icons/music_off"
+    },
+    {
+      "key": "icon.music_on",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/icons/music_on"
+    },
+    {
+      "key": "icon.pause",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/icons/pause"
+    },
+    {
+      "key": "icon.play",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/icons/play"
+    },
+    {
+      "key": "icon.retry",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/icons/retry"
+    },
+    {
+      "key": "icon.rewarded_ad",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/icons/rewarded_ad"
+    },
+    {
+      "key": "icon.settings",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/icons/settings"
+    },
+    {
+      "key": "icon.share",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/icons/share"
+    },
+    {
+      "key": "icon.shuffle",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/icons/shuffle"
+    },
+    {
+      "key": "icon.stopwatch",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/icons/stopwatch"
+    },
+    {
+      "key": "hero.entry",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/hero/entry"
+    },
+    {
+      "key": "hero.share",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/hero/share"
+    },
+    {
+      "key": "hero.win",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/hero/win"
+    },
+    {
+      "key": "fx.bubble",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/fx/bubble"
+    },
+    {
+      "key": "fx.complete_glow",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/fx/complete_glow"
+    },
+    {
+      "key": "fx.hint",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/fx/hint"
+    },
+    {
+      "key": "fx.ignition",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/fx/ignition"
+    },
+    {
+      "key": "fx.oil_glint",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/fx/oil_glint"
+    },
+    {
+      "key": "fx.splash_ripple",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/fx/splash_ripple"
+    },
+    {
+      "key": "fx.steam",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/fx/steam"
+    },
+    {
+      "key": "fx.steam_soft_a",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/fx/steam_soft_a"
+    },
+    {
+      "key": "fx.steam_soft_b",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/fx/steam_soft_b"
+    },
+    {
+      "key": "fx.steam_soft_c",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/fx/steam_soft_c"
+    },
+    {
+      "key": "fx.victory_accent",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/fx/victory_accent"
+    },
+    {
+      "key": "brand.hotpot_seal",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/brand/hotpot_seal"
+    },
+    {
+      "key": "ui.button",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/ui/button_primary"
+    },
+    {
+      "key": "ui.order",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/ui/order_card"
+    },
+    {
+      "key": "ui.progress",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/ui/progress_track"
+    },
+    {
+      "key": "icon.clear",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/icons/clear_buffer"
+    },
+    {
+      "key": "icon.music",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/icons/music_on"
+    },
+    {
+      "key": "icon.sound",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/icons/effects_on"
+    },
+    {
+      "key": "icon.ad",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/icons/rewarded_ad"
+    },
+    {
+      "key": "icon.leaderboard",
+      "resourceAddress": "Hotpot/TASK001/v10/r001/icons/friends"
+    }
+  ],
+  "foodUvs": [
+    {
+      "id": 0,
+      "x": 0.125,
+      "y": 0.125,
+      "width": 0.75,
+      "height": 0.75
+    },
+    {
+      "id": 1,
+      "x": 0.125,
+      "y": 0.125,
+      "width": 0.75,
+      "height": 0.75
+    },
+    {
+      "id": 2,
+      "x": 0.125,
+      "y": 0.125,
+      "width": 0.75,
+      "height": 0.75
+    },
+    {
+      "id": 3,
+      "x": 0.125,
+      "y": 0.125,
+      "width": 0.75,
+      "height": 0.75
+    },
+    {
+      "id": 4,
+      "x": 0.125,
+      "y": 0.125,
+      "width": 0.75,
+      "height": 0.75
+    },
+    {
+      "id": 5,
+      "x": 0.125,
+      "y": 0.125,
+      "width": 0.75,
+      "height": 0.75
+    },
+    {
+      "id": 6,
+      "x": 0.125,
+      "y": 0.125,
+      "width": 0.75,
+      "height": 0.75
+    },
+    {
+      "id": 7,
+      "x": 0.125,
+      "y": 0.125,
+      "width": 0.75,
+      "height": 0.75
+    },
+    {
+      "id": 8,
+      "x": 0.125,
+      "y": 0.125,
+      "width": 0.75,
+      "height": 0.75
+    },
+    {
+      "id": 9,
+      "x": 0.125,
+      "y": 0.125,
+      "width": 0.75,
+      "height": 0.75
+    },
+    {
+      "id": 10,
+      "x": 0.125,
+      "y": 0.125,
+      "width": 0.75,
+      "height": 0.75
+    },
+    {
+      "id": 11,
+      "x": 0.125,
+      "y": 0.125,
+      "width": 0.75,
+      "height": 0.75
+    },
+    {
+      "id": 12,
+      "x": 0.125,
+      "y": 0.125,
+      "width": 0.75,
+      "height": 0.75
+    },
+    {
+      "id": 13,
+      "x": 0.125,
+      "y": 0.125,
+      "width": 0.75,
+      "height": 0.75
+    },
+    {
+      "id": 14,
+      "x": 0.125,
+      "y": 0.125,
+      "width": 0.75,
+      "height": 0.75
+    },
+    {
+      "id": 15,
+      "x": 0.125,
+      "y": 0.125,
+      "width": 0.75,
+      "height": 0.75
+    }
+  ],
+  "slices": [
+    {
+      "key": "ui.timer",
+      "x": 8,
+      "y": 40,
+      "width": 496,
+      "height": 113,
+      "left": 64,
+      "bottom": 56,
+      "right": 64,
+      "top": 56
+    },
+    {
+      "key": "ui.bottom_bar",
+      "x": 8,
+      "y": 48,
+      "width": 1008,
+      "height": 161,
+      "left": 48,
+      "bottom": 48,
+      "right": 48,
+      "top": 48
+    },
+    {
+      "key": "ui.order_card",
+      "x": 8,
+      "y": 59,
+      "width": 496,
+      "height": 138,
+      "left": 36,
+      "bottom": 36,
+      "right": 36,
+      "top": 36
+    },
+    {
+      "key": "ui.panel",
+      "x": 8,
+      "y": 14,
+      "width": 496,
+      "height": 484,
+      "left": 48,
+      "bottom": 48,
+      "right": 48,
+      "top": 48
+    },
+    {
+      "key": "ui.button_primary",
+      "x": 8,
+      "y": 49,
+      "width": 496,
+      "height": 95,
+      "left": 44,
+      "bottom": 44,
+      "right": 44,
+      "top": 44
+    },
+    {
+      "key": "ui.button_secondary",
+      "x": 8,
+      "y": 40,
+      "width": 496,
+      "height": 112,
+      "left": 44,
+      "bottom": 44,
+      "right": 44,
+      "top": 44
+    },
+    {
+      "key": "ui.icon_disc",
+      "x": 16,
+      "y": 16,
+      "width": 224,
+      "height": 224,
+      "left": 0,
+      "bottom": 0,
+      "right": 0,
+      "top": 0
+    },
+    {
+      "key": "ui.order_pointer",
+      "x": 16,
+      "y": 28,
+      "width": 96,
+      "height": 72,
+      "left": 0,
+      "bottom": 0,
+      "right": 0,
+      "top": 0
+    },
+    {
+      "key": "ui.progress_track",
+      "x": 30,
+      "y": 8,
+      "width": 451,
+      "height": 48,
+      "left": 24,
+      "bottom": 24,
+      "right": 24,
+      "top": 24
+    },
+    {
+      "key": "ui.button",
+      "x": 8,
+      "y": 49,
+      "width": 496,
+      "height": 95,
+      "left": 44,
+      "bottom": 44,
+      "right": 44,
+      "top": 44
+    },
+    {
+      "key": "ui.order",
+      "x": 8,
+      "y": 59,
+      "width": 496,
+      "height": 138,
+      "left": 36,
+      "bottom": 36,
+      "right": 36,
+      "top": 36
+    },
+    {
+      "key": "ui.progress",
+      "x": 30,
+      "y": 8,
+      "width": 451,
+      "height": 48,
+      "left": 24,
+      "bottom": 24,
+      "right": 24,
+      "top": 24
+    }
+  ],
+  "colors": [
+    {
+      "key": "ink",
+      "r": 0.3176470588235294,
+      "g": 0.2,
+      "b": 0.12549019607843137,
+      "a": 1
+    },
+    {
+      "key": "ivory",
+      "r": 1,
+      "g": 0.9607843137254902,
+      "b": 0.8980392156862745,
+      "a": 1
+    },
+    {
+      "key": "muted",
+      "r": 0.5450980392156862,
+      "g": 0.4392156862745098,
+      "b": 0.34509803921568627,
+      "a": 1
+    },
+    {
+      "key": "copper",
+      "r": 0.8509803921568627,
+      "g": 0.615686274509804,
+      "b": 0.33725490196078434,
+      "a": 1
+    },
+    {
+      "key": "vermilion",
+      "r": 0.7098039215686275,
+      "g": 0.21568627450980393,
+      "b": 0.1450980392156863,
+      "a": 1
+    },
+    {
+      "key": "table_tint",
+      "r": 1,
+      "g": 1,
+      "b": 1,
+      "a": 1
+    }
+  ],
+  "anchors": {
+    "pots": [
+      {
+        "x": 56,
+        "y": 166
+      },
+      {
+        "x": 159,
+        "y": 166
+      },
+      {
+        "x": 262,
+        "y": 166
+      },
+      {
+        "x": 365,
+        "y": 166
+      }
+    ],
+    "bufferSlots": [
+      {
+        "x": 75,
+        "y": 259
+      },
+      {
+        "x": 142,
+        "y": 259
+      },
+      {
+        "x": 209,
+        "y": 259
+      },
+      {
+        "x": 276,
+        "y": 259
+      },
+      {
+        "x": 343,
+        "y": 259
+      }
+    ],
+    "gatherItemSlots": [
+      {
+        "x": 0,
+        "y": 0
+      },
+      {
+        "x": -28,
+        "y": -23
+      },
+      {
+        "x": 29,
+        "y": -22
+      },
+      {
+        "x": -24,
+        "y": 27
+      },
+      {
+        "x": 27,
+        "y": 27
+      }
+    ],
+    "revivalGatherPlate": {
+      "x": 210,
+      "y": 390
+    },
+    "supplyEntryVisual": {
+      "x": 210,
+      "y": 205
+    },
+    "boardWidth": 420,
+    "boardHeight": 900,
+    "clipTop": 292,
+    "clipBottom": 828,
+    "supplyGate": 140
+  },
+  "effects": {
+    "schemaVersion": "presentation_effects_v1",
+    "steamKeys": [
+      "steam_soft_a",
+      "steam_soft_b",
+      "steam_soft_c"
+    ],
+    "steamInterval": 0.92,
+    "steamStagger": 0.17,
+    "steamLifetime": 1.65,
+    "steamOpacity": 0.16,
+    "steamDrift": 13,
+    "steamRise": 40,
+    "steamSize": 70,
+    "serveLift": 0.16,
+    "serveHold": 0.1,
+    "serveExit": 0.24,
+    "serveSettle": 0.45,
+    "serveExitDistance": 360,
+    "concurrentEffects": 48
+  }
+}

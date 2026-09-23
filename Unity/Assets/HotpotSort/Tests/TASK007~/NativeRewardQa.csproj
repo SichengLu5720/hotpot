@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><TargetFramework>net10.0</TargetFramework><OutputType>Exe</OutputType><EnableDefaultCompileItems>false</EnableDefaultCompileItems><ImplicitUsings>disable</ImplicitUsings><Nullable>disable</Nullable><LangVersion>9</LangVersion><DefineConstants>UNITY_WEBGL</DefineConstants></PropertyGroup>
+  <ItemGroup>
+    <Compile Include="NativeRewardQa.cs"/><Compile Include="NativeSdkFixture.cs"/>
+    <Compile Include="../../Contracts/*.cs"/>
+    <Compile Include="../../Runtime/Platform/WeChat/WeChatRewardLifecycle.cs"/><Compile Include="../../Runtime/Platform/WeChat/WeChatShareService.cs"/><Compile Include="../../Runtime/Platform/WeChat/WeChatRewardService.cs"/>
+    <Compile Include="../../Runtime/Platform/WeChat/WeChatRuntimeConfig.cs"/><Compile Include="../../Runtime/Platform/WeChat/WeChatCapabilityState.cs"/>
+  </ItemGroup>
+</Project>

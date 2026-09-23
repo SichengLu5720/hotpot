@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+ <PropertyGroup>
+  <TargetFramework>net10.0</TargetFramework><EnableDefaultCompileItems>false</EnableDefaultCompileItems><ImplicitUsings>disable</ImplicitUsings><Nullable>disable</Nullable><LangVersion>9</LangVersion><DefineConstants>UNITY_WEBGL</DefineConstants>
+  <RepoRoot>$(MSBuildThisFileDirectory)../../../../../../</RepoRoot>
+  <UnityManaged>D:/GameDev/Tools/Unity/6000.0.26f1/Editor/Data/Managed/UnityEngine</UnityManaged>
+ </PropertyGroup>
+ <ItemGroup>
+  <Compile Include="../../../Contracts/RemoteAssetContracts.cs"/>
+  <Compile Include="../../Platform/RemoteAssets/*.cs"/>
+  <Compile Include="../../Platform/WeChat/WeChatAssetTransport.cs"/>
+  <Compile Include="../../Platform/WeChat/WeChatCloudAssetDownload.cs"/>
+  <Compile Include="../../Platform/WeChat/CloudAssetDownloadClient.cs"/>
+  <Compile Include="../../Platform/WeChat/WeChatRuntimeConfig.cs"/>
+  <Compile Include="../../Platform/WeChat/WeChatCapabilityState.cs"/>
+  <Reference Include="UnityEngine.CoreModule"><HintPath>$(UnityManaged)/UnityEngine.CoreModule.dll</HintPath></Reference>
+  <Reference Include="UnityEngine.JSONSerializeModule"><HintPath>$(UnityManaged)/UnityEngine.JSONSerializeModule.dll</HintPath></Reference>
+  <Reference Include="UnityEngine.AssetBundleModule"><HintPath>$(UnityManaged)/UnityEngine.AssetBundleModule.dll</HintPath></Reference>
+  <Reference Include="UnityEngine.TextRenderingModule"><HintPath>$(UnityManaged)/UnityEngine.TextRenderingModule.dll</HintPath></Reference>
+  <Reference Include="UnityEngine.UnityWebRequestModule"><HintPath>$(UnityManaged)/UnityEngine.UnityWebRequestModule.dll</HintPath></Reference>
+  <Reference Include="Wx"><HintPath>$(RepoRoot)Unity/Library/ScriptAssemblies/Wx.dll</HintPath></Reference>
+  <Reference Include="wx-runtime-editor"><HintPath>$(RepoRoot)Unity/Packages/com.qq.weixin.minigame/Runtime/Plugins/wx-runtime-editor.dll</HintPath></Reference>
+ </ItemGroup>
+</Project>

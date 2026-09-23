@@ -1,0 +1,5 @@
+{
+  "name": "HotpotSort.RemoteAssets",
+  "references": ["HotpotSort.Contracts"],
+  "autoReferenced": false
+}

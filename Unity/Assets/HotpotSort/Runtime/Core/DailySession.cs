@@ -6,9 +6,14 @@ using HotpotSort.Determinism;
 
 namespace HotpotSort.Core
 {
-    public sealed class DailySession : IGameSession
+    public sealed class DailySession : IGameSession, IRevivalSessionState
     {
-        public const string StateSchema = "daily_state_v2", EventSchema = "daily_event_v2", ReplaySchema = "daily_replay_v2";
+        public const string StateSchema = "daily_state_v3", EventSchema = "daily_event_v3", ReplaySchema = "daily_replay_v3";
+        public const string LegacyStateSchema = "daily_state_v2", LegacyEventSchema = "daily_event_v2", LegacyReplaySchema = "daily_replay_v2";
+        readonly DailyRulesVersion rules;
+        string CurrentStateSchema => rules == DailyRulesVersion.LegacyV2 ? LegacyStateSchema : StateSchema;
+        string CurrentEventSchema => rules == DailyRulesVersion.LegacyV2 ? LegacyEventSchema : EventSchema;
+        string CurrentReplaySchema => rules == DailyRulesVersion.LegacyV2 ? LegacyReplaySchema : ReplaySchema;
         readonly object gate = new object();
         readonly DailySessionFactory factory;
         readonly ChallengeContext context;
@@ -32,6 +37,13 @@ namespace HotpotSort.Core
         string failureCode;
         int? failureItem;
         string initialHash;
+        bool revivalPending, revivalUsed;
+        string revivalOfferId, revivalTransferToken;
+        object revivalTransfer;
+        public bool RevivalPending { get { lock(gate) return revivalPending; } }
+        public bool RevivalUsed { get { lock(gate) return revivalUsed; } }
+        public string RevivalOfferId { get { lock(gate) return revivalOfferId; } }
+        public string RevivalTransferToken { get { lock(gate) return revivalTransferToken; } }
         public GameSnapshot Snapshot { get { lock (gate) return snapshot; } }
         public string StateHash { get { lock (gate) return Hash(); } }
         public string InitialHash => initialHash;
@@ -39,8 +51,10 @@ namespace HotpotSort.Core
         public string DiagnosticsJson { get { lock (gate) return "[" + string.Join(",", diagnostics) + "]"; } }
         public event Action<GameSnapshot, GameEventBatch> Changed;
 
-        internal DailySession(DailySessionFactory factory, ChallengeContext context, DailyFixture fixture)
+        internal DailySession(DailySessionFactory factory, ChallengeContext context, DailyFixture fixture, DailyRulesVersion rules)
         {
+            if(!Enum.IsDefined(typeof(DailyRulesVersion),rules))throw new ArgumentOutOfRangeException(nameof(rules));
+            this.rules=rules;
             this.factory = factory; this.context = context ?? throw new ArgumentNullException(nameof(context)); this.fixture = fixture;
             seed = Pcg32.DailySeed(context.ChallengeId, context.ContentVersion);
             mappingRng = new Pcg32(Pcg32.StreamSeed(seed, "MappingRng")); directorRng = new Pcg32(Pcg32.StreamSeed(seed, "DirectorRng")); presentationRng = new Pcg32(Pcg32.StreamSeed(seed, "PresentationRng"));
@@ -139,7 +153,7 @@ namespace HotpotSort.Core
                 fields["orderIdentity"] = orders[slot].Identity;
                 if (!fields.ContainsKey("ingredientId") && orders[slot].Kind != null) fields["ingredientId"] = mapping[orders[slot].Kind];
             }
-            var json = CanonicalJson.Write(CanonicalJson.Object("schemaVersion", EventSchema, "eventSeq", CanonicalJson.U64(eventSeq),
+            var json = CanonicalJson.Write(CanonicalJson.Object("schemaVersion", CurrentEventSchema, "eventSeq", CanonicalJson.U64(eventSeq),
                 "transactionId", CanonicalJson.U64(transactionId), "type", type, "data", data));
             batch.Add(json); allEvents.Add(json);
         }
@@ -166,7 +180,7 @@ namespace HotpotSort.Core
             // stable snapshot observers receive, not the state before TransactionClosed.
             eventSeq = checked(eventSeq + 1);
             string hash = Hash();
-            string closed = CanonicalJson.Write(CanonicalJson.Object("schemaVersion", EventSchema, "eventSeq", CanonicalJson.U64(eventSeq),
+            string closed = CanonicalJson.Write(CanonicalJson.Object("schemaVersion", CurrentEventSchema, "eventSeq", CanonicalJson.U64(eventSeq),
                 "transactionId", CanonicalJson.U64(transactionId), "type", "TransactionClosed", "data", CanonicalJson.Object("hashAfter", hash)));
             batch.Add(closed); allEvents.Add(closed); RefreshSnapshot();
         }
@@ -207,8 +221,16 @@ namespace HotpotSort.Core
                 {
                     item.Location = "ActiveAvailable"; item.Slot = -1; failureCode = "BufferOverflow"; failureItem = item.Id;
                     Emit("BufferOverflowAttempted", CanonicalJson.Object("itemId", item.Id, "kind", item.Kind, "buffer", buffer));
-                    status = GameStatus.Failed;
-                    Emit("ChallengeFailed", CanonicalJson.Object("reason", failureCode, "itemId", item.Id, "durationBoundaries", CanonicalJson.U64(elapsed), "stateHash", Hash()));
+                    if(rules==DailyRulesVersion.RevivalV3 && !revivalUsed)
+                    {
+                        revivalPending=true;revivalOfferId="revival-"+CanonicalJson.U64(transactionId);status=GameStatus.Paused;
+                        Emit("RevivalOffered",CanonicalJson.Object("revivalOfferId",revivalOfferId,"itemId",item.Id));
+                    }
+                    else
+                    {
+                        status = GameStatus.Failed;
+                        Emit("ChallengeFailed", CanonicalJson.Object("reason", failureCode, "itemId", item.Id, "durationBoundaries", CanonicalJson.U64(elapsed), "stateHash", Hash()));
+                    }
                 }
                 else
                 {
@@ -284,12 +306,59 @@ namespace HotpotSort.Core
             {
                 if(Guard(logicalBoundary)!=null || !CanClearBuffer)return Reject("ClearBufferRejected","NoTarget",null);
                 if(logicalBoundary>=600000)return Timeout(logicalBoundary);
-                Begin(logicalBoundary);int plate=plateSizes.Keys.Max()+1, index=0;
-                var ids=buffer.Where(i=>i.HasValue).Select(i=>i.Value).ToArray(); plateSizes.Add(plate,ids.Length);pending.Add(plate);
-                foreach(int id in ids){var item=items[id-1];item.PlateId=plate;item.SourceIndex=index++;item.Location="Pending";item.Slot=-1;}
-                System.Array.Clear(buffer,0,buffer.Length); processed-=ids.Length;
-                Emit("BufferReturnedToQueue",CanonicalJson.Object("plateId",plate,"itemIds",ids));
+                Begin(logicalBoundary);ReturnBufferToQueue();
                 Close();Record("ClearBuffer",CanonicalJson.Object("logicalBoundary",CanonicalJson.U64(logicalBoundary)));return Publish(true,null);
+            }
+        }
+        int ReturnBufferToQueue()
+        {
+            int plate=plateSizes.Keys.Max()+1,index=0;
+            var ids=buffer.Where(i=>i.HasValue).Select(i=>i.Value).ToArray();plateSizes.Add(plate,ids.Length);pending.Add(plate);
+            foreach(int id in ids){var item=items[id-1];item.PlateId=plate;item.SourceIndex=index++;item.Location="Pending";item.Slot=-1;}
+            System.Array.Clear(buffer,0,buffer.Length);processed-=ids.Length;
+            Emit("BufferReturnedToQueue",CanonicalJson.Object("plateId",plate,"itemIds",ids));
+            return plate;
+        }
+        public CommandResult ResolveRevival(ResolveRevivalCommand command)
+        {
+            if(command==null)throw new ArgumentNullException(nameof(command));
+            lock(gate)
+            {
+                string reason=Guard(command.LogicalBoundary);
+                if(reason==null && (rules!=DailyRulesVersion.RevivalV3 || !revivalPending || revivalUsed || status!=GameStatus.Paused || command.OfferId!=revivalOfferId))reason="StaleRevivalOffer";
+                if(reason==null && command.Success && string.IsNullOrEmpty(command.RequestId))reason="MissingRewardRequest";
+                if(reason!=null)return Reject("ResolveRevivalRejected",reason,null);
+                var data=CanonicalJson.Object("revivalOfferId",command.OfferId,"requestId",command.RequestId,"success",command.Success,"logicalBoundary",CanonicalJson.U64(command.LogicalBoundary));
+                Begin(command.LogicalBoundary);
+                if(command.Success)
+                {
+                    // Capture source-slot facts BEFORE clearing. Item IDs need not be sorted.
+                    var transfers=buffer.Select((id,slot)=>new { id,slot }).Where(x=>x.id.HasValue).Select((x,index)=>
+                        CanonicalJson.Object("itemId",x.id.Value,"ingredientId",mapping[items[x.id.Value-1].Kind],"sourceSlot",x.slot,"targetIndex",index)).ToArray();
+                    int plate=ReturnBufferToQueue();revivalUsed=true;
+                    revivalTransferToken="revival-transfer-"+CanonicalJson.U64(transactionId);
+                    revivalTransfer=CanonicalJson.Object("schemaVersion","revival_transfer_v1","revivalOfferId",revivalOfferId,"requestId",command.RequestId,
+                        "completionToken",revivalTransferToken,"newPlateId",plate,"transactionId",CanonicalJson.U64(transactionId),"eventSeq",CanonicalJson.U64(eventSeq+1),"items",transfers);
+                    failureCode=null;failureItem=null;
+                    Emit("RevivalTransferStarted",revivalTransfer);
+                }
+                else
+                {
+                    revivalPending=false;status=GameStatus.Failed;
+                    Emit("ChallengeFailed",CanonicalJson.Object("reason","BufferOverflow","revivalOfferId",revivalOfferId,"requestId",command.RequestId,"itemId",failureItem.Value));
+                }
+                Close();Record("ResolveRevival",data);return Publish(true,null);
+            }
+        }
+        public CommandResult CompleteRevivalTransfer(string offerId,string token,ulong logicalBoundary)
+        {
+            lock(gate)
+            {
+                if(Guard(logicalBoundary)!=null || !revivalPending || !revivalUsed || status!=GameStatus.Paused || offerId!=revivalOfferId || token!=revivalTransferToken || string.IsNullOrEmpty(token))
+                    return Reject("RevivalTransferCompletionRejected","StaleCompletion",null);
+                var data=CanonicalJson.Object("revivalOfferId",offerId,"completionToken",token,"logicalBoundary",CanonicalJson.U64(logicalBoundary));
+                Begin(logicalBoundary);revivalPending=false;revivalTransferToken=null;revivalTransfer=null;
+                Emit("RevivalTransferCompleted",data);Close();Record("CompleteRevivalTransfer",data);return Publish(true,null);
             }
         }
         public CommandResult UnlockFourth(ulong logicalBoundary)
@@ -357,6 +426,7 @@ namespace HotpotSort.Core
             {
                 string type = pause ? "Pause" : "Resume"; var data = CanonicalJson.Object("logicalBoundary", CanonicalJson.U64(nextBoundary));
                 string reason = Guard(nextBoundary);
+                if(reason==null && !pause && revivalPending)reason="RevivalPending";
                 if (reason == null && status != (pause ? GameStatus.Running : GameStatus.Paused)) reason = "IneffectiveBoundary";
                 if (reason != null) return Reject(type + "Rejected", reason, data);
                 Begin(nextBoundary); status = pause ? GameStatus.Paused : GameStatus.Running;
@@ -385,12 +455,12 @@ namespace HotpotSort.Core
         {
             lock (gate)
             {
-                var json = CanonicalJson.Write(CanonicalJson.Object("schemaVersion", ReplaySchema,
+                var json = CanonicalJson.Write(CanonicalJson.Object("schemaVersion", CurrentReplaySchema,
                     "context", CanonicalJson.Object("challengeId", context.ChallengeId, "contentVersion", context.ContentVersion, "configurationDigest", context.ConfigurationDigest, "timeSource", context.TimeSource, "retryIndex", context.RetryIndex),
                     "identities", Identities(), "dailySeed", CanonicalJson.U64(seed), "initialHash", initialHash, "fixture", FixtureJson(fixture),
                     "records", records.Select(CanonicalJson.Parse).ToArray(), "diagnostics", diagnostics.Select(CanonicalJson.Parse).ToArray(), "finalHash", Hash(),
                     "coreEventsHash", CanonicalJson.Hash("[" + string.Join(",", allEvents) + "]")));
-                return new ReplayPackage(sessionId, ReplaySchema, json);
+                return new ReplayPackage(sessionId, CurrentReplaySchema, json);
             }
         }
         public string StatisticsJson
@@ -400,15 +470,24 @@ namespace HotpotSort.Core
         object Statistics() => CanonicalJson.Object("acceptedTapCount", taps, "processedItemCount", processed, "completedOrderCount", completedOrders,
             "completedItemCount", items.Count(x => x.Location == "Completed"), "bufferAutoAbsorbedCount", absorbed, "maxBufferCount", maxBuffer,
             "durationBoundaries", CanonicalJson.U64(elapsed), "failureCode", failureCode, "failureItemId", failureItem);
-        object State() => CanonicalJson.Object("schemaVersion", StateSchema, "identities", Identities(), "challengeId", context.ChallengeId, "contentVersion", context.ContentVersion,
+        object State()
+        {
+            var state=CanonicalJson.Object("schemaVersion", CurrentStateSchema, "identities", Identities(), "challengeId", context.ChallengeId, "contentVersion", context.ContentVersion,
             "dailySeed", CanonicalJson.U64(seed), "mapping", mapping, "status", status.ToString(), "logicalBoundary", CanonicalJson.U64(boundary), "pendingPlateIds", pending, "activePlateIds", active,
             "items", items.Select(x => CanonicalJson.Object("itemId", x.Id, "plateId", x.PlateId, "sourceIndex", x.SourceIndex, "kind", x.Kind, "location", x.Location, "slot", x.Slot)).ToArray(),
             "plateSizes", plateSizes.OrderBy(p=>p.Key).Select(p=>CanonicalJson.Object("plateId",p.Key,"size",p.Value)).ToArray(),
             "buffer", buffer, "orders", orders.Select((o, i) => CanonicalJson.Object("slotId", i, "state", !o.Enabled ? "Locked" : o.Kind == null ? "Empty" : "Active", "orderIdentity",o.Identity,"kind", o.Kind, "itemIds", o.Items, "filled", o.Items.Count)).ToArray(),
             "progressNumerator", items.Count(x => x.Location == "Completed" || x.Location == "Order"), "progressDenominator", 183, "statistics", Statistics(),
             "mappingRng", mappingRng.Snapshot(), "directorRng", directorRng.Snapshot(), "transactionId", CanonicalJson.U64(transactionId), "eventSeq", CanonicalJson.U64(eventSeq));
+            if(rules==DailyRulesVersion.RevivalV3)
+            {
+                var fields=CanonicalJson.Map(state);
+                fields["revivalPending"]=revivalPending;fields["revivalUsed"]=revivalUsed;fields["revivalOfferId"]=revivalOfferId;fields["revivalTransfer"]=revivalTransfer;
+            }
+            return state;
+        }
         string Hash() => CanonicalJson.Hash(CanonicalJson.Write(State()));
-        void RefreshSnapshot() { snapshot = new GameSnapshot(sessionId, context, status, CanonicalJson.U64(eventSeq), CanonicalJson.U64(transactionId), StateSchema, CanonicalJson.Write(State())); }
+        void RefreshSnapshot() { snapshot = new GameSnapshot(sessionId, context, status, CanonicalJson.U64(eventSeq), CanonicalJson.U64(transactionId), CurrentStateSchema, CanonicalJson.Write(State())); }
         string InvariantError()
         {
             if (items.Count != 183 || items.Select(x => x.Id).Distinct().Count() != 183) return "Item count/identity";

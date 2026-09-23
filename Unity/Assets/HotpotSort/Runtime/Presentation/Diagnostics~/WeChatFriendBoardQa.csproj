@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework><OutputType>Exe</OutputType>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems><ImplicitUsings>disable</ImplicitUsings><Nullable>disable</Nullable><LangVersion>9</LangVersion>
+    <UnityManaged>D:/GameDev/Tools/Unity/6000.0.26f1/Editor/Data/Managed</UnityManaged>
+    <UnityProject>$(MSBuildThisFileDirectory)../../../../..</UnityProject>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(RealSdk)' == 'true'">
+    <OutputType>Library</OutputType><DefineConstants>UNITY_WEBGL</DefineConstants>
+    <IntermediateOutputPath>obj/WeChatFriendBoardQaReal/$(Configuration)/</IntermediateOutputPath>
+    <OutputPath>bin/WeChatFriendBoardQaReal/$(Configuration)/</OutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(RealSdk)' == 'true' and '$(NativePlayerSdk)' == 'true'">
+    <IntermediateOutputPath>obj/WeChatFriendBoardQaPlayer/$(Configuration)/</IntermediateOutputPath>
+    <OutputPath>bin/WeChatFriendBoardQaPlayer/$(Configuration)/</OutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../../Contracts/WeChatFriendBoardContracts.cs" />
+    <Compile Include="../../Platform/WeChat/WeChatFriendBoardSurface.cs" />
+    <Compile Include="../../Platform/WeChat/Editor/FriendBoard/WeChatFriendBoardExportGuard.cs" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(RealSdk)' != 'true'">
+    <Compile Include="WeChatFriendBoardQa.cs" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(RealSdk)' == 'true'">
+    <Reference Include="$(UnityManaged)/UnityEngine/*.dll" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(RealSdk)' == 'true' and '$(NativePlayerSdk)' != 'true'">
+    <Reference Include="$(UnityProject)/Library/ScriptAssemblies/Wx.dll" />
+    <Reference Include="$(UnityProject)/Packages/com.qq.weixin.minigame/Runtime/Plugins/wx-runtime-editor.dll" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(RealSdk)' == 'true' and '$(NativePlayerSdk)' == 'true'">
+    <!-- Compile the real player API wrappers against the actual non-editor runtime plugin. -->
+    <Compile Include="$(UnityProject)/Packages/com.qq.weixin.minigame/Runtime/WX.cs" />
+    <Compile Include="$(UnityProject)/Packages/com.qq.weixin.minigame/Runtime/WXBase.cs" />
+    <Reference Include="$(UnityProject)/Packages/com.qq.weixin.minigame/Runtime/Plugins/wx-runtime.dll" />
+    <Reference Include="$(UnityProject)/Packages/com.qq.weixin.minigame/Runtime/Plugins/Unity.FontABTool.dll" />
+  </ItemGroup>
+</Project>

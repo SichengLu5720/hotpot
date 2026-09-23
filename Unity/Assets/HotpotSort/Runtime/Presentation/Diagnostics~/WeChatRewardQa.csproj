@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework><OutputType>Exe</OutputType>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems><ImplicitUsings>disable</ImplicitUsings><Nullable>disable</Nullable><LangVersion>9</LangVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="WeChatRewardQa.cs"/><Compile Include="WeChatRewardQaUnityShim.cs"/>
+    <Compile Include="../../../Contracts/DevelopmentServices.cs" Condition="'$(IsolatedContracts)' != 'true'"/>
+    <Compile Include="WeChatRewardQaContractsFixture.cs" Condition="'$(IsolatedContracts)' == 'true'"/>
+    <Compile Include="../../../Contracts/WeChatRewardContracts.cs"/>
+    <Compile Include="../../../Contracts/RemoteAssetContracts.cs"/>
+    <Compile Include="../../Platform/WeChat/WeChatShareService.cs"/><Compile Include="../../Platform/WeChat/WeChatRewardService.cs"/>
+    <Compile Include="../../Platform/WeChat/WeChatRuntimeConfig.cs"/><Compile Include="../../Platform/WeChat/WeChatCapabilityState.cs"/>
+  </ItemGroup>
+</Project>

@@ -79,10 +79,19 @@ namespace HotpotSort.Contracts
         public float SafeY { get; }
         public float SafeWidth { get; }
         public float SafeHeight { get; }
-        public Viewport(int width, int height, float safeX, float safeY, float safeWidth, float safeHeight)
+        // Optional platform chrome rectangle in bottom-left screen pixels.
+        public float MenuButtonX { get; }
+        public float MenuButtonY { get; }
+        public float MenuButtonWidth { get; }
+        public float MenuButtonHeight { get; }
+        public bool HasMenuButton => MenuButtonWidth > 0 && MenuButtonHeight > 0;
+        public Viewport(int width, int height, float safeX, float safeY, float safeWidth, float safeHeight,
+            float menuButtonX=0, float menuButtonY=0, float menuButtonWidth=0, float menuButtonHeight=0)
         {
             Width = width; Height = height; SafeX = safeX; SafeY = safeY;
             SafeWidth = safeWidth; SafeHeight = safeHeight;
+            MenuButtonX = menuButtonX; MenuButtonY = menuButtonY;
+            MenuButtonWidth = menuButtonWidth; MenuButtonHeight = menuButtonHeight;
         }
     }
 

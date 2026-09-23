@@ -1,6 +1,6 @@
 {
   "name": "HotpotSort.Bootstrap",
   "rootNamespace": "HotpotSort.Bootstrap",
-  "references": ["HotpotSort.Contracts", "HotpotSort.Session", "HotpotSort.WeChat", "HotpotSort.Core", "HotpotSort.Determinism", "HotpotSort.Presentation", "Wx"],
+  "references": ["HotpotSort.Contracts", "HotpotSort.Session", "HotpotSort.WeChat", "HotpotSort.Core", "HotpotSort.Determinism", "HotpotSort.Presentation", "Wx", "HotpotSort.RemoteAssets"],
   "autoReferenced": false
 }

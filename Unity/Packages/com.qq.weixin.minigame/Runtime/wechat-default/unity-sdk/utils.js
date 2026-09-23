@@ -82,6 +82,12 @@ export function formatResponse(type, data, id) {
     if (!conf) {
         return data;
     }
+    // DevTools share-return can report an absent/non-numeric launch scene.
+    // NaN serializes as null and cannot be read into OnShowListenerResult.scene.
+    // Use the SDK's existing missing-number default; preserve real scene codes.
+    if (type === 'OnShowListenerResult' && !Number.isFinite(Number(data.scene))) {
+        data.scene = 0;
+    }
     
     Object.keys(conf).forEach((key) => {
         if (data[key] === null || typeof data[key] === 'undefined') {

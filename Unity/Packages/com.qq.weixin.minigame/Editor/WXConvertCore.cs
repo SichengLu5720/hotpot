@@ -1136,7 +1136,8 @@ namespace WeChatWASM
             PlayerSettings.WeixinMiniGame.emscriptenArgs = string.Empty;
             if (WXExtEnvDef.GETDEF("UNITY_2021_2_OR_NEWER"))
             {
-                PlayerSettings.WeixinMiniGame.emscriptenArgs += " -s EXPORTED_FUNCTIONS=_main,_sbrk,_emscripten_stack_get_base,_emscripten_stack_get_end";
+                // SDK touch callbacks allocate/free their payload through Module.
+                PlayerSettings.WeixinMiniGame.emscriptenArgs += " -s EXPORTED_FUNCTIONS=_main,_malloc,_free,_sbrk,_emscripten_stack_get_base,_emscripten_stack_get_end";
                 if (config.CompileOptions.enablePerfAnalysis)
                 {
                     PlayerSettings.WeixinMiniGame.emscriptenArgs += ",_WxPerfFrameIntervalCallback";
@@ -1148,7 +1149,8 @@ namespace WeChatWASM
             PlayerSettings.WebGL.emscriptenArgs = string.Empty;
             if (WXExtEnvDef.GETDEF("UNITY_2021_2_OR_NEWER"))
             {
-                PlayerSettings.WebGL.emscriptenArgs += " -s EXPORTED_FUNCTIONS=_sbrk,_emscripten_stack_get_base,_emscripten_stack_get_end";
+                // Unity 6 strips these public exports unless requested explicitly.
+                PlayerSettings.WebGL.emscriptenArgs += " -s EXPORTED_FUNCTIONS=_malloc,_free,_sbrk,_emscripten_stack_get_base,_emscripten_stack_get_end";
                 if (config.CompileOptions.enablePerfAnalysis)
                 {
                     PlayerSettings.WebGL.emscriptenArgs += ",_WxPerfFrameIntervalCallback";

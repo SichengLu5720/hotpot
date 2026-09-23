@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+ <PropertyGroup><TargetFramework>net10.0</TargetFramework><OutputType>Exe</OutputType><UseAppHost>false</UseAppHost><EnableDefaultCompileItems>false</EnableDefaultCompileItems><ImplicitUsings>disable</ImplicitUsings><Nullable>disable</Nullable><LangVersion>9</LangVersion></PropertyGroup>
+ <ItemGroup>
+  <Compile Include="CloudProfileFunctionQa.cs"/><Compile Include="ProfilePlatformQaUnityShim.cs"/>
+  <Compile Include="../../../Contracts/*.cs"/><Compile Include="../../Session/*.cs"/><Compile Include="../../Platform/Profile/*.cs"/>
+  <Compile Include="../../Platform/WeChat/WeChatRuntimeConfig.cs"/><Compile Include="../../Platform/WeChat/WeChatCapabilityState.cs"/>
+  <Compile Include="../../Platform/WeChat/WeChatSilentLogin.cs"/><Compile Include="../../Platform/WeChat/WeChatProfileTransport.cs"/>
+  <Compile Include="../../Platform/WeChat/WeChatCloudProfileFunction.cs"/>
+ </ItemGroup>
+</Project>

@@ -1,0 +1,404 @@
+{
+  "schemaVersion": "presentation_theme_v7",
+  "resourceRoot": "Hotpot/TASK001/v7/r001",
+  "effects": {
+    "schemaVersion": "presentation_effects_v1",
+    "steamKeys": [
+      "steam_soft_a",
+      "steam_soft_b",
+      "steam_soft_c"
+    ],
+    "steamInterval": 0.92,
+    "steamStagger": 0.17,
+    "steamLifetime": 1.65,
+    "steamOpacity": 0.16,
+    "steamDrift": 13.0,
+    "steamRise": 40.0,
+    "steamSize": 70.0,
+    "serveLift": 0.16,
+    "serveHold": 0.10,
+    "serveExit": 0.24,
+    "serveSettle": 0.45,
+    "serveExitDistance": 360.0,
+    "concurrentEffects": 48
+  },
+  "assets": [
+    {
+      "key": "background.edge_cloth",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/background/edge_cloth"
+    },
+    {
+      "key": "background.table",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/background/table"
+    },
+    {
+      "key": "brand.hotpot_seal",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/brand/hotpot_seal"
+    },
+    {
+      "key": "dish.buffer",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/containers/dish_buffer"
+    },
+    {
+      "key": "plate.main",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/containers/plate_main"
+    },
+    {
+      "key": "food.00",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/food/food_00"
+    },
+    {
+      "key": "food.01",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/food/food_01"
+    },
+    {
+      "key": "food.02",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/food/food_02"
+    },
+    {
+      "key": "food.03",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/food/food_03"
+    },
+    {
+      "key": "food.04",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/food/food_04"
+    },
+    {
+      "key": "food.05",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/food/food_05"
+    },
+    {
+      "key": "food.06",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/food/food_06"
+    },
+    {
+      "key": "food.07",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/food/food_07"
+    },
+    {
+      "key": "food.08",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/food/food_08"
+    },
+    {
+      "key": "food.09",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/food/food_09"
+    },
+    {
+      "key": "food.10",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/food/food_10"
+    },
+    {
+      "key": "food.11",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/food/food_11"
+    },
+    {
+      "key": "food.12",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/food/food_12"
+    },
+    {
+      "key": "food.13",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/food/food_13"
+    },
+    {
+      "key": "food.14",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/food/food_14"
+    },
+    {
+      "key": "food.15",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/food/food_15"
+    },
+    {
+      "key": "fx.bubble",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/fx/bubble"
+    },
+    {
+      "key": "fx.complete_glow",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/fx/complete_glow"
+    },
+    {
+      "key": "fx.hint",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/fx/hint"
+    },
+    {
+      "key": "fx.ignition",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/fx/ignition"
+    },
+    {
+      "key": "fx.oil_glint",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/fx/oil_glint"
+    },
+    {
+      "key": "fx.splash_ripple",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/fx/splash_ripple"
+    },
+    {
+      "key": "fx.steam",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/fx/steam"
+    },
+    {
+      "key": "fx.steam_soft_a",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/fx/steam_soft_a"
+    },
+    {
+      "key": "fx.steam_soft_b",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/fx/steam_soft_b"
+    },
+    {
+      "key": "fx.steam_soft_c",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/fx/steam_soft_c"
+    },
+    {
+      "key": "fx.victory_accent",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/fx/victory_accent"
+    },
+    {
+      "key": "hero.entry",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/hero/entry"
+    },
+    {
+      "key": "hero.share",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/hero/share"
+    },
+    {
+      "key": "hero.win",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/hero/win"
+    },
+    {
+      "key": "icon.clear_buffer",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/icons/clear_buffer"
+    },
+    {
+      "key": "icon.close",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/icons/close"
+    },
+    {
+      "key": "icon.effects_off",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/icons/effects_off"
+    },
+    {
+      "key": "icon.effects_on",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/icons/effects_on"
+    },
+    {
+      "key": "icon.fire",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/icons/fire"
+    },
+    {
+      "key": "icon.friends",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/icons/friends"
+    },
+    {
+      "key": "icon.hint",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/icons/hint"
+    },
+    {
+      "key": "icon.home",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/icons/home"
+    },
+    {
+      "key": "icon.lock",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/icons/lock"
+    },
+    {
+      "key": "icon.music_off",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/icons/music_off"
+    },
+    {
+      "key": "icon.music_on",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/icons/music_on"
+    },
+    {
+      "key": "icon.pause",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/icons/pause"
+    },
+    {
+      "key": "icon.play",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/icons/play"
+    },
+    {
+      "key": "icon.retry",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/icons/retry"
+    },
+    {
+      "key": "icon.rewarded_ad",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/icons/rewarded_ad"
+    },
+    {
+      "key": "icon.settings",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/icons/settings"
+    },
+    {
+      "key": "icon.share",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/icons/share"
+    },
+    {
+      "key": "icon.shuffle",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/icons/shuffle"
+    },
+    {
+      "key": "icon.stopwatch",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/icons/stopwatch"
+    },
+    {
+      "key": "pot.body",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/pots/body"
+    },
+    {
+      "key": "pot.broth",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/pots/broth"
+    },
+    {
+      "key": "pot.rim",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/pots/rim"
+    },
+    {
+      "key": "pot.unlit",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/pots/unlit"
+    },
+    {
+      "key": "ui.bottom_bar",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/ui/bottom_bar"
+    },
+    {
+      "key": "ui.button_primary",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/ui/button_primary"
+    },
+    {
+      "key": "ui.button_secondary",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/ui/button_secondary"
+    },
+    {
+      "key": "ui.icon_disc",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/ui/icon_disc"
+    },
+    {
+      "key": "ui.order_card",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/ui/order_card"
+    },
+    {
+      "key": "ui.order_pointer",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/ui/order_pointer"
+    },
+    {
+      "key": "ui.panel",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/ui/panel"
+    },
+    {
+      "key": "ui.progress_track",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/ui/progress_track"
+    },
+    {
+      "key": "ui.timer",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/ui/timer"
+    },
+    {
+      "key": "ui.button",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/ui/button_primary"
+    },
+    {
+      "key": "ui.order",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/ui/order_card"
+    },
+    {
+      "key": "ui.progress",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/ui/progress_track"
+    },
+    {
+      "key": "icon.clear",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/icons/clear_buffer"
+    },
+    {
+      "key": "icon.music",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/icons/music_on"
+    },
+    {
+      "key": "icon.sound",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/icons/effects_on"
+    },
+    {
+      "key": "icon.ad",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/icons/rewarded_ad"
+    },
+    {
+      "key": "icon.leaderboard",
+      "resourceAddress": "Hotpot/TASK001/v7/r001/icons/friends"
+    }
+  ],
+  "anchors": {
+    "pots": [
+      {
+        "x": 56,
+        "y": 166
+      },
+      {
+        "x": 159,
+        "y": 166
+      },
+      {
+        "x": 262,
+        "y": 166
+      },
+      {
+        "x": 365,
+        "y": 166
+      }
+    ],
+    "bufferSlots": [
+      {
+        "x": 75,
+        "y": 259
+      },
+      {
+        "x": 142,
+        "y": 259
+      },
+      {
+        "x": 209,
+        "y": 259
+      },
+      {
+        "x": 276,
+        "y": 259
+      },
+      {
+        "x": 343,
+        "y": 259
+      }
+    ],
+    "gatherItemSlots": [
+      {
+        "x": 0,
+        "y": 0
+      },
+      {
+        "x": -28,
+        "y": -23
+      },
+      {
+        "x": 29,
+        "y": -22
+      },
+      {
+        "x": -24,
+        "y": 27
+      },
+      {
+        "x": 27,
+        "y": 27
+      }
+    ],
+    "revivalGatherPlate": {
+      "x": 210,
+      "y": 390
+    },
+    "supplyEntryVisual": {
+      "x": 210,
+      "y": 205
+    },
+    "boardWidth": 420,
+    "boardHeight": 900,
+    "clipTop": 292,
+    "clipBottom": 828,
+    "supplyGate": 377
+  }
+}

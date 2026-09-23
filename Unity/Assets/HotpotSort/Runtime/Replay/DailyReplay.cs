@@ -23,9 +23,10 @@ namespace HotpotSort.Replay
             DailySession session = null; int index = -1;
             try
             {
-                if (package == null || package.SchemaVersion != DailySession.ReplaySchema) throw new FormatException("Unknown replay version");
+                if (package == null || (package.SchemaVersion != DailySession.ReplaySchema && package.SchemaVersion != DailySession.LegacyReplaySchema)) throw new FormatException("Unknown replay version");
                 var root = CanonicalJson.Map(CanonicalJson.Parse(package.CanonicalJson));
-                if ((string)root["schemaVersion"] != DailySession.ReplaySchema) throw new FormatException("Unknown replay schema");
+                if ((string)root["schemaVersion"] != package.SchemaVersion) throw new FormatException("Unknown replay schema");
+                var rules=package.SchemaVersion==DailySession.LegacyReplaySchema?DailyRulesVersion.LegacyV2:DailyRulesVersion.RevivalV3;
                 var expected = CanonicalJson.Object("contentDigest", factory.Content.Digest, "catalogDigest", factory.CatalogDigest,
                     "configurationDigest", factory.ConfigurationDigest, "rng", Pcg32.Version, "seed", Pcg32.SeedVersion,
                     "director", DailyContent.DirectorVersion, "canonical", CanonicalJson.Version);
@@ -42,7 +43,7 @@ namespace HotpotSort.Replay
                         CanonicalJson.Array(f["orders"]).Select(x => { var o = CanonicalJson.Map(x); return new FixtureOrder((string)o["kind"], CanonicalJson.Array(o["itemIds"]).Select(CanonicalJson.Int)); }),
                         CanonicalJson.Array(f["completed"]).Select(CanonicalJson.Int));
                 }
-                session = fixture == null ? factory.CreateDailySession(context) : factory.CreateFixtureSession(context, fixture);
+                session = fixture == null ? factory.CreateDailySession(context,rules) : factory.CreateFixtureSession(context, fixture,rules);
                 if (session.Snapshot.Status == GameStatus.Aborted) throw new FormatException("Replay initialization aborted");
                 if (session.InitialHash != (string)root["initialHash"]) throw new FormatException("Initial hash mismatch");
                 foreach (var raw in CanonicalJson.Array(root["records"]))
@@ -61,6 +62,8 @@ namespace HotpotSort.Replay
                         case "ClearBuffer": result = session.ClearBuffer(boundary); break;
                         case "UnlockFourth": result = session.UnlockFourth(boundary); break;
                         case "Timeout": result = session.Timeout(boundary); break;
+                        case "ResolveRevival": result=session.ResolveRevival(new ResolveRevivalCommand((string)data["revivalOfferId"],(string)data["requestId"],(bool)data["success"],boundary));break;
+                        case "CompleteRevivalTransfer": result=session.CompleteRevivalTransfer((string)data["revivalOfferId"],(string)data["completionToken"],boundary);break;
                         default: throw new FormatException("Unknown replay record type");
                     }
                     if (!result.Accepted) throw new FormatException("Non-reproducible command: " + result.Reason);

@@ -11,7 +11,7 @@ using HotpotSort.UnityPhysics;
 namespace HotpotSort.Presentation
 {
     /// <summary>Mount using Bind from the platform/session bootstrap. No automatic core or daily seed creation.</summary>
-    public sealed class GameplayView : MonoBehaviour
+    public sealed partial class GameplayView : MonoBehaviour
     {
         public MonoBehaviour portComponent;
         public Font playerFont;
@@ -26,7 +26,7 @@ namespace HotpotSort.Presentation
         private GameplayFeedback feedback;
         private IPresentationPort port;
         private RectTransform canvasRoot, content;
-        private RectTransform board,hud,modal,progressFill;
+        private RectTransform board,hud,modal,timerPlate;
         private RectTransform plateClip,plateLayer;
         public Rect PlateCrop { get; private set; } = new Rect(0,292,420,536);
         private Text timerLabel;
@@ -44,21 +44,22 @@ namespace HotpotSort.Presentation
         private Texture2D plate;
         private Sprite rounded;
         private Texture2D roundedTexture;
-        private Rect viewport;
+        private Rect viewport,menuButtonPixels;
         private float viewportScreenHeight;
+        private Vector2Int viewportAppliedAt;
         public string AssetRoot => assetRoot;
         private bool externalViewport, foreground = true;
         private long inputSeq;
         private readonly HashSet<string> pending = new HashSet<string>();
         private readonly List<RaycastResult> uiHits = new List<RaycastResult>();
+        // A platform event source may replace frame-polled taps without changing hit testing.
+        public bool UsesExternalTapInput { get; set; }
         private readonly Dictionary<string,RectTransform> plateVisuals = new Dictionary<string,RectTransform>();
         private readonly Dictionary<PlatePresentationWorld.Remnant,RectTransform> ghostVisuals = new Dictionary<PlatePresentationWorld.Remnant,RectTransform>();
         private static readonly Color Cream = new Color32(248,235,208,255), Ink = new Color32(77,40,23,255), Coral = new Color32(149,36,26,255), Green = new Color32(221,183,119,255);
         private void Awake()
         {
-            for (int i = 0; i < foods.Length; i++) foods[i] = Resources.Load<Texture2D>("Hotpot/food_" + i.ToString("00"));
-            plate = Resources.Load<Texture2D>("Hotpot/plate");
-            if (!playerFont) playerFont = Font.CreateDynamicFontFromOSFont(new[] { "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", "Arial Unicode MS" }, 28);
+            playerFont = displayFont = TaskAssetValidation.LoadModernFont();
             roundedTexture = new Texture2D(64,64,TextureFormat.RGBA32,false);
             for (int y=0;y<64;y++) for (int x=0;x<64;x++)
             {
@@ -76,49 +77,62 @@ namespace HotpotSort.Presentation
             World = gameObject.AddComponent<PlatePresentationWorld>();
             feedback = gameObject.AddComponent<GameplayFeedback>();
             feedback.Initialize(canvasRoot, root.GetComponent<Canvas>());
+            feedback.ReplacementSettling=SetReplacementSettling;
             if (!FindObjectOfType<EventSystem>())
             { var events = new GameObject("ViewEventSystem",typeof(EventSystem),typeof(StandaloneInputModule)); events.transform.SetParent(transform,false); }
             viewport = Screen.safeArea;
             LastSnapshot = new ViewSnapshot { phase = ViewPhase.Entry };
-            if (portComponent is IPresentationPort) Bind((IPresentationPort)portComponent); else Render();
+            if (portComponent is IPresentationPort) Bind((IPresentationPort)portComponent);
         }
         public void Bind(IPresentationPort source)
         {
+            CancelShuffleFeedback();
+            if(FriendBoardVisible)CloseFriendBoardView();
+            simulation?.TrySetResult(RewardOutcome.Cancelled);simulation=null;
             if (port != null) port.Updated -= Apply;
             port = source; pending.Clear(); LastSnapshot = null;
             if (port != null) { port.Updated += Apply; Apply(new ViewUpdate { snapshot = port.Read() }); }
-            else { LastSnapshot = new ViewSnapshot { phase = ViewPhase.Entry }; World.Clear(); Render(); }
+            else { feedback.ResetFeedback(); LastSnapshot = new ViewSnapshot { phase = ViewPhase.Entry }; World.Clear(); Render(); }
         }
         public void SetViewport(Rect screenPixelSafeArea,float pixelScreenHeight=0)
-        { externalViewport = true; viewport = screenPixelSafeArea;viewportScreenHeight=pixelScreenHeight; Render(); }
+        { SetViewport(screenPixelSafeArea,pixelScreenHeight,new Rect()); }
+        public void SetViewport(Rect screenPixelSafeArea,float pixelScreenHeight,Rect screenPixelMenuButton)
+        { externalViewport = true; viewport = screenPixelSafeArea;viewportScreenHeight=pixelScreenHeight;menuButtonPixels=screenPixelMenuButton;viewportAppliedAt=new Vector2Int(Screen.width,Screen.height);Render();UpdateFriendBoardPresentation(); }
         public void SetForeground(bool value) { foreground = value; UpdateSimulation(); }
         public void Hide(bool hidden) { canvasRoot.gameObject.SetActive(!hidden); UpdateSimulation(); }
-        private void UpdateSimulation() { World.SetSimulating(foreground && canvasRoot.gameObject.activeInHierarchy && LastSnapshot.phase==ViewPhase.Running); }
-        public void ResetView() { simulation?.TrySetResult(RewardOutcome.Cancelled);simulation=null;pending.Clear();Array.Clear(serving,0,4); LastEventSequence=0; LastTransactionId=null; feedback.ResetFeedback(); World.Clear(); LastSnapshot=new ViewSnapshot { phase=ViewPhase.Entry }; Render(); }
+        private void UpdateSimulation() { World.SetSimulating(foreground && canvasRoot.gameObject.activeInHierarchy && !FriendBoardVisible && LastSnapshot.phase==ViewPhase.Running && LastSnapshot.pauseReasons==ViewPauseReasons.None); }
+        public void ResetView() { CancelShuffleFeedback(); simulation?.TrySetResult(RewardOutcome.Cancelled);simulation=null;pending.Clear();Array.Clear(serving,0,4); LastEventSequence=0; LastTransactionId=null; feedback.ResetFeedback(); World.Clear(); LastSnapshot=new ViewSnapshot { phase=ViewPhase.Entry }; Render(); }
         public void ShowError(string message)
-        { LastSnapshot = new ViewSnapshot { sessionId=LastSnapshot?.sessionId, phase=ViewPhase.Aborted, message=message }; World.Clear(); Render(); }
+        { CancelShuffleFeedback(); feedback.ResetFeedback(); LastSnapshot = new ViewSnapshot { sessionId=LastSnapshot?.sessionId, phase=ViewPhase.Aborted, message=message }; World.Clear(); Render(); }
         public void DestroyView() { Destroy(gameObject); }
         public void Apply(ViewUpdate update)
         {
             if (update == null || update.snapshot == null) return;
             var s = update.snapshot;
             if (LastSnapshot != null && LastSnapshot.sessionId == s.sessionId && s.revision < LastSnapshot.revision) return;
-            if (LastSnapshot == null || LastSnapshot.sessionId != s.sessionId) { pending.Clear(); LastEventSequence=0; }
+            if (LastSnapshot == null || LastSnapshot.sessionId != s.sessionId || LastSnapshot.sessionGeneration!=s.sessionGeneration) { simulation?.TrySetResult(RewardOutcome.Cancelled);simulation=null;pending.Clear(); LastEventSequence=0; }
             var previous = LastSnapshot;
-            feedback.Apply(update, previous, World.ItemPosition);
+            if (ShuffleFeedbackActive && (s.sessionId != shuffleSession || s.sessionGeneration != shuffleGeneration ||
+                s.phase == ViewPhase.Entry || s.phase == ViewPhase.Aborted || s.phase == ViewPhase.Overflow || s.phase == ViewPhase.Won)) CancelShuffleFeedback();
+            var sourcePositions=new Dictionary<string,Vector2>();
+            foreach(var body in World.Bodies)foreach(var item in body.data.items)sourcePositions[item.itemId]=World.ItemPosition(item.itemId);
             foreach (var e in update.events ?? new ViewEvent[0]) if (e.sequence > LastEventSequence)
             { LastEventSequence=e.sequence; LastTransactionId=e.transactionId; }
             LastEventSequence = Math.Max(LastEventSequence,s.eventSeq);
             // Final authoritative snapshot is the convergence point, including gaps/reconnects/long chains.
             LastSnapshot = s; pending.Clear(); UpdateSimulation(); World.Reconcile(s); Render();
+            feedback.Apply(update, previous, id=>sourcePositions.TryGetValue(id,out var value)?value:World.ItemPosition(id));
         }
         private void LateUpdate()
         {
+            TickShuffleFeedback(Time.unscaledDeltaTime);
+            UpdateFriendBoardPresentation();
+            if(art!=null&&board){float scale=Mathf.Min(viewport.width/420,viewport.height/900);board.anchoredPosition=new Vector2((viewport.width-420*scale)/2,-(viewport.height-900*scale)/2)+feedback.ScreenImpulse*scale;}
             foreach(var body in World.Bodies)
             {
                 RectTransform node;
                 if(plateVisuals.TryGetValue(body.data.plateId,out node) && node)
-                { var at=World.Position(body); node.anchoredPosition=new Vector2(at.x,-at.y); }
+                { PositionPlateVisual(body,node); }
             }
             foreach(var pair in ghostVisuals)
             {
@@ -131,14 +145,17 @@ namespace HotpotSort.Presentation
         }
         private void Update()
         {
+            if(art!=null&&Application.platform==RuntimePlatform.WindowsPlayer&&viewportScreenHeight<=0&&viewportAppliedAt!=new Vector2Int(Screen.width,Screen.height))
+            {viewportAppliedAt=new Vector2Int(Screen.width,Screen.height);viewport=Screen.safeArea;Render();}
             if (!externalViewport && viewport != Screen.safeArea) { viewport=Screen.safeArea; Render(); }
-            if (!foreground || !canvasRoot.gameObject.activeInHierarchy || LastSnapshot.phase != ViewPhase.Running || port == null) return;
+            if (UsesExternalTapInput || !foreground || !canvasRoot.gameObject.activeInHierarchy || LastSnapshot.phase != ViewPhase.Running || port == null) return;
             if (Input.touchCount>0) { var t=Input.GetTouch(0); if(t.phase==TouchPhase.Began) SubmitScreenTap(t.position,t.fingerId); }
             else if (Input.GetMouseButtonDown(0)) SubmitScreenTap(Input.mousePosition,-1);
         }
         public bool SubmitScreenTap(Vector2 screen, int pointerId = -1)
         {
-            if (port == null || !foreground || LastSnapshot.phase != ViewPhase.Running || (modal&&modal.gameObject.activeInHierarchy) || !viewport.Contains(screen)) return false;
+            if (ShuffleFeedbackActive) return false;
+            if (port == null || !foreground || FriendBoardVisible || LastSnapshot.phase != ViewPhase.Running || LastSnapshot.pauseReasons!=ViewPauseReasons.None || (modal&&modal.gameObject.activeInHierarchy) || !viewport.Contains(screen)) return false;
             if (EventSystem.current)
             {
                 var data=new PointerEventData(EventSystem.current) { position=screen, pointerId=pointerId };
@@ -163,11 +180,12 @@ namespace HotpotSort.Presentation
         private bool OpaqueHit(ViewItem item,Vector2 offset)
         {
             var texture=foods[item.foodId];
-            return !texture || !texture.isReadable || texture.GetPixelBilinear(.5f+offset.x/(item.radius*2),.5f-offset.y/(item.radius*2)).a>.1f;
+            var uv=ItemUV(item);
+            return !texture || !texture.isReadable || texture.GetPixelBilinear(uv.x+uv.width*(.5f+offset.x/(item.radius*2)),uv.y+uv.height*(.5f-offset.y/(item.radius*2))).a>.1f;
         }
         private bool ClickablePoint(string id,Vector2 point)
         {
-            if(!PlateCrop.Contains(point) || World.Hit(point,OpaqueHit)!=id || !board || (modal&&modal.gameObject.activeInHierarchy))return false;
+            if(FriendBoardVisible || !PlateCrop.Contains(point) || World.Hit(point,OpaqueHit)!=id || !board || (modal&&modal.gameObject.activeInHierarchy))return false;
             var screen=RectTransformUtility.WorldToScreenPoint(null,board.TransformPoint(new Vector3(point.x,-point.y,0)));
             if(!viewport.Contains(screen))return false;
             if(EventSystem.current)
@@ -179,29 +197,29 @@ namespace HotpotSort.Presentation
         }
         public bool IsItemClickable(string id)
         {
-            if(!foreground || !canvasRoot.gameObject.activeInHierarchy || LastSnapshot.phase!=ViewPhase.Running || pending.Contains(id) || (modal&&modal.gameObject.activeInHierarchy))return false;
+            if (ShuffleFeedbackActive) return false;
+            if(FriendBoardVisible || !foreground || !canvasRoot.gameObject.activeInHierarchy || LastSnapshot.phase!=ViewPhase.Running || pending.Contains(id) || (modal&&modal.gameObject.activeInHierarchy))return false;
             foreach(var body in World.Bodies)foreach(var item in body.data.items)
             {
                 if(item.itemId!=id)continue;
                 var center=World.ItemPosition(id);float r=item.radius;
-                float left=Mathf.Max(PlateCrop.xMin,center.x-r),right=Mathf.Min(PlateCrop.xMax,center.x+r);
-                float top=Mathf.Max(PlateCrop.yMin,center.y-r),bottom=Mathf.Min(PlateCrop.yMax,center.y+r);
+                var extents=PlateItemTransform.HalfExtents(item);
+                float left=Mathf.Max(PlateCrop.xMin,center.x-extents.x),right=Mathf.Min(PlateCrop.xMax,center.x+extents.x);
+                float top=Mathf.Max(PlateCrop.yMin,center.y-extents.y),bottom=Mathf.Min(PlateCrop.yMax,center.y+extents.y);
                 if(left>=right || top>=bottom)return false;
                 var middle=new Vector2((left+right)*.5f,(top+bottom)*.5f);
                 if(ClickablePoint(id,middle))return true;
                 var texture=foods[item.foodId];int width=texture?texture.width:32,height=texture?texture.height:32;
                 // Sample every intersecting source texel cell, including a sliver at
                 // the crop edge, through the very same rim/collider/alpha predicate.
-                float dx=2*r/width,dy=2*r/height;
-                int firstX=Mathf.Clamp(Mathf.FloorToInt((left-center.x+r)/dx),0,width-1);
-                int firstY=Mathf.Clamp(Mathf.FloorToInt((top-center.y+r)/dy),0,height-1);
-                for(int y=firstY;y<height;y++)
+                var uv=ItemUV(item);float dx=2*r/Mathf.Max(1,width*uv.width),dy=2*r/Mathf.Max(1,height*uv.height);
+                for(float y=top;y<bottom;y+=dy)
                 {
-                    float y0=Mathf.Max(top,center.y-r+y*dy),y1=Mathf.Min(bottom,center.y-r+(y+1)*dy);if(y0>=y1)break;
-                    for(int x=firstX;x<width;x++)
+                    float y1=Mathf.Min(bottom,y+dy);
+                    for(float x=left;x<right;x+=dx)
                     {
-                        float x0=Mathf.Max(left,center.x-r+x*dx),x1=Mathf.Min(right,center.x-r+(x+1)*dx);if(x0>=x1)break;
-                        if(ClickablePoint(id,new Vector2((x0+x1)*.5f,(y0+y1)*.5f)))return true;
+                        float x1=Mathf.Min(right,x+dx);
+                        if(ClickablePoint(id,new Vector2((x+x1)*.5f,(y+y1)*.5f)))return true;
                     }
                 }
                 return false;
@@ -217,6 +235,7 @@ namespace HotpotSort.Presentation
         private void Action(ViewAction action) { feedback.Button(); ActionRequested?.Invoke(action); port?.SessionAction(action); }
         private void Render()
         {
+            if(art!=null){RenderV7();return;}
             if (!content) return;
             if (viewport.width<=0 || viewport.height<=0) viewport=new Rect(0,0,Screen.width,Screen.height);
             Place(content,new Rect(viewport.x,(viewportScreenHeight>0?viewportScreenHeight:Screen.height)-viewport.yMax,viewport.width,viewport.height));
@@ -232,10 +251,8 @@ namespace HotpotSort.Presentation
                 plateLayer=Node(plateClip,"PlateLayer",new Rect(0,-PlateCrop.yMin,420,900));
                 hud=Node(board,"FixedHUD",new Rect(0,0,420,64));
                 Button(hud,"暂停",new Rect(12,6,54,54),()=>Action(ViewAction.Pause));
-                Panel(hud,"ProgressFrame",new Rect(85,18,205,28),Ink);
-                progressFill=Panel(hud,"CompletedOrders",new Rect(89,22,0,20),new Color32(240,166,49,255));
-                Panel(hud,"TimerPlate",new Rect(302,12,108,42),Coral);
-                timerLabel=Label(hud,"10:00",new Rect(302,12,108,42),26);timerLabel.color=Cream;
+                timerPlate=Panel(hud,"TimerPlate",new Rect(153,8,114,44),Coral);
+                timerLabel=Label(hud,"10:00",new Rect(162,9,96,40),26);timerLabel.color=Cream;
                 if(string.IsNullOrEmpty(assetRoot))Label(board,"开发占位 · 正式美术/音频待集成",new Rect(70,54,335,16),10);
                 for(int i=0;i<4;i++)orderNodes[i]=Node(board,"Order_"+i,new Rect(6+i*103,72,100,140));
                 for(int i=0;i<5;i++)bufferNodes[i]=Node(board,"Buffer_"+i,new Rect(43+i*67,228,64,64));
@@ -252,6 +269,7 @@ namespace HotpotSort.Presentation
             float scale=Mathf.Min(viewport.width/420,viewport.height/900);
             board.anchoredPosition=new Vector2((viewport.width-420*scale)/2,-(viewport.height-900*scale)/2);
             board.localScale=Vector3.one*scale;
+            LayoutTopTimer();
             for(int slot=0;slot<4;slot++)
             {
                 orderNodes[slot].gameObject.SetActive(!serving[slot]);
@@ -329,6 +347,7 @@ namespace HotpotSort.Presentation
         }
         private void Overlay()
         {
+            if(art!=null){OverlayV7();return;}
             modal=Panel(content,"FlowOverlay",new Rect(0,0,viewport.width,viewport.height),Cream);
             string title=LastSnapshot.phase==ViewPhase.Paused?"已暂停":LastSnapshot.phase==ViewPhase.Won?"挑战完成":LastSnapshot.phase==ViewPhase.Overflow?(LastSnapshot.message=="Timeout"?"时间到":"暂存已满"):"挑战已中止";
             Label(modal,title,new Rect(15,viewport.height*.19f,viewport.width-30,48),28);
@@ -342,26 +361,69 @@ namespace HotpotSort.Presentation
         }
         public void ConfigureAssets(string root)
         {
+            if(PresentationAssets.IsThemeRoot(root)){ConfigureV7(root);return;}
             assetRoot=root;
             feedback.ConfigureAssets(root,foods);
             if(string.IsNullOrEmpty(root))return;
             var missing=TaskAssetValidation.Validate(root);if(missing.Length>0)throw new InvalidOperationException(string.Join("; ",missing));
-            for(int i=0;i<16;i++)foods[i]=Resources.Load<Texture2D>(root+"/food/food_"+i.ToString("00"));
-            plate=Resources.Load<Texture2D>(root+"/containers/plate_main");dish=Resources.Load<Texture2D>(root+"/containers/dish_buffer");
-            table=Resources.Load<Texture2D>(root+"/background/table");potBody=Resources.Load<Texture2D>(root+"/pots/pot_body");potUnlit=Resources.Load<Texture2D>(root+"/pots/pot_unlit");potBroth=Resources.Load<Texture2D>(root+"/pots/pot_broth");potRim=Resources.Load<Texture2D>(root+"/pots/pot_rim");
-            var font=Resources.Load<Font>(root+"/fonts/readable");if(font)playerFont=font;
-            displayFont=Resources.Load<Font>(root+"/fonts/display");uiSprites.Clear();
-            foreach(string name in new[]{"panel","button","button_round","order_plate","progress_track","progress_fill","timer_plate"})
+            for(int i=0;i<16;i++)foods[i]=PresentationAssets.Load<Texture2D>(root+"/food/food_"+i.ToString("00"));
+            plate=PresentationAssets.Load<Texture2D>(root+"/containers/plate_main");dish=PresentationAssets.Load<Texture2D>(root+"/containers/dish_buffer");
+            table=PresentationAssets.Load<Texture2D>(root+"/background/table");potBody=PresentationAssets.Load<Texture2D>(root+"/pots/pot_body");potUnlit=PresentationAssets.Load<Texture2D>(root+"/pots/pot_unlit");potBroth=PresentationAssets.Load<Texture2D>(root+"/pots/pot_broth");potRim=PresentationAssets.Load<Texture2D>(root+"/pots/pot_rim");
+            playerFont=displayFont=TaskAssetValidation.LoadModernFont();uiSprites.Clear();
+            foreach(string name in new[]{"panel","button","button_round","order_plate","progress_track","timer_plate"})
             {
-                uiSprites[name]=Resources.Load<Sprite>(root+"/ui/"+name);
+                uiSprites[name]=PresentationAssets.Load<Sprite>(root+"/ui/"+name);
             }
             backgroundImage.texture=table;backgroundImage.color=Color.white;Array.Clear(orderSignatures,0,4);Array.Clear(bufferSignatures,0,5);plateSignatures.Clear();Render();
         }
-        public void SetRemainingTime(double seconds){if(timerLabel){int s=Mathf.CeilToInt((float)seconds);timerLabel.text=(s/60).ToString("00")+":"+(s%60).ToString("00");}}
-        public void SetProgress(float value){if(progressFill)progressFill.sizeDelta=new Vector2(197*Mathf.Clamp01(value),20);}
+        public void SetRemainingTime(double seconds){remainingSeconds=seconds;if(timerLabel){int s=Mathf.CeilToInt((float)seconds);timerLabel.text=(s/60).ToString("00")+":"+(s%60).ToString("00");}}
+        void LayoutTopTimer()
+        {
+            if(!board||!timerPlate||!timerLabel)return;
+            var timer=new Rect(153,8,114,44);
+            float scale=Mathf.Min(viewport.width/420,viewport.height/900);
+            if(scale>0&&menuButtonPixels.width>0&&menuButtonPixels.height>0)
+            {
+                float screenHeight=viewportScreenHeight>0?viewportScreenHeight:Screen.height;
+                float boardLeft=viewport.x+(viewport.width-420*scale)*.5f;
+                float boardTop=screenHeight-viewport.yMax+(viewport.height-900*scale)*.5f;
+                var guard=new Rect(
+                    (menuButtonPixels.xMin-boardLeft)/scale-12,
+                    (screenHeight-menuButtonPixels.yMax-boardTop)/scale-12,
+                    menuButtonPixels.width/scale+24,
+                    menuButtonPixels.height/scale+24);
+                if(timer.Overlaps(guard,true))timer.y=Mathf.Max(timer.y,guard.yMax);
+            }
+            Place(timerPlate,timer);
+            var labelRect=new Rect(timer.x+9,timer.y+1,96,40);
+            var labelTransform=timerLabel.rectTransform;
+            labelTransform.anchorMin=labelTransform.anchorMax=new Vector2(0,1);
+            labelTransform.pivot=new Vector2(0,1);
+            labelTransform.anchoredPosition=new Vector2(labelRect.x,-labelRect.y);
+            // Label() renders at 4x and downsamples with a .25 transform scale.
+            // Preserve that raster size when the capsule guard repositions the timer.
+            labelTransform.sizeDelta=labelRect.size*4;
+            labelTransform.localScale=Vector3.one*.25f;
+            timerLabel.horizontalOverflow=HorizontalWrapMode.Overflow;
+        }
         public void SetAudioSettings(PlayerSettings settings)=>feedback.SetAudioSettings(settings);
-        public void HighlightItem(string id){if(IsItemClickable(id))feedback.Highlight(()=>IsItemClickable(id)?World.ItemPosition(id):Vector2.zero);}
+        public void HighlightItem(string id)
+        {
+            if(!IsItemClickable(id))return;
+            var item=World.Bodies.SelectMany(b=>b.data.items).FirstOrDefault(i=>i.itemId==id);
+            if(item!=null)feedback.Highlight(()=>IsItemClickable(id)?World.ItemPosition(id):Vector2.zero,item.radius*2,item.rotationDegrees);
+        }
         public void SetOrderServing(int slot,bool value){serving[slot]=value;if(orderNodes[slot])orderNodes[slot].gameObject.SetActive(!value);}
+        private void SetReplacementSettling(int slot,float progress)
+        {
+            if(slot<0||slot>=orderNodes.Length||!orderNodes[slot])return;
+            float t=Mathf.Clamp01(progress),ease=1-Mathf.Pow(1-t,3);
+            float settle=Mathf.Sin(t*Mathf.PI)*4;
+            var node=orderNodes[slot];
+            node.anchoredPosition=new Vector2(6+slot*103,-72+70*(1-ease)-settle);
+            node.localScale=Vector3.one*Mathf.Lerp(.86f,1,ease);
+            node.gameObject.SetActive(!serving[slot]);
+        }
         public RectTransform CreateServingPot(Transform parent,int slot,int foodId)
         {
             var node=Node(parent,"ServingWholePot_"+slot,new Rect(6+slot*103,72,100,140));
@@ -374,10 +436,12 @@ namespace HotpotSort.Presentation
         }
         void ChooseReward(RewardKind kind)
         {
+            if(art!=null){ChooseRewardV7(kind);return;}
             ShowDialog("领取道具 · 开发模拟","三种道具共用每天3次分享额度。",new[]{"模拟激励","模拟分享","取消"},index=>{CloseModal();if(index<2)RewardRequested?.Invoke(kind,index==0?RewardRoute.SimulatedAd:RewardRoute.SimulatedShare);});
         }
         public Task<RewardOutcome> ShowRewardSimulationAsync(RewardRequest request)
         {
+            if(art!=null)return RewardSimulationV7(request);
             simulation?.TrySetResult(RewardOutcome.Cancelled);simulation=new TaskCompletionSource<RewardOutcome>();var pendingSimulation=simulation;
             ShowDialog(request.Route==RewardRoute.SimulatedAd?"模拟激励视频":"模拟分享","仅用于Unity开发验证，不连接真实广告或分享服务。",new[]{"模拟成功","取消","模拟失败"},i=>{CloseModal();pendingSimulation.TrySetResult(i==0?RewardOutcome.Success:i==1?RewardOutcome.Cancelled:RewardOutcome.Failed);});
             return pendingSimulation.Task;
@@ -385,14 +449,13 @@ namespace HotpotSort.Presentation
         public Task<RewardOutcome> ShowThemeShareAsync(string address)
         {
             var completion=new TaskCompletionSource<RewardOutcome>();
-            ShowDialog("主题分享 · 开发模拟",string.IsNullOrEmpty(address)?"正式静态主题图尚未集成。":"静态主题图预览；不会发送至外部平台。",new[]{"关闭"},i=>{CloseModal();completion.TrySetResult(RewardOutcome.Cancelled);});
-            var texture=string.IsNullOrEmpty(address)?null:Resources.Load<Texture2D>(address);
-            if(texture)Picture(modal,texture,new Rect(25,viewport.height*.42f,viewport.width-50,(viewport.width-50)*.8f),"ThemeCard");
+            ShowDialog("奖励分享 · 开发模拟","不会发送至外部平台。",new[]{"关闭"},i=>{CloseModal();completion.TrySetResult(RewardOutcome.Cancelled);});
             return completion.Task;
         }
         public void ShowNotice(string title,string message)=>ShowDialog(title,message,new[]{"知道了"},i=>{CloseModal();if(LastSnapshot.phase!=ViewPhase.Running && LastSnapshot.phase!=ViewPhase.Entry)Overlay();});
         public void ShowSettings(PlayerSettings settings,Action<PlayerSettings> save)
         {
+            if(art!=null){SettingsV7(settings,save);return;}
             ShowDialog("音乐与音效","正式音频尚未交付时保持静音；设置保存在本机。",new[]{"完成"},i=>{save(settings);CloseModal();if(LastSnapshot.phase==ViewPhase.Paused)Overlay();});
             float w=viewport.width,y=viewport.height*.4f;
             Button(modal,"音乐开关",new Rect(30,y,w-60,38),()=>{settings.MusicEnabled=!settings.MusicEnabled;save(settings);ShowSettings(settings,save);});
@@ -404,6 +467,7 @@ namespace HotpotSort.Presentation
         }
         void ShowDialog(string title,string message,string[] buttons,Action<int> select)
         {
+            if(art!=null){DialogV7(title,message,buttons,select);return;}
             CloseModal();modal=Panel(content,"Dialog",new Rect(0,0,viewport.width,viewport.height),Cream);
             Label(modal,title,new Rect(20,viewport.height*.16f,viewport.width-40,60),24);
             Label(modal,message,new Rect(25,viewport.height*.28f,viewport.width-50,85),17);
@@ -413,6 +477,7 @@ namespace HotpotSort.Presentation
         static void ClearChildren(Transform parent){foreach(Transform child in parent){child.gameObject.SetActive(false);Destroy(child.gameObject);}}
         void Volume(Transform parent,Rect rect,float value,Action<float> changed)
         {
+            if(art!=null){VolumeV7(parent,rect,value,changed);return;}
             var node=Panel(parent,"Volume",rect,Green);var slider=node.gameObject.AddComponent<Slider>();
             var handle=Panel(node,"Handle",new Rect(0,-4,22,30),Coral);slider.handleRect=handle;slider.targetGraphic=handle.GetComponent<Image>();slider.direction=Slider.Direction.LeftToRight;slider.minValue=0;slider.maxValue=1;slider.value=value;slider.onValueChanged.AddListener(v=>changed(v));
         }
@@ -422,8 +487,9 @@ namespace HotpotSort.Presentation
         { rt.anchorMin=rt.anchorMax=new Vector2(0,1); rt.pivot=new Vector2(0,1); rt.anchoredPosition=new Vector2(r.x,-r.y); rt.sizeDelta=r.size; }
         private RectTransform Panel(Transform parent,string name,Rect r,Color color)
         {
+            if(art!=null)return Skin(parent,name,r,name=="OrderTag"?"ui.order_card":"ui.panel");
             var rt=Node(parent,name,r);var im=rt.gameObject.AddComponent<Image>();
-            string key=name.StartsWith("Action_")?(r.width==r.height?"button_round":"button"):name=="OrderTag"?"order_plate":name=="ProgressFrame"?"progress_track":name=="CompletedOrders"?"progress_fill":name=="TimerPlate"?"timer_plate":"panel";
+            string key=name.StartsWith("Action_")?(r.width==r.height?"button_round":"button"):name=="OrderTag"?"order_plate":name=="TimerPlate"?"timer_plate":"panel";
             Sprite sprite;bool formal=uiSprites.TryGetValue(key,out sprite);im.sprite=formal?sprite:rounded;im.type=key=="button_round"?Image.Type.Simple:Image.Type.Sliced;
             if(formal)im.pixelsPerUnitMultiplier=Mathf.Max(.1f,Mathf.Max(sprite.rect.width/Mathf.Max(1,r.width),sprite.rect.height/Mathf.Max(1,r.height)));
             im.color=formal?Color.white:color;return rt;
@@ -433,10 +499,11 @@ namespace HotpotSort.Presentation
             // Rasterize above the largest supported board scale, then downsample.
             // Logical layout stays unchanged while dynamic glyphs remain crisp.
             var rt=Node(parent,"Label",r);rt.sizeDelta=r.size*4;rt.localScale=Vector3.one*.25f;
-            var label=rt.gameObject.AddComponent<Text>();label.font=playerFont;label.text=text;label.fontSize=size*4;label.color=Ink;label.alignment=TextAnchor.MiddleCenter;label.raycastTarget=false;return label;
+            var label=rt.gameObject.AddComponent<Text>();label.font=playerFont;label.text=text;label.fontSize=size*4;label.color=art!=null?ThemeInk:Ink;label.alignment=TextAnchor.MiddleCenter;label.verticalOverflow=VerticalWrapMode.Overflow;label.raycastTarget=false;return label;
         }
         private void Button(Transform parent,string text,Rect r,UnityEngine.Events.UnityAction action)
         {
+            if(art!=null){VButton(parent,text,r,action);return;}
             var rt=Panel(parent,"Action_"+text,r,Coral);var button=rt.gameObject.AddComponent<Button>();button.targetGraphic=rt.GetComponent<Image>();button.onClick.AddListener(action);
             string icon=text=="暂停"?"pause":text=="提示"?"hint":text=="清空暂存"?"clear":text=="打乱"?"shuffle":text=="设置"?"settings":text=="好友榜"?"leaderboard":text=="退出"?"home":text=="重新挑战"?"retry":text.Contains("分享")?"share":text.Contains("音乐")?"music":text.Contains("音效")?"sound":text=="继续"||text=="开始下火锅"?"play":text=="模拟激励"||text=="提前开锅"?"ad":text=="取消"||text=="关闭"?"close":null;
             bool round=r.width==r.height&&!string.IsNullOrEmpty(assetRoot);
@@ -446,12 +513,35 @@ namespace HotpotSort.Presentation
             if(!round){float inset=icon!=null&&!string.IsNullOrEmpty(assetRoot)?40:0;var label=Label(rt,text,new Rect(inset,0,r.width-inset,r.height),Mathf.Min(22,(int)(r.height*.5f)));label.color=Cream;}
         }
         private void Icon(Transform parent,string id,Rect rect)
-        {if(string.IsNullOrEmpty(assetRoot))return;string path=id.StartsWith("../")?assetRoot+"/"+id.Substring(3):assetRoot+"/icons/"+id;var texture=Resources.Load<Texture2D>(path);if(texture)Picture(parent,texture,rect,"Icon_"+id);}
+        {if(art!=null){var t=art.Texture(id.StartsWith("../ui/")?"ui."+id.Substring(6):"icon."+id);if(t)Picture(parent,t,rect,"Icon_"+id);return;}if(string.IsNullOrEmpty(assetRoot))return;string path=id.StartsWith("../")?assetRoot+"/"+id.Substring(3):assetRoot+"/icons/"+id;var texture=PresentationAssets.Load<Texture2D>(path);if(texture)Picture(parent,texture,rect,"Icon_"+id);}
         private static void Picture(Transform parent,Texture texture,Rect r,string name,bool raycast=false)
         { var rt=Node(parent,name,r); var image=rt.gameObject.AddComponent<RawImage>(); image.texture=texture; image.raycastTarget=raycast; }
         private void Food(Transform parent,int id,Rect r)
-        { if(id>=0 && id<foods.Length)Picture(parent,foods[id],r,"Food_"+id); }
+        {
+            if(id<0||id>=foods.Length)return;
+            var rt=Node(parent,"Food_"+id,r);var image=rt.gameObject.AddComponent<RawImage>();image.texture=foods[id];image.raycastTarget=false;
+            if(art!=null)image.uvRect=art.FoodUv(id);
+        }
+        private Rect ItemUV(ViewItem item)=>!string.IsNullOrEmpty(item.layoutVersion)
+            ?new Rect(item.uvX,item.uvY,item.uvWidth,item.uvHeight)
+            :art!=null?art.FoodUv(item.foodId):new Rect(0,0,1,1);
+        private void PlateFood(Transform parent,ViewItem item)
+        {
+            if(item.foodId<0||item.foodId>=foods.Length)return;
+            var rt=Node(parent,"PlateFood_"+item.itemId,new Rect(item.x-item.radius,item.y-item.radius,item.radius*2,item.radius*2));
+            rt.pivot=new Vector2(.5f,.5f);rt.anchoredPosition=new Vector2(item.x,-item.y);
+            rt.localRotation=Quaternion.Euler(0,0,-item.rotationDegrees);
+            var image=rt.gameObject.AddComponent<RawImage>();image.texture=foods[item.foodId];image.uvRect=ItemUV(item);image.raycastTarget=false;
+        }
         private void OnDestroy()
-        { simulation?.TrySetResult(RewardOutcome.Cancelled);if(port!=null)port.Updated-=Apply;if(rounded)Destroy(rounded); if(roundedTexture)Destroy(roundedTexture); }
+        { CloseFriendBoardView();ReleaseAssetReferences();simulation?.TrySetResult(RewardOutcome.Cancelled);if(port!=null)port.Updated-=Apply;if(rounded)Destroy(rounded); if(roundedTexture)Destroy(roundedTexture); }
+        public void ReleaseAssetReferences()
+        {
+            CancelShuffleFeedback();
+            feedback?.ReleaseAssetReferences();World?.Clear();
+            foreach(var image in GetComponentsInChildren<RawImage>(true))image.texture=null;
+            foreach(var image in GetComponentsInChildren<Image>(true))image.sprite=null;
+            art?.Dispose();art=null;Array.Clear(foods,0,foods.Length);plate=dish=table=potBody=potUnlit=potBroth=potRim=null;uiSprites.Clear();
+        }
     }
 }

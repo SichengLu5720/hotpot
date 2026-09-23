@@ -20,6 +20,7 @@ namespace HotpotSort.Build
         private static bool exportError;
         private static bool exportReturned;
         private static double exportStarted;
+        private static HotpotSort.Platform.WeChatRuntimeConfig runtimeConfig;
         public static void CompileDiagnostic()
         {
             Debug.Log("HOTPOT_SCRIPT_COMPILE_OK Unity=" + Application.unityVersion);
@@ -29,8 +30,9 @@ namespace HotpotSort.Build
             Debug.Log("HOTPOT_WEBGL_COMPILE_TARGET " + EditorUserBuildSettings.activeBuildTarget);
             if (EditorUserBuildSettings.activeBuildTarget != BuildTarget.WebGL)
                 throw new BuildFailedException("Launch Unity with -buildTarget WebGL");
-            var output = Path.GetFullPath(Path.Combine(Application.dataPath,
-                "../../build/wechat/player-script-" + DateTime.UtcNow.ToString("yyyyMMddTHHmmss") + "-" + Guid.NewGuid().ToString("N")));
+            var compileOutput=Environment.GetEnvironmentVariable("HOTPOT_TASK002_COMPILE_OUTPUT");
+            var output = Path.GetFullPath(string.IsNullOrWhiteSpace(compileOutput) ? Path.Combine(Application.dataPath,
+                "../../build/wechat/player-script-" + DateTime.UtcNow.ToString("yyyyMMddTHHmmss") + "-" + Guid.NewGuid().ToString("N")) : compileOutput);
             Directory.CreateDirectory(output);
             var settings = new UnityEditor.Build.Player.ScriptCompilationSettings
             {
@@ -64,8 +66,10 @@ namespace HotpotSort.Build
                 if (define == "HOTPOT_DEVELOPMENT" || define.StartsWith("TUANJIE") || define == "UNITY_INSTANTGAME")
                     throw new BuildFailedException("Unsupported production scripting define");
             if (WXConvertCore.IsInstantGameAutoStreaming()) throw new BuildFailedException("AutoStreaming is not enabled for this route");
+            runtimeConfig = WeChatExportV9.ReadConfiguration();
+            WeChatExportV9.Preflight(runtimeConfig);
             var root = Path.GetFullPath(Path.Combine(Application.dataPath, "../../build/wechat"));
-            exportPath = Path.Combine(root, "export-" + DateTime.UtcNow.ToString("yyyyMMddTHHmmss") + "-" + Guid.NewGuid().ToString("N"));
+            exportPath = Path.Combine(root, "TASK-002-v9-export-" + DateTime.UtcNow.ToString("yyyyMMddTHHmmss") + "-" + Guid.NewGuid().ToString("N"));
             Directory.CreateDirectory(exportPath);
             panelConfig = WXConvertCore.config;
             panelPath = AssetDatabase.GetAssetPath(panelConfig);
@@ -82,6 +86,10 @@ namespace HotpotSort.Build
             // TASK-002 v2: one-off compressed data subpackage; the panel is unchanged.
             exportConfig.ProjectConf.assetLoadType = 1;
             exportConfig.ProjectConf.compressDataPackage = true;
+            // The SDK context must match the player's WebGL2 graphics API (and bundle fingerprint).
+            // Keep the saved panel untouched, including legacy WebGL1 settings from older exports.
+            exportConfig.CompileOptions.Webgl2 = PlayerSettings.GetGraphicsAPIs(BuildTarget.WebGL).Contains(UnityEngine.Rendering.GraphicsDeviceType.OpenGLES3);
+            exportConfig.SDKOptions.UseFriendRelation = runtimeConfig.enableFriendBoard;
             var nodePath = Environment.GetEnvironmentVariable("WECHAT_NODE_PATH");
             if (!string.IsNullOrWhiteSpace(nodePath)) exportConfig.CompileOptions.CustomNodePath = nodePath;
             configCache.SetValue(null, exportConfig);
@@ -134,7 +142,8 @@ namespace HotpotSort.Build
                         && File.Exists(Path.Combine(package, "data-package", WXConvertCore.dataMd5 + ".webgl.data.unityweb.bin.br"))
                         && File.Exists(Path.Combine(package, "wasmcode", WXConvertCore.codeMd5 + ".webgl.wasm.code.unityweb.wasm.br"));
                 }
-                Debug.Log(valid ? "HOTPOT_WECHAT_SDK_COMPLETE " + package : "HOTPOT_WECHAT_PACKAGE_INVALID");
+                if (valid) WeChatExportV9.Complete(package, runtimeConfig, allDone);
+                Debug.Log(valid ? (RemoteAssetExportGuard.SizeProbe ? "HOTPOT_WECHAT_SIZE_PROBE_COMPLETE " : "HOTPOT_WECHAT_SDK_COMPLETE ") + package : "HOTPOT_WECHAT_PACKAGE_INVALID");
                 FinishExport(valid);
             }
             catch (Exception exception)

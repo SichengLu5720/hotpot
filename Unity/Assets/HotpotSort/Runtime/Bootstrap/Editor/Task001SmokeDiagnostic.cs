@@ -30,6 +30,7 @@ namespace HotpotSort.Bootstrap
         static DailyProductionComposition composition;
         static GameplayView view;
         static SessionController controller;
+        static string isolatedProfile;
         static Task001SmokeDiagnostic(){EditorApplication.playModeStateChanged+=Changed;}
         public static void Run()
         {
@@ -53,9 +54,9 @@ namespace HotpotSort.Bootstrap
             results.Add(CanonicalJson.Object("case",id,"ac",ac,"input",input,"expected",expected,"actual",actual,"status",status));Debug.Log(id+" "+status+(status=="FAIL"?" "+actual:""));
         }
         static Dictionary<string,object> State()=>CanonicalJson.Map(CanonicalJson.Parse(composition.ActiveCore.Snapshot.CanonicalStateJson));
-        static Transform Node(string name)=>view.GetComponentsInChildren<Transform>(true).Where(t=>t.name==name).OrderByDescending(t=>t.gameObject.activeInHierarchy).FirstOrDefault();
+        static Transform Node(string name){if(name=="hint")name="Hint";if(name=="splash")name="splash_ripple";return view.GetComponentsInChildren<Transform>(true).Where(t=>t.name==name&&(name!="Hint"||t.gameObject.activeInHierarchy)).OrderByDescending(t=>t.gameObject.activeInHierarchy).FirstOrDefault();}
         static void Click(string text)
-        {var node=Node("Action_"+text);Assert(node!=null&&node.gameObject.activeInHierarchy,"button unavailable: "+text);node.GetComponent<Button>().onClick.Invoke();}
+        {if(text=="继续")text="继续下锅";if(text=="退出")text="返回首页";if(text=="音乐开关"){var toggle=view.GetComponentsInChildren<Button>().Where(b=>b.name=="Action_开"||b.name=="Action_关").OrderByDescending(b=>((RectTransform)b.transform).anchoredPosition.y).First();toggle.onClick.Invoke();return;}var node=Node("Action_"+text)??Node(text);Assert(node!=null&&node.gameObject.activeInHierarchy,"button unavailable: "+text);node.GetComponent<Button>().onClick.Invoke();}
         static async void Execute()
         {
             Application.logMessageReceived+=Log;results.Clear();errors.Clear();string report=SessionState.GetString(PathKey,"");
@@ -65,6 +66,7 @@ namespace HotpotSort.Bootstrap
                 {
                     for(int n=0;n<100;n++){boot=UnityEngine.Object.FindFirstObjectByType<Bootstrap>();if(boot&&boot.IsConfigured)break;await Wait(50);}
                     Assert(boot&&boot.IsConfigured,"Boot initialization: "+boot?.Status);controller=boot.Controller;composition=UnityEngine.Object.FindFirstObjectByType<DailyProductionComposition>();view=composition.PlayerView;
+                    isolatedProfile="HotpotSort.Task001.v9.FinalQA."+Guid.NewGuid().ToString("N");var isolated=new LocalDevelopmentServices(isolatedProfile);isolated.RewardPrompt=view.ShowRewardSimulationAsync;isolated.SharePrompt=view.ShowThemeShareAsync;composition.ConfigureServices(isolated,isolated,isolated,isolated);
                     Assert(view.LastSnapshot.phase==ViewPhase.Entry&&controller.Snapshot==null,"auto-started");Click("开始下火锅");await Wait(350);Assert(composition.ActiveCore!=null&&view.LastSnapshot.phase==ViewPhase.Running,"start did not run");Assert(view.LastSnapshot.orders.Length==4&&view.LastSnapshot.buffer.Length==5,"view shape");
                     Assert(view.GetComponentsInChildren<Text>().Any(t=>t.text.Contains("/3")),"numeric counts missing");Assert(view.GetComponentsInChildren<Text>().Any(t=>t.text=="10:00"||t.text=="09:59"),"MM:SS missing");
                     Click("暂停");await Wait();Assert(controller.Pauses==PauseReasons.User&&view.LastSnapshot.phase==ViewPhase.Paused,"pause");double paused=controller.ActiveSeconds;await Wait(150);Assert(Math.Abs(controller.ActiveSeconds-paused)<.002,"pause clock moving");Click("继续");await Wait();Assert(controller.CanAcceptInput,"resume");
@@ -76,8 +78,8 @@ namespace HotpotSort.Bootstrap
                         var mismatch=CanonicalJson.Array(state["items"]).Select(CanonicalJson.Map).FirstOrDefault(i=>(string)i["location"]=="ActiveAvailable"&&!kinds.Contains((string)i["kind"]));
                         if(mismatch!=null)composition.ActiveCore.Tap(new TapCommand(CanonicalJson.Int(mismatch["itemId"]),++overflowSequence,(ulong)(controller.ActiveSeconds*1000),true));await Wait(40);
                     }
-                    Assert(view.LastSnapshot.phase==ViewPhase.Overflow&&view.GetComponentsInChildren<Text>().Any(t=>t.text=="暂存已满"),"overflow UI missing");Click("重新挑战");await Wait();
-                    Click("暂停");Click("退出");await Wait();Assert(view.LastSnapshot.phase==ViewPhase.Entry&&composition.ActiveCore==null,"exit");Click("开始下火锅");await Wait(350);return "Boot and all inspected flow transitions passed, including real-core timeout and overflow";
+                    Assert(view.LastSnapshot.revivalPending&&controller.Pauses.HasFlag(PauseReasons.Revival)&&view.GetComponentsInChildren<Text>().Any(t=>t.text=="暂存已满"),"revival offer UI missing");Click("结束本局");await Wait();Assert(view.LastSnapshot.phase==ViewPhase.Overflow,"decline must fail");Click("重新挑战");await Wait();
+                    Click("暂停");Click("退出");await Wait();Assert(view.LastSnapshot.phase==ViewPhase.Entry&&composition.ActiveCore==null,"exit");Click("开始下火锅");await Wait(2200);return "Boot and all inspected flow transitions passed, including timeout and overflow offer/decline";
                 });
                 if(view&&composition.ActiveCore!=null)
                 {
@@ -87,7 +89,7 @@ namespace HotpotSort.Bootstrap
                         foreach(var size in new[]{new Vector2(720,1280),new Vector2(1080,1920),new Vector2(1440,3200)})
                         {
                             view.SetViewport(new Rect(12,36,size.x-24,size.y-88));await Wait(200);var board=(RectTransform)Node("GameplayBoard");Assert(Math.Abs(board.localScale.x-board.localScale.y)<.00001,"nonuniform board scale");
-                            var body=view.World.Bodies.FirstOrDefault();Assert(body!=null,"no active plate");var item=body.data.items[0];Vector2 point=view.World.ItemPosition(item.itemId)+OpaqueOffset(item);Vector2 screen=RectTransformUtility.WorldToScreenPoint(null,board.TransformPoint(new Vector3(point.x,-point.y,0)));
+                            var body=view.World.Bodies.FirstOrDefault();Assert(body!=null,"no active plate");Move(view.World,body,new Vector2(210,500));var item=body.data.items.Last();Vector2 point=view.World.ItemPosition(item.itemId)+OpaqueOffset(item);Vector2 screen=RectTransformUtility.WorldToScreenPoint(null,board.TransformPoint(new Vector3(point.x,-point.y,0)));
                             Assert(view.SubmitScreenTap(screen),"screen->item hit failed "+size);await Wait();Assert(!view.World.Bodies.SelectMany(b=>b.data.items).Any(i=>i.itemId==item.itemId),"wrong clicked item");Assert(!view.SubmitScreenTap(new Vector2(-50,-50)),"outside click accepted");samples.Add(CanonicalJson.Object("width",size.x,"height",size.y,"scale",board.localScale.x,"clickedItem",item.itemId));
                         }
                         view.SetViewport(new Rect(0,0,Screen.width,Screen.height));
@@ -95,7 +97,7 @@ namespace HotpotSort.Bootstrap
                         view.ShowNotice("输入遮挡验证","弹窗覆盖期间不能点击盘内食材");Canvas.ForceUpdateCanvases();Assert(!view.SubmitScreenTap(hit),"modal click through");Click("知道了");return samples;
                     });
                     await Case("U03","CL-025","real Boot controlled six-plate shuffle","visible 304..828 targets, no core changes, no movement on rejection",ShuffleCheck);
-                    await Case("V6-S01","CL-024","controlled local rigidbodies at exact boundary values","center-only fixed 377 gate independent of radius/crop",HeightGateCheck);
+                    await Case("V6-S01","CL-050","controlled local rigidbodies at exact boundary values","center-only fixed 140 gate independent of radius/crop",HeightGateCheck);
                     await Case("V6-S02","C05","real Composition controlled bodies and active clock","blocked preservation, one-head resume, no catch-up, stale rejection",SupplyCheck);
                     await Case("V6-S03","CL-023","six committed births, blocked checks, repeat snapshots and retry","cached alternating independent spawn stream",SpawnCheck);
                     await Case("C06","C06","real core buffer 1/5 and real Composition supply chain","append identity conservation and eventual single-force birth",ClearTailCheck);
@@ -108,10 +110,10 @@ namespace HotpotSort.Bootstrap
                     await Case("V6-L01","CL-023","real controller pauses and terminal core flows","stable paused world; no terminal supply; retry resets",LifecycleCheck);
                     await Case("U04","F-02,E-03","unchanged snapshots, hint on moving item, whole-pot event, retry cleanup","persistent plate nodes and event layers, no raycast effects, no ghosts",async()=>
                     {
-                        await controller.RetryAsync();await Wait(600);var plate=view.World.Bodies.First();string id=plate.data.plateId;var node=Node("PlateVisual_"+id);int instance=node.GetInstanceID();view.Apply(new ViewUpdate{snapshot=view.LastSnapshot});Assert(Node("PlateVisual_"+id).GetInstanceID()==instance,"plate rebuilt");
+                        await controller.RetryAsync();await Wait(600);var plate=view.World.Bodies.First();Move(view.World,plate,new Vector2(210,500));string id=plate.data.plateId;var node=Node("PlateVisual_"+id);int instance=node.GetInstanceID();view.Apply(new ViewUpdate{snapshot=view.LastSnapshot});Assert(Node("PlateVisual_"+id).GetInstanceID()==instance,"plate rebuilt");
                         var keyframes=new List<object>();Action<string,double> capture=(name,start)=>{string path=System.IO.Path.ChangeExtension(report,name+".png");double time=Time.realtimeSinceStartupAsDouble;Capture(1080,1920,path);keyframes.Add(CanonicalJson.Object("state",name,"secondsSinceTrigger",time-start,"path",path));};
                         double hintStart=Time.realtimeSinceStartupAsDouble;view.HighlightItem(plate.data.items[0].itemId);await Wait(80);var hint=Node("hint");Assert(hint!=null,"hint node absent");Vector2 hintBefore=((RectTransform)hint).anchoredPosition;capture("hint-before",hintStart);await Wait(180);Assert(Node("hint")!=null,"hint ended early");Assert(((RectTransform)hint).anchoredPosition!=hintBefore,"hint not following motion");capture("hint-after",hintStart);
-                        var eventBatch=new ViewUpdate{snapshot=view.LastSnapshot,events=new[]{new ViewEvent{kind="OrderCompleted",slot=0,ingredientId="food_00",sequence=1000000,transactionId="qa-serving"}}};double serveStart=Time.realtimeSinceStartupAsDouble;view.Apply(eventBatch);await Wait(60);Assert(Node("ServingWholePot_0")!=null&&Node("WholePotBody")!=null,"whole pot absent");Assert(!Node("Order_0").gameObject.activeSelf,"replacement shown before serve");capture("serve-complete",serveStart);await Wait(260);capture("serve-moving",serveStart);await Wait(400);Assert(Node("Order_0").gameObject.activeSelf,"replacement never restored");capture("serve-replaced",serveStart);
+                        var eventBatch=new ViewUpdate{snapshot=view.LastSnapshot,events=new[]{new ViewEvent{sessionId=view.LastSnapshot.sessionId,sessionGeneration=view.LastSnapshot.sessionGeneration,kind="OrderCompleted",slot=0,ingredientId="food_00",sequence=1000000,transactionId="qa-serving"}}};double serveStart=Time.realtimeSinceStartupAsDouble;view.Apply(eventBatch);await Wait(60);Assert(Node("ServingWholePot_0")!=null&&Node("WholePotBody")!=null,"whole pot absent");Assert(!Node("Order_0").gameObject.activeSelf,"replacement shown before serve");capture("serve-complete",serveStart);await Wait(260);capture("serve-moving",serveStart);await Wait(700);Assert(Node("Order_0").gameObject.activeSelf,"replacement never restored");capture("serve-replaced",serveStart);
                         File.WriteAllText(System.IO.Path.ChangeExtension(report,"keyframes.json"),CanonicalJson.Write(Normalize(CanonicalJson.Object("kind","Actual Canvas rendering of a synthetic OrderCompleted presentation event; not a core completion or target-device capture","keyframes",keyframes))));
                         Assert(Node("FixedHUD").GetSiblingIndex()>Node("FeedbackLayer").GetSiblingIndex(),"serving effect covers HUD");
                         Assert(view.GetComponentsInChildren<Graphic>().Where(g=>g.transform.IsChildOf(Node("FeedbackLayer"))).All(g=>!g.raycastTarget),"effect captures input");await controller.RetryAsync();await Wait(150);Assert(Node("ServingWholePot_0")==null&&Node("hint")==null,"old effects retained");return "Persistent nodes, moving hint, real pot layers and cleanup passed; synthetic view event does not establish gameplay feel";
@@ -126,9 +128,9 @@ namespace HotpotSort.Bootstrap
                         var oldShare=(IThemeShare)typeof(DailyProductionComposition).GetField("sharing",flags).GetValue(composition);
                         try
                         {
-                            var local=new LocalDevelopmentServices(key);composition.ConfigureServices(local,local,local,local);Assert(local.RecordFirstWin("20260921")&&!local.RecordFirstWin("20260921"),"first-win not idempotent");for(int i=0;i<3;i++)Assert(local.TryConsumeShare("20260921","r"+i),"quota consume");Assert(!local.TryConsumeShare("20260921","r3"),"quota >3");local.SaveSettings(new PlayerSettings{MusicEnabled=false,EffectsEnabled=true,MusicVolume=.25f,EffectsVolume=.7f});var reload=new LocalDevelopmentServices(key);Assert(reload.TotalFirstWins==1&&reload.SharesUsed("20260921")==3&&!reload.LoadSettings().MusicEnabled&&Math.Abs(reload.LoadSettings().EffectsVolume-.7f)<.001,"profile reload");
+                            var local=new LocalDevelopmentServices(key);composition.ConfigureServices(local,local,local,local);Assert(local.RecordFirstWin("20260921")&&!local.RecordFirstWin("20260921"),"first-win not idempotent");var quotaUtc=DateTimeOffset.Parse("2026-09-21T00:00:00Z");for(int i=0;i<3;i++){var now=quotaUtc.AddMinutes(i*20);Assert(local.TryReserveShare("20260921","r"+i,now)&&local.TryCommitShare("20260921","r"+i,now),"quota consume");}Assert(!local.TryReserveShare("20260921","r3",quotaUtc.AddHours(2)),"quota >3");local.SaveSettings(new PlayerSettings{MusicEnabled=false,EffectsEnabled=true,MusicVolume=.25f,EffectsVolume=.7f});var reload=new LocalDevelopmentServices(key);Assert(reload.TotalFirstWins==1&&reload.SharesUsed("20260921")==3&&!reload.LoadSettings().MusicEnabled&&Math.Abs(reload.LoadSettings().EffectsVolume-.7f)<.001,"profile reload");
                             foreach(var outcome in new[]{"模拟成功","取消","模拟失败"}){var request=new RewardRequest(controller.Generation,RewardKind.Hint,RewardRoute.SimulatedAd,"20260921");var pending=view.ShowRewardSimulationAsync(request);Click(outcome);Assert(await pending==(outcome=="模拟成功"?RewardOutcome.Success:outcome=="取消"?RewardOutcome.Cancelled:RewardOutcome.Failed),"simulation result");}
-                            Click("暂停");Click("设置");Click("音乐开关");Click("完成");Assert(Node("FlowOverlay")!=null,"settings did not restore pause");Click("继续");return "Simulation outcomes and isolated persistent store passed";
+                            Click("暂停");Click("设置");Click("音乐开关");Click("完成");Assert(Node("Flow_Paused")!=null,"settings did not restore pause");Click("继续");return "Simulation outcomes and isolated persistent store passed";
                         }
                         finally{composition.ConfigureServices(oldProfile,oldRewards,oldFriends,oldShare);view.SetAudioSettings(oldProfile.LoadSettings());PlayerPrefs.DeleteKey(key);PlayerPrefs.Save();}
                     });
@@ -143,11 +145,11 @@ namespace HotpotSort.Bootstrap
                 }
                 await Case("U06","E-01,T-01,T-02","formal manifest and real imported assets/UI/fonts; 3 rendered sizes","all batch hashes/import contracts, Chinese glyphs, no legacy textures; visual Human Check remains",async()=>
                 {
-                    Assert(view.AssetRoot=="Hotpot/TASK001/v3/r001","formal root not bound");Assert(TaskAssetValidation.Validate(view.AssetRoot).Length==0,"formal validation failed");
-                    string root=Directory.GetParent(Application.dataPath).Parent.FullName;var manifest=CanonicalJson.Map(CanonicalJson.Parse(File.ReadAllText(System.IO.Path.Combine(root,".harness/artifacts/TASK-001/asset-manifest.json"))));int count=0;
+                    Assert(view.AssetRoot==composition.ApprovedAssetRoot,"formal root not bound");Assert(TaskAssetValidation.Validate(view.AssetRoot).Length==0,"formal validation failed");
+                    string root=Directory.GetParent(Application.dataPath).Parent.FullName;var manifest=CanonicalJson.Map(CanonicalJson.Parse(File.ReadAllText(System.IO.Path.Combine(root,".harness/art-production/TASK-001/v7/r001/director-final/asset-manifest.json"))));int count=0;
                     foreach(var asset in CanonicalJson.Array(manifest["assets"]).Select(CanonicalJson.Map))
                     {
-                        string id=(string)asset["assetId"],relative=(string)asset["relativePath"];string path="Assets/HotpotSort/Resources/"+view.AssetRoot+"/"+id+System.IO.Path.GetExtension(relative).ToLowerInvariant();
+                        string id=(string)asset["assetId"],relative=(string)asset["relativePath"];string path=relative.Substring("Unity/".Length);
                         Assert(CanonicalJson.Hash(File.ReadAllBytes(path))==(string)asset["sha256"],"hash "+id);count++;
                         if((string)asset["format"]!="PNG")continue;
                         var texture=AssetDatabase.LoadAssetAtPath<Texture2D>(path);Assert(texture.width==CanonicalJson.Int(asset["width"])&&texture.height==CanonicalJson.Int(asset["height"]),"dimensions "+id);
@@ -155,11 +157,11 @@ namespace HotpotSort.Bootstrap
                         Assert(importer.spriteBorder==new Vector4(borders[0],borders[1],borders[2],borders[3])&&!importer.mipmapEnabled&&importer.textureCompression==TextureImporterCompression.Uncompressed,"import contract "+id);
                         var sprite=AssetDatabase.LoadAssetAtPath<Sprite>(path);Assert(sprite&&Vector2.Distance(sprite.pivot,new Vector2(texture.width*.5f,texture.height*.5f))<.01,"pivot "+id);
                     }
-                    Assert(count==55,"manifest count");
+                    Assert(count==65,"manifest count");
                     const string required="火锅消消每日挑战北京时间更新本地开发模拟开始设置好友榜暂停继续重新退出提示清空暂存打乱提前单开领取激励视频分享取消成功失败音乐音效关闭完成时间到已满暂无有效目标0123456789/：";
                     view.playerFont.RequestCharactersInTexture(required,24);Assert(required.All(c=>view.playerFont.HasCharacter(c)),"Chinese/numeric glyph missing");
                     foreach(var texture in view.GetComponentsInChildren<RawImage>(true).Where(i=>i.texture).Select(i=>i.texture))Assert(AssetDatabase.GetAssetPath(texture).StartsWith("Assets/HotpotSort/Resources/"+view.AssetRoot),"legacy visual texture "+texture.name);
-                    Assert(Node("Icon_hint")&&Node("Icon_clear")&&Node("Icon_shuffle")&&Node("TimerPlate"),"formal UI not consumed");
+                    Assert(Node("Tool_Hint")&&Node("Tool_ClearBuffer")&&Node("Tool_Shuffle")&&Node("Timer"),"formal UI not consumed");
                     var captures=new List<string>();foreach(var size in new[]{new Vector2Int(720,1280),new Vector2Int(1080,1920),new Vector2Int(1440,3200)}){string path=System.IO.Path.ChangeExtension(report,size.x+"x"+size.y+".png");Capture(size.x,size.y,path);captures.Add(path);await Wait(20);}
                     return CanonicalJson.Object("assetCount",count,"font",view.playerFont.name,"screenshots",captures,"humanVisualApproval","PENDING","audio","not bound");
                 });
@@ -171,9 +173,9 @@ namespace HotpotSort.Bootstrap
                 Application.logMessageReceived-=Log;SessionState.SetBool(Active,false);int failed=results.Select(CanonicalJson.Map).Count(r=>(string)r["status"]=="FAIL");
                 string[] required={"U01","U02","U03","U04","U05","V6-S01","V6-S02","V6-S03","C06","V6-P01","V6-P02","V6-V01","V6-I01","V6-I02","V6-I03","V6-L01"};
                 var missing=required.Where(id=>!results.Select(CanonicalJson.Map).Any(r=>(string)r["case"]==id)).ToArray();if(missing.Length>0){errors.Add("Required cases missing: "+string.Join(",",missing));failed++;}
-                try{File.WriteAllText(report,CanonicalJson.Write(Normalize(CanonicalJson.Object("task","TASK-001","taskVersion",6,"checkpoint","HC-02-v6","contentVersion",composition?composition.ContentVersion:null,"configurationDigest",composition?composition.ConfigurationDigest:null,"requiredCases",required,"missingCases",missing,"filter",SessionState.GetString(FilterKey,""),"unity",Application.unityVersion,"results",results,"runtimeErrors",errors))));Debug.Log("TASK001_UNITY_QA_REPORT "+report+" failed="+failed+" errors="+errors.Count);}
+                try{File.WriteAllText(report,CanonicalJson.Write(Normalize(CanonicalJson.Object("task","TASK-001","taskVersion",9,"checkpoint","HC-02-v9-Code","contentVersion",composition?composition.ContentVersion:null,"configurationDigest",composition?composition.ConfigurationDigest:null,"requiredCases",required,"missingCases",missing,"filter",SessionState.GetString(FilterKey,""),"unity",Application.unityVersion,"results",results,"runtimeErrors",errors))));Debug.Log("TASK001_UNITY_QA_REPORT "+report+" failed="+failed+" errors="+errors.Count);}
                 catch(Exception e){failed++;Debug.LogError("QA report failed: "+e);}
-                finally{EditorApplication.Exit(failed==0&&errors.Count==0?0:1);}
+                finally{if(isolatedProfile!=null){PlayerPrefs.DeleteKey(isolatedProfile);PlayerPrefs.Save();}EditorApplication.Exit(failed==0&&errors.Count==0?0:1);}
             }
         }
         static object Normalize(object value)
@@ -197,15 +199,38 @@ namespace HotpotSort.Bootstrap
         static int SpawnCount=>Field<int>(composition,"successfulSpawns");
         static void Move(HotpotSort.UnityPhysics.PlatePresentationWorld world,HotpotSort.UnityPhysics.PlatePresentationWorld.PlateBody body,Vector2 at)
         {body.rigidbody.position=at*.01f;body.node.transform.position=at*.01f;body.rigidbody.linearVelocity=Vector2.zero;Physics2D.SyncTransforms();}
-        static void StopAutomatic(){composition.enabled=false;view.World.enabled=false;view.World.SetSimulating(true);}
-        static void RestoreAutomatic(){composition.enabled=true;view.World.enabled=true;view.World.SetSimulating(controller.CanAcceptInput);}
+        // Drive the real active-time schedule, never write its next-tick cursor.
+        sealed class SupplyClock:IMonotonicClock
+        {
+            readonly IMonotonicClock source;double offset;public double Value;public bool Manual;
+            public SupplyClock(IMonotonicClock source){this.source=source;}
+            public double Seconds=>Manual?Value:source.Seconds+offset;
+            public void Freeze(){Value=Seconds;Manual=true;}
+            public void Resume(){if(Manual){offset=Value-source.Seconds;Manual=false;}}
+        }
+        static SupplyClock supplyClock;
+        static ActiveSupplySchedule Schedule=>Field<ActiveSupplySchedule>(composition,"supplySchedule");
+        static void FreezeClock(){if(supplyClock==null){supplyClock=new SupplyClock(Field<IMonotonicClock>(controller,"clock"));Field(controller,"clock",supplyClock);}supplyClock.Freeze();}
+        static void AdvanceActiveTo(double seconds){FreezeClock();Assert(seconds>=controller.ActiveSeconds-.000001,"fixture must not rewind active time");supplyClock.Value+=Math.Max(0,seconds-controller.ActiveSeconds);}
+        static void StopAutomatic(){FreezeClock();composition.enabled=false;view.World.enabled=false;view.World.SetSimulating(true);}
+        static void RestoreAutomatic(){supplyClock?.Resume();composition.enabled=true;view.World.enabled=true;view.World.SetSimulating(controller.CanAcceptInput);}
         static void ClearGate(){foreach(var body in view.World.Bodies)Move(view.World,body,new Vector2(210,650));}
-        static void SupplyOnce(){Field(composition,"nextSupply",-100d);Invoke(composition,"Update");}
+        static void SupplyOnce(){if(controller.CanAcceptInput)AdvanceActiveTo(Math.Max(controller.ActiveSeconds,Schedule.NextTick*ActiveSupplySchedule.IntervalMilliseconds/1000d+.000001));Invoke(composition,"Update");}
+        static void SupplyCandidate(Vector2 position,float radius)
+        {
+            AdvanceActiveTo(Math.Max(controller.ActiveSeconds,Schedule.NextTick*ActiveSupplySchedule.IntervalMilliseconds/1000d+.000001));
+            Assert(Schedule.TryTake(controller.ActiveSeconds,controller.CanAcceptInput),"candidate observation must own one current schedule tick");
+            Field(composition,"observingSupply",true);try{view.ObserveSupply(position,radius);}finally{Field(composition,"observingSupply",false);}
+        }
         static async Task Fresh(int count=1)
         {
-            composition.enabled=false;
+            composition.enabled=false;FreezeClock();
             if(controller.Resolved==null)await controller.StartTodayAsync();else await controller.RetryAsync();
             Assert(composition.ActiveCore!=null&&controller.CanAcceptInput,"fresh running session");StopAutomatic();
+            // A new session gets a zero-origin test clock. Rebase both sides of the
+            // clock subtraction so an exact 300ms boundary is not rounded below it
+            // by subtracting the preceding tests' large absolute clock values.
+            double origin=supplyClock.Value;Field(controller,"runningSince",Field<double>(controller,"runningSince")-origin);supplyClock.Value=0;
             for(int i=0;i<count;i++){ClearGate();SupplyOnce();}
             Canvas.ForceUpdateCanvases();
         }
@@ -220,23 +245,23 @@ namespace HotpotSort.Bootstrap
             try
             {
                 Assert(world.ObserveHeightGate(7).heightGateClear,"empty gate");
-                foreach(float radius in new[]{39f,63f})
+                foreach(float radius in new[]{39f,63f})foreach(int count in new[]{0,1,2,3})
                 {
-                    world.Reconcile(Fixture(FixturePlate("1",210,500,radius)));var body=world.Bodies.Single();
-                    foreach(float y in new[]{376.999f,377f,377.001f})
+                    world.Reconcile(Fixture(Enumerable.Range(1,count).Select(i=>FixturePlate(i.ToString(),70+i*75,500,radius)).ToArray()));
+                    foreach(float y in new[]{139.999f,140f,140.001f})
                     {
-                        Move(world,body,new Vector2(210,y));var observation=world.ObserveHeightGate(7);
-                        Assert(observation.heightGateClear==(y>=377),"strict center comparison "+y);
-                        Assert(observation.fixedGate==377&&observation.snapshotRevision==7,"observation metadata");
-                        evidence.Add(CanonicalJson.Object("radius",radius,"requestedY",y,"actualY",world.Position(body).y,"allowed",observation.heightGateClear));
+                        foreach(var body in world.Bodies)Move(world,body,new Vector2(world.Position(body).x,y));var observation=world.ObserveHeightGate(7);int expected=y<140?count:0;
+                        Assert(observation.entryCount==expected&&observation.canSupply==(expected<3),"strict entry count "+count+" at "+y);
+                        Assert(observation.version==ViewSupplyObservation.CurrentVersion&&observation.entryLimit==3&&observation.fixedGate==140&&observation.snapshotRevision==7,"observation metadata");
+                        evidence.Add(CanonicalJson.Object("radius",radius,"count",count,"requestedY",y,"entryCount",observation.entryCount,"allowed",observation.canSupply));
                     }
                 }
-                world.Reconcile(Fixture(FixturePlate("1",5,377,63),FixturePlate("2",5,376.999f,39)));
-                Assert(!world.ObserveHeightGate(8).heightGateClear,"any blocker");
-                Move(world,world.Bodies.Last(),new Vector2(5,377));
+                world.Reconcile(Fixture(FixturePlate("1",5,140,63),FixturePlate("2",5,139.999f,39)));
+                Assert(world.ObserveHeightGate(8).entryCount==1&&world.ObserveHeightGate(8).canSupply,"one entry with equality excluded");
+                Move(world,world.Bodies.Last(),new Vector2(5,140));
                 Assert(world.ObserveHeightGate(8).heightGateClear,"radius edge/overlap must not block");
                 world.Reconcile(Fixture());Assert(world.Remnants.Any()&&world.ObserveHeightGate(9).heightGateClear,"remnants excluded");
-                return Task.FromResult<object>(CanonicalJson.Object("fixture","isolated actual Rigidbody2D roots; no production inventory","samples",evidence,"candidateGeometryIgnored","height observer has no candidate/radius parameters","fixedGate",377,"remnantCount",world.Remnants.Count()));
+                return Task.FromResult<object>(CanonicalJson.Object("fixture","isolated actual Rigidbody2D roots; no production inventory","samples",evidence,"candidateGeometryIgnored","height observer has no candidate/radius parameters","fixedGate",140,"remnantCount",world.Remnants.Count()));
             }
             finally{UnityEngine.Object.Destroy(node);}
         }
@@ -245,29 +270,33 @@ namespace HotpotSort.Bootstrap
             var observations=new List<object>();
             try
             {
-                await Fresh();var blocker=view.World.Bodies.Single();Move(view.World,blocker,new Vector2(210,376));
+                await Fresh(0);Assert(controller.ActiveSeconds==0&&Schedule.NextTick==0,"fresh immediate tick");Invoke(composition,"Update");Assert(SpawnCount==1,"first check must be immediate");
+                AdvanceActiveTo(.299999);Invoke(composition,"Update");Assert(SpawnCount==1,"before 300ms supplied");
+                AdvanceActiveTo(.3);Invoke(composition,"Update");Assert(SpawnCount==2,"300ms tick missing");
+                AdvanceActiveTo(.600001);Invoke(composition,"Update");Assert(SpawnCount==3,"third plate should fit");
+                var blocker=view.World.Bodies.First();foreach(var body in view.World.Bodies)Move(view.World,body,new Vector2(view.World.Position(body).x,139));
                 int head=DailyViewMapper.PendingHead(composition.ActiveCore.Snapshot),count=SpawnCount;
                 string hash=composition.ActiveCore.StateHash,cache=CacheJson();ulong previous=Field<ulong>(composition,"supplySequence");
-                composition.enabled=true;
                 for(int i=0;i<3;i++)
                 {
-                    await Until(()=>Field<ulong>(composition,"supplySequence")>previous,"blocked real Update");
+                    long tick=Schedule.NextTick;SupplyOnce();Assert(Schedule.NextTick==tick+1,"blocked tick not advanced");
                     ulong current=Field<ulong>(composition,"supplySequence");Assert(current==previous+1,"single observation");
                     Assert(SpawnCount==count&&CacheJson()==cache&&composition.ActiveCore.StateHash==hash&&DailyViewMapper.PendingHead(composition.ActiveCore.Snapshot)==head,"blocked state unchanged");
-                    observations.Add(CanonicalJson.Object("sequence",current.ToString(),"nextAt",Field<double>(composition,"nextSupply"),"head",head,"cache",cache));previous=current;
+                    observations.Add(CanonicalJson.Object("sequence",current.ToString(),"nextTick",Schedule.NextTick,"activeSeconds",controller.ActiveSeconds,"head",head,"cache",cache));previous=current;
                 }
-                composition.enabled=false;
                 var stale=view.World.ObserveHeightGate(view.LastSnapshot.revision-1);stale.heightGateClear=true;
-                composition.ObserveSupply(stale);Assert(Field<ulong>(composition,"supplySequence")==previous&&SpawnCount==count,"stale observation rejected");
-                ClearGate();Field(composition,"nextSupply",-100d);Invoke(composition,"Update");
+                Field(composition,"observingSupply",true);try{composition.ObserveSupply(stale);}finally{Field(composition,"observingSupply",false);}Assert(Field<ulong>(composition,"supplySequence")==previous&&SpawnCount==count,"stale observation rejected");
+                Move(view.World,blocker,new Vector2(110,140));Invoke(composition,"Update");Assert(SpawnCount==count,"recovery supplied before normal tick");
+                SupplyOnce();
                 Assert(SpawnCount==count+1&&DailyViewMapper.PendingHead(composition.ActiveCore.Snapshot)==head+1,"same head single catch-up-free commit");
                 Invoke(composition,"Update");Assert(SpawnCount==count+1,"no catch-up");
-                ClearGate();Field(composition,"nextSupply",-100d);int candidateBefore=SpawnCount;
-                view.ObserveSupply(new Vector2(-999,-999),9999);Assert(SpawnCount==candidateBefore+1,"candidate bounds/radius used as gate");
-                ClearGate();Field(composition,"nextSupply",-100d);candidateBefore=SpawnCount;
-                view.ObserveSupply(view.World.Position(blocker),blocker.data.radius);Assert(SpawnCount==candidateBefore+1,"candidate overlap used as gate");
+                ClearGate();AdvanceActiveTo(controller.ActiveSeconds+2);int beforeSkip=SpawnCount;Invoke(composition,"Update");Invoke(composition,"Update");Assert(SpawnCount==beforeSkip+1,"long frame caught up missed ticks");
+                ClearGate();int candidateBefore=SpawnCount;
+                SupplyCandidate(new Vector2(-999,-999),9999);Assert(SpawnCount==candidateBefore+1,"candidate bounds/radius used as gate");
+                ClearGate();candidateBefore=SpawnCount;
+                SupplyCandidate(view.World.Position(blocker),blocker.data.radius);Assert(SpawnCount==candidateBefore+1,"candidate overlap used as gate");
                 ClearGate();var crop=view.PlateCrop;typeof(GameplayView).GetProperty("PlateCrop").SetValue(view,new Rect(0,400,420,428));
-                Move(view.World,blocker,new Vector2(110,377));Assert(view.World.ObserveHeightGate(view.LastSnapshot.revision).heightGateClear,"gate tied to changed crop");
+                Move(view.World,blocker,new Vector2(110,140));Assert(view.World.ObserveHeightGate(view.LastSnapshot.revision).heightGateClear,"gate tied to changed crop");
                 typeof(GameplayView).GetProperty("PlateCrop").SetValue(view,crop);
                 // Empty removal is synchronous; remnants may persist but cannot block.
                 foreach(var other in view.World.Bodies.Where(b=>b!=blocker))Move(view.World,other,new Vector2(310,650));
@@ -288,13 +317,15 @@ namespace HotpotSort.Bootstrap
                 {
                     if(n>0)
                     {
-                        var blocker=view.World.Bodies.First();Move(view.World,blocker,new Vector2(210,376));
-                        string cache=CacheJson();int before=SpawnCount;SupplyOnce();SupplyOnce();Assert(SpawnCount==before&&CacheJson()==cache,"rejected spawn sample");
+                        string cache=CacheJson();int before=SpawnCount;
+                        if(n>=3){foreach(var blocker in view.World.Bodies.Take(3))Move(view.World,blocker,new Vector2(view.World.Position(blocker).x,139));SupplyOnce();SupplyOnce();}
+                        else{Invoke(composition,"Update");Invoke(composition,"Update");}
+                        Assert(SpawnCount==before&&CacheJson()==cache,"blocked/not-due check consumed spawn sample");
                     }
                     ClearGate();SupplyOnce();var body=view.World.Bodies.Last();var motion=body.data.motion;
                     float offset=(float)(expected.NextDouble()*100-50),basis=n%2==0?150:260;
                     Assert(Math.Abs(motion.spawnX-(basis+offset))<.0001f,"one independent random sample ordinal "+n);
-                    Assert(offset>=-50&&offset<=50&&motion.spawnY==304+body.data.radius,"spawn bounds Y");
+                    Assert(offset>=-50&&offset<=50&&motion.spawnY==DailyViewMapper.SpawnY(body.data.radius),"spawn bounds Y");
                     Assert(body.data.radius==DailyViewMapper.PlateRadius(composition.ActiveCore.PlateSize(int.Parse(body.data.plateId))),"radius preserved");
                     string cacheBefore=CacheJson(),coreHash=composition.ActiveCore.StateHash;
                     Move(view.World,body,new Vector2(200,600));var position=view.World.Position(body);
@@ -354,7 +385,7 @@ namespace HotpotSort.Bootstrap
                     while(DailyViewMapper.PendingHead(composition.ActiveCore.Snapshot)!=0){ClearGate();SupplyOnce();}
                     var body=view.World.Bodies.Single(b=>b.data.plateId==tail.ToString());Assert(SpawnCount==51,"success sequence includes tail");
                     var rng=new System.Random(601377);float offset=0;for(int i=0;i<51;i++)offset=(float)(rng.NextDouble()*100-50);
-                    Assert(Math.Abs(body.data.motion.spawnX-(150+offset))<.0001&&body.data.motion.spawnY==304+body.data.radius,"tail motion");
+                    Assert(Math.Abs(body.data.motion.spawnX-(150+offset))<.0001&&body.data.motion.spawnY==DailyViewMapper.SpawnY(body.data.radius),"tail motion");
                     float dt=Time.fixedDeltaTime,expected=(5/body.rigidbody.mass+9.6f)*dt/(1+body.rigidbody.linearDamping*dt);
                     Invoke(view.World,"FixedUpdate");Assert(Math.Abs(body.rigidbody.linearVelocity.y-expected)<.001f,"tail one-time entry force");
                     evidence.Add(CanonicalJson.Object("bufferCount",count,"ids",ids,"tail",tail,"successCount",SpawnCount,"spawnX",body.data.motion.spawnX,"forcePath","same newly created Rigidbody2D branch measured by V6-P01"));
@@ -390,7 +421,12 @@ namespace HotpotSort.Bootstrap
             try
             {
                 world.Reconcile(Fixture(FixturePlate("1",210,203)));var body=world.Bodies.Single();
-                Assert(203+63*512f/448f<292&&!world.ObserveHeightGate(1).heightGateClear&&body.rim.enabled&&body.rigidbody.simulated,"max plate complete hidden collision");
+                Assert(203+63*512f/448f<292&&world.ObserveHeightGate(1).heightGateClear&&body.rim.enabled&&body.rigidbody.simulated,"203 max plate hidden yet gate clear");
+                Move(world,body,new Vector2(210,139.999f));Assert(world.ObserveHeightGate(1).entryCount==1&&world.ObserveHeightGate(1).canSupply,"one hidden entry incorrectly blocks");
+                world.Reconcile(Fixture(FixturePlate("1",210,139.999f),FixturePlate("2",80,139.999f),FixturePlate("3",340,139.999f)));foreach(var b in world.Bodies)Move(world,b,new Vector2(world.Position(b).x,139.999f));
+                Assert(world.ObserveHeightGate(1).entryCount==3&&!world.ObserveHeightGate(1).canSupply,"three hidden entries must block");
+                Move(world,world.Bodies.Last(),new Vector2(340,140));Assert(world.ObserveHeightGate(1).entryCount==2&&world.ObserveHeightGate(1).canSupply,"equality must free capacity");
+                world.Clear();world.Reconcile(Fixture(FixturePlate("1",210,203)));body=world.Bodies.Single();
                 for(int i=0;i<120;i++){Invoke(world,"FixedUpdate");samples.Add(CanonicalJson.Object("step",i,"y",world.Position(body).y,"velocity",body.rigidbody.linearVelocity.y));}
                 Assert(world.Position(body).y-63>292,"did not re-emerge");
                 world.Clear();world.Reconcile(Fixture(FixturePlate("1",200,500),FixturePlate("2",220,500)));var before=world.Bodies.Select(world.Position).ToArray();float initial=-106;var overlap=new List<object>();
@@ -413,15 +449,20 @@ namespace HotpotSort.Bootstrap
         static Vector2 ScreenPoint(Vector2 boardPoint)
         {var board=(RectTransform)Node("GameplayBoard");return RectTransformUtility.WorldToScreenPoint(null,board.TransformPoint(new Vector3(boardPoint.x,-boardPoint.y,0)));}
         static Texture2D FoodTexture(ViewItem item)=>Resources.Load<Texture2D>(view.AssetRoot+"/food/food_"+item.foodId.ToString("00"));
+        static Vector2 IndependentOffset(ViewItem item,float x,float y)
+        {double a=item.rotationDegrees*Math.PI/180;return new Vector2((float)(x*Math.Cos(a)-y*Math.Sin(a)),(float)(x*Math.Sin(a)+y*Math.Cos(a)));}
+        static Rect ItemUv(ViewItem item)=>string.IsNullOrEmpty(item.layoutVersion)?view.VisualArt.FoodUv(item.foodId):new Rect(item.uvX,item.uvY,item.uvWidth,item.uvHeight);
         static Vector2 LowestOpaque(ViewItem item)
         {
-            var tex=FoodTexture(item);
-            for(int y=0;y<tex.height;y++)for(int x=0;x<tex.width;x++)
+            var tex=FoodTexture(item);var uv=ItemUv(item);Vector2 lowest=new Vector2(0,float.NegativeInfinity);
+            for(int y=0;y<512;y++)for(int x=0;x<512;x++)
             {
-                var offset=new Vector2(((x+.5f)/tex.width-.5f)*item.radius*2,(.5f-(y+.5f)/tex.height)*item.radius*2);
-                if(tex.GetPixelBilinear(.5f+offset.x/(item.radius*2),.5f-offset.y/(item.radius*2)).a>.95f)return offset;
+                float u=(x+.5f)/512,v=(y+.5f)/512;
+                if(tex.GetPixelBilinear(uv.x+u*uv.width,uv.y+v*uv.height).a<=.95f)continue;
+                var offset=IndependentOffset(item,(u-.5f)*item.radius*2,(.5f-v)*item.radius*2);
+                if(offset.y>lowest.y)lowest=offset;
             }
-            throw new Exception("food has no opaque pixel");
+            Assert(!float.IsNegativeInfinity(lowest.y),"food has no opaque pixel");return lowest;
         }
         static void PlaceItem(HotpotSort.UnityPhysics.PlatePresentationWorld.PlateBody body,ViewItem item,Vector2 point)
         {Move(view.World,body,point-new Vector2(item.x,item.y));Canvas.ForceUpdateCanvases();}
@@ -430,7 +471,7 @@ namespace HotpotSort.Bootstrap
             var evidence=new List<object>();
             try
             {
-                await Fresh();var body=view.World.Bodies.First();var item=body.data.items.First();PlaceItem(body,item,new Vector2(210,500));
+                await Fresh();var body=view.World.Bodies.First();var item=body.data.items.Last();PlaceItem(body,item,new Vector2(210,500));
                 Action<string,Vector2> reject=(name,point)=>
                 {
                     string hash=composition.ActiveCore.StateHash;long events=view.LastEventSequence;
@@ -441,9 +482,9 @@ namespace HotpotSort.Bootstrap
                 var tex=FoodTexture(item);Vector2 transparent=Vector2.zero;bool found=false;
                 for(int y=1;y<tex.height&&!found;y+=8)for(int x=1;x<tex.width;x+=8)
                 {
-                    var offset=new Vector2((x/(float)tex.width-.5f)*item.radius*2,(.5f-y/(float)tex.height)*item.radius*2);
+                    var offset=IndependentOffset(item,(x/(float)tex.width-.5f)*item.radius*2,(.5f-y/(float)tex.height)*item.radius*2);
                     var candidatePoint=view.World.ItemPosition(item.itemId)+offset;
-                    if(tex.GetPixelBilinear(x/(float)tex.width,y/(float)tex.height).a<.01f && view.World.Hit(candidatePoint,(candidate,delta)=>(bool)Invoke(view,"OpaqueHit",candidate,delta))==null)
+                    if(tex.GetPixelBilinear(ItemUv(item).x+ItemUv(item).width*x/tex.width,ItemUv(item).y+ItemUv(item).height*y/tex.height).a<.01f && view.World.Hit(candidatePoint,(candidate,delta)=>(bool)Invoke(view,"OpaqueHit",candidate,delta))==null)
                     {transparent=offset;found=true;break;}
                 }
                 Assert(found,"transparent fixture");reject("transparent-alpha",view.World.ItemPosition(item.itemId)+transparent);
@@ -568,7 +609,7 @@ namespace HotpotSort.Bootstrap
                     var item=CanonicalJson.Array(state["items"]).Select(CanonicalJson.Map).First(x=>(string)x["location"]=="ActiveAvailable"&&!kinds.Contains((string)x["kind"]));
                     composition.ActiveCore.Tap(new TapCommand(CanonicalJson.Int(item["itemId"]),++taps,BoundaryNow,true));
                 }
-                Assert(composition.ActiveCore.Snapshot.Status==GameStatus.Failed,"overflow fixture");terminalCount=SpawnCount;SupplyOnce();Assert(SpawnCount==terminalCount,"overflow supply");
+                Assert(composition.ActiveCore.RevivalPending,"overflow pending fixture");composition.DeclineRevival();Assert(composition.ActiveCore.Snapshot.Status==GameStatus.Failed,"declined overflow fixture");terminalCount=SpawnCount;SupplyOnce();Assert(SpawnCount==terminalCount,"overflow supply");
                 controller.Request(SessionAction.Exit);Invoke(composition,"Update");Assert(SpawnCount==0&&composition.ActiveCore==null&&CacheJson()=="[]","exit");
                 await Fresh(0);Assert(SpawnCount==0&&CacheJson()=="[]","retry");SupplyOnce();Assert(SpawnCount==1,"retry first");
                 return CanonicalJson.Object("fixture","real core terminal flows with controlled supply centers","pauses",evidence,"terminalStates",new[]{"Won","Timeout","Overflow","Exit"},"forceNotRepeated","measured V6-P01");
@@ -609,19 +650,20 @@ namespace HotpotSort.Bootstrap
                 }
                 Assert(Node("FeedbackLayer")&&!Node("FeedbackLayer").IsChildOf(clipped),"transport layer clipped");
                 await Wait(250);await Until(()=>Time.unscaledDeltaTime<.05f,"capture work must finish before timed flight fixture");
-                var eventSnapshot=view.LastSnapshot;
-                view.Apply(new ViewUpdate{snapshot=eventSnapshot,events=new[]{new ViewEvent{kind="ItemRoutedToOrder",itemId="901",ingredientId="food_"+food.ToString("00"),targetContainer="Order",targetSlot=0,sourceContainer="Plate",sequence=8000001,transactionId="v6-controlled-flight"}}});
-                await Wait(70);var flying=Node("FlyingItem");Assert(flying&&flying.IsChildOf(Node("FeedbackLayer"))&&!flying.IsChildOf(clipped),"transport clipped/missing");
+                var eventSnapshot=view.LastSnapshot;var flightFeedback=view.GetComponent<GameplayFeedback>();flightFeedback.enabled=false;
+                view.Apply(new ViewUpdate{snapshot=eventSnapshot,events=new[]{new ViewEvent{sessionId=view.LastSnapshot.sessionId,sessionGeneration=view.LastSnapshot.sessionGeneration,kind="ItemRoutedToOrder",itemId="901",ingredientId="food_"+food.ToString("00"),targetContainer="Order",targetSlot=0,sourceContainer="Plate",sequence=8000001,transactionId="v6-controlled-flight"}}});
+                flightFeedback.Tick(.07f);var flying=Node("FlyingItem");Assert(flying&&flying.IsChildOf(Node("FeedbackLayer"))&&!flying.IsChildOf(clipped),"transport clipped/missing");
                 Capture(1080,1920,Path.ChangeExtension(report,"flight.png"));
-                await Until(()=>Node("splash")!=null,"transport splash target");var splash=Node("splash");Assert(((RectTransform)splash).anchoredPosition==new Vector2(56,-166),"transport missed order target");
+                flightFeedback.Tick(.1f);flightFeedback.Tick(.08f);Assert(Node("splash")!=null,"transport splash target");flightFeedback.enabled=true;var splash=Node("splash");Assert(((RectTransform)splash).anchoredPosition==new Vector2(56,-166),"transport missed order target");
                 return CanonicalJson.Object("fixture","actual Canvas rendering; synthetic plates/remnants/hint; pair differs only plateLayer visibility","captures",evidence,"transportServing","U04 actual serving keyframes; same independent FeedbackLayer","selection","no separate selection effect exists in production; pending-click bookkeeping creates no graphic");
             }finally{await Fresh();RestoreAutomatic();}
         }
         static Vector2 OpaqueOffset(ViewItem item)
         {
-            if(string.IsNullOrEmpty(view.AssetRoot))return Vector2.zero;
-            var texture=Resources.Load<Texture2D>(view.AssetRoot+"/food/food_"+item.foodId.ToString("00"));
-            for(int y=8;y<texture.height;y+=8)for(int x=8;x<texture.width;x+=8)if(texture.GetPixel(x,y).a>.95f)return new Vector2((x/(float)texture.width-.5f)*item.radius*2,(.5f-y/(float)texture.height)*item.radius*2);
+            var texture=FoodTexture(item);var uv=ItemUv(item);
+            for(int y=8;y<256;y+=8)for(int x=8;x<256;x+=8)
+                if(texture.GetPixelBilinear(uv.x+uv.width*x/256f,uv.y+uv.height*y/256f).a>.95f)
+                    return IndependentOffset(item,(x/256f-.5f)*item.radius*2,(.5f-y/256f)*item.radius*2);
             throw new InvalidOperationException("No opaque food hit pixel");
         }
         static void Capture(int width,int height,string path)

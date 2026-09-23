@@ -1,27 +1,28 @@
 # Task: 火锅消消高精度每日挑战 Unity 可玩版
 
 Task ID: TASK-001
-Task Version: 6
-Status: Awaiting Human Check
+Task Version: 9
+Status: Technical Candidate Ready；Remote Resource Integration Complete；Visual Paused
 Type: Feature
 Risk: High
 Build Mode: Code + Art
-Audio Scope: 定制品质原创音乐、环境声与交互音效
+Audio Scope: v8盘面与供给表现修订不含音频；既有音频方向保留但继续暂停
 Technical Gate: Self Check
+Current QA Mode: Lightweight Builder Self Check — compile、启动、受影响核心流程Smoke；不新增独立QA等待点或每轮全量回归
 Art Gate: Human Art Approval
 Experience Gate: Human Check
 Created By: PM Orchestrator
-Updated At: 2026-09-21
+Updated At: 2026-09-22
 
 # Workflow Control
 
-Current Stage: HC-03 Implementation Result — Awaiting Human Check
-Last Accepted Checkpoint: HC-02-v6 Visual / Plan Confirmation
-Pending Human Check: HC-03-v6 Implementation Result；Affected Workstreams：v6普通盘供给、出生/物理、裁剪/点击/提示、打乱兼容与自动QA
-Next Allowed Action: 用户仅可对HC-03-v6回复Accepted、Needs Revision或Rejected；Accepted后进入HC-04最终实际试玩/体验，不得把自动QA或受控截图直接视为最终体验接受。
-Rollback Target: HC-04-v5（仅受影响分支）；v5历史产物保留，不自动回滚文件
-Paused Workstreams: Suno音频生产、音频授权证据和依赖最终音频的绑定仍等待可用入口
-Unaffected Workstreams: C骨架内容、订单、四锅、五格暂存、十分钟、道具、胜负、每日周期、既有美术与音频决定保留；v5已验证证据仅在不依赖新供给/遮挡规则的范围内继续有效
+Current Stage: HC-03-v9 Technical Candidate Ready；Visual Iteration Paused
+Last Accepted Checkpoint: HC-02-v9-Code Technical Plan
+Pending Human Check: HC-02-v9-Visual — A/B现代UI皮肤选择；HC-03-v9完整候选仍等待视觉集成与真实微信转换；Affected Workstreams仅正式UI资产、视觉布局、表现绑定和完整候选
+Next Allowed Action: 稳定资源接口、CloudBase原生下载、开始门禁及表现消费者机械迁移已完成；等待管理员绑定CloudBase环境、部署固定Bundle并完成正式微信包验证。视觉迭代继续暂停。
+Rollback Target: HC-02-v8；保留v8正式资产、Windows候选和未受影响QA证据，仅失效供给节拍、摩擦参数、旧UI皮肤方向及其直接依赖验证
+Paused Workstreams: 正式UI资产与最终加载状态皮肤等待用户恢复视觉迭代；Suno音频继续暂停且不属于v9
+Unaffected Workstreams: C骨架内容、订单、四锅、五格暂存、十分钟、道具、每日周期、复活事务与奖励额度；木桌、铜锅、盘子、食材、物理坐标、盘面布局、供给逻辑与动画事件保持有效
 
 ## Checkpoint Ledger
 
@@ -62,7 +63,55 @@ Unaffected Workstreams: C骨架内容、订单、四锅、五格暂存、十分�
 | HC-01-v6 | Requirement Freeze | 6 | CL-023；2026-09-21 完整需求复述及用户“确认 实行” | Invalidated | 用户于HC-01展示后回复“确认”；随后按只读代码调查选择推荐的当前坐标换算语义 | HC-04-v5受影响分支 | 其中`Y>377`字面判断、当前坐标字面`(0,-5)`及未明确顶部物理范围的部分；其余CL-023决定迁入r1 | 使用HC-01-v6-r1 |
 | HC-01-v6-r1 | Requirement Freeze Revision | 6 | CL-023未受影响部分＋CL-024坐标/运动/顶部边界修订；spawnGate保持固定377，不绑定可见上边缘 | Accepted | 用户在解释盘中心并讨论动态边界后明确选择“算了 固定的377吧”，随后回复“接受”（2026-09-21） | HC-04-v5受影响分支 | HC-01-v6受影响坐标表达及其下游方案 | 恢复原feature_designer，汇总HC-02候选 |
 | HC-02-v6 | Visual / Plan Confirmation | 6 | Design Handoff v6；`.harness/previews/TASK-001/r005/v6-layering/`静态目标状态预览；Implementation Plan、QA Intent、Code–Art Interface与回归计划 | Accepted | 用户在查看遮挡/露出预览与方案摘要后回复“接受”（2026-09-21） | HC-01-v6-r1 | 后续需求或方案含义变化时仅失效受影响实现/测试 | 进入Ready to Build；code_builder实施Code Only增量 |
-| HC-03-v6 | Implementation Result | 6 | `.harness/qa/TASK-001/v6/r002/implementation-result.json`、`handoff.md`、run05完整日志/报告/截图；`.harness/previews/TASK-001/r006/`集成视觉QA | Pending | 等待用户回复Accepted / Needs Revision / Rejected | HC-02-v6 | 当前代码/诊断/规范若再变化，相关run05与视觉证据须重查 | Accepted后进入HC-04最终实际试玩与体验判断 |
+| HC-03-v6 | Implementation Result | 6 | `.harness/qa/TASK-001/v6/r002/implementation-result.json`、`handoff.md`、run05完整日志/报告/截图；`.harness/previews/TASK-001/r006/`集成视觉QA | Accepted | 2026-09-22 用户确认接受v6供给、遮挡和点击逻辑；随后明确仅不满意整体画面品质 | HC-02-v6 | 当前代码/诊断/规范若再变化，相关run05与视觉证据须重查 | 进入HC-04-v6最终体验判断；视觉问题单独修订 |
+| HC-04-v6 | Final Experience | 6 | Unity当前实际运行截图与用户画面品质反馈 | Needs Revision | 2026-09-22 用户明确“不满意画面品质”，接受玩法不变、表现层大改 | HC-03-v6 | r004旧方向、v3/r001正式视觉资产、当前全界面视觉与依赖它的体验结论；不失效v6技术实现和自动QA | 建立v7视觉品质升级需求冻结 |
+
+### v7检查点增量
+
+| Checkpoint | Stage | Task Version | Artifact / Evidence | Status | Human Decision | Rollback Target | Invalidates | Next Allowed Action |
+|---|---|---:|---|---|---|---|---|---|
+| HC-01-v7 | Requirement Freeze | 7 | 2026-09-22完整复述、用户“全部正确”及后续详细视觉选择；CL-026至CL-036 | Accepted | 保留玩法和v6逻辑；全界面整套重制；热闹喜庆、轻框架、盘面食材优先、ImageGen全量位图、效果优先稳定30 FPS；不含音频 | HC-03-v6 | 旧视觉方向、v3/r001正式视觉资产、当前全界面视觉及相关视觉验收 | Designer与Visual并行形成HC-02-v7候选 |
+| HC-02-v7 | Visual / Plan Confirmation | 7 | `.harness/previews/TASK-001/r007/`整套预览、锚点、状态板、分镜、视觉规范和生成记录；本Task的v7 Implementation Plan、QA Intent、Code–Art Interface与Asset Contract | Needs Revision | 用户要求顶部只显示进度条、不显示解锁单数；强化不同食材数量盘子的大小差异；入锅只做动画，落点后锅面不发生持续变化 | HC-01-v7 | r007主玩法、状态板、动效分镜及依赖其表现定义的视觉规范；技术方案其余部分保持有效 | 原Visual制作r008并由PM重新提交风格审核 |
+| HC-01-v7-r1 | Requirement Freeze Revision | 7 | 用户提供失败逻辑参考图及连续确认；CL-041至CL-044 | Accepted | 仅暂存已满提供每局一次复活；单一奖励按钮按分享可用性优先显示分享、否则显示模拟广告；分享与三道具共用每日三次及5/15分钟冷却；时间到直接失败；普通结算不再提供独立分享图 | HC-01-v7 | r007失败页、分享页及既有失败/分享状态合同；不影响r008进度条、盘子尺寸与入锅动画修订 | Designer形成失败/奖励设计增量；Visual随后补齐对应页面 |
+| HC-01-v7-r2 | Requirement Freeze Revision | 7 | Designer只读调查返回三项边界；用户确认全部采用推荐方案；CL-045至CL-047 | Accepted | 复活弹窗出现即暂停倒计时和物理；当前未决请求取消/失败才终局，成功后重复回调和旧会话回调忽略；旧存档保留已用分享次数但旧冷却视为结束 | HC-01-v7-r1 | r1中未定义的暂停时点、重复/过期回调和旧存档冷却迁移边界 | 恢复原Designer完成Design Addendum；不受影响视觉分线继续 |
+| HC-01-v7-r3 | Requirement Freeze Revision | 7 | 用户提供复活参考图，随后确认“全部集中到一只大盘中，按你的推荐来”；CL-048 | Accepted | 复活成功以约0.8秒可见搬盘动画把五小碟食材集中到一只新大盘并送入供应队尾；动画期间保持暂停，溢出点击食材留在原盘 | HC-01-v7-r2 | r009及未定稿r010中任何“暂存食材瞬间清空/消失”的复活表现 | 恢复原Visual完成r010搬盘分镜与整合候选 |
+| HC-02-v7-r1 | Visual / Plan Confirmation | 7 | `.harness/previews/TASK-001/r010/`完整候选；本Task v7 Implementation Plan、QA Intent、Code–Art Interface与Asset Contract | Invalidated | PM在提交用户前收到r011专项分镜、移动端审查和Designer追踪核对，按用户要求先交回原Visual统一验收 | HC-01-v7-r3 | 仅r010作为最终整合候选的身份；r010文件保留为过程证据 | 原Visual形成r012总监候选，随后建立HC-02-v7-r2 |
+| HC-02-v7-r2 | Visual / Plan Confirmation | 7 | `.harness/previews/TASK-001/r012/`总监统一取舍后的13页、主玩法、五级盘径、失败/复活/奖励流程、普通与六帧复活动效、360检查、视觉规范、总监取舍与完整哈希证据；本Task更新后的Implementation Plan、QA Intent、Code–Art Interface与Asset Contract | Accepted | 2026-09-22 用户回复“接受” | HC-01-v7-r3 | 后续需求或风格含义变化时仅失效受影响正式资产、表现实现与验证；v6玩法与技术证据保持 | 进入Ready to Build；按Code核心/接口与独立资产并行、Visual串行集成、Code最终验证推进 |
+
+### v8检查点增量
+
+| Checkpoint | Stage | Task Version | Artifact / Evidence | Status | Human Decision | Rollback Target | Invalidates | Next Allowed Action |
+|---|---|---:|---|---|---|---|---|---|
+| HC-01-v8 | Requirement Freeze | 8 | 用户参考布局反馈与CL-049/CL-050冻结候选 | Invalidated | 用户曾回复“接受”；Visual随后发现“占比/内圈”口径会显著改变结果，需以r1精确定义替代 | HC-02-v7-r2 | 仅原CL-049中“白瓷内圈75%至85%”的模糊口径 | 使用HC-01-v8-r1；其他已确认项保持 |
+| HC-01-v8-r1 | Requirement Freeze Revision | 8 | CL-049精确占比口径；用户回复“含外沿吧” | Accepted | 食材组外包络直径相对整只盘子外沿直径达到75%至85%；不以中央凹面或Alpha像素面积为分母 | HC-01-v8 | v8视觉候选中任何按中央凹面缩放的版本 | 恢复原Visual完成r013；Designer按精确口径收口方案与QA |
+| HC-02-v8 | Visual / Plan Confirmation | 8 | `.harness/previews/TASK-001/r013/`主玩法对照、360检查、1–5份80%占比板、屏外入场分镜与视觉规范；Designer v8只读Implementation Plan、QA Intent及Code-Art Interface | Accepted | 2026-09-22 用户回复“通过” | HC-01-v8-r1 | 后续修改仅失效受影响布局/入口实现与证据；未受影响v7页面/资产继续有效 | Code → Visual → Code串行实施、集成与验证 |
+| HC-03-v8 | Implementation Result | 8 | `.harness/qa/TASK-001/v8/final-r001/result.json`、规则/接口/Smoke/复活/存档/Oracle/页面/构建/Player证据；`Builds/TASK001/v8/Final-r003/`完整Windows Player | Invalidated | 用户在人工判断前要求降低摩擦并将供给改为0.30秒、入场区最多三只 | HC-02-v8 | v8供给节拍、摩擦参数及其直接依赖构建/验证；正式资产与未受影响功能证据保留 | 使用HC-01-v9 |
+| HC-01-v9 | Requirement Freeze | 9 | 盘面提速与三盘入场完整复述；用户“全部正确”并要求实施 | Accepted | 摩擦0.08、阻尼0.08；每0.30秒提交、Y=140入场区最多三只；暂停/后台/奖励/终局不计时且不追赶 | HC-02-v8 | HC-03-v8及旧单盘门槛/0.2秒供给含义 | Designer与Visual形成HC-02-v9候选 |
+| HC-01-v9-r1 | Requirement Freeze Revision | 9 | 现代微信小游戏UI皮肤升级完整方案；用户明确“PLEASE IMPLEMENT THIS PLAN” | Accepted | 只更换UI皮肤与屏幕外沿装饰；A清爽轻拟物、B轻新中式使用同状态双预览供风格选择；本轮视觉导演仅使用Luna High与内置ImageGen，选定正式资产后恢复Astra | HC-01-v9 | v7/v8老式牌匾、红织物边框、厚金边、手写标题等UI方向及其最终视觉结论；木桌、锅、盘、食材、布局、玩法和接口不失效 | Feature Designer只读收口合同；Luna High顺序制作r014 A/B候选；汇总HC-02-v9等待用户只判断风格 |
+| HC-02-v9 | Visual / Plan Confirmation | 9 | `.harness/previews/TASK-001/r014/` A/B全页面、360检查、供给/接触动效；Feature Designer v9实施合同与QA Intent | Pending | 等待用户选择A或B并判断现代UI、0.30秒三盘入场方向 | HC-01-v9-r1 | 接受前无下游实现可用；若修订只影响所选视觉或供给表现分支 | Accepted后Code核心/合同→Visual正式资产与表现→Code验证 |
+| HC-02-v9-Code | Technical Plan Confirmation | 9 | v9供给/物理合同、接口、QA Intent与用户“暂停美术迭代 先完成其他的” | Accepted | 用户明确授权先完成非美术技术分支；不代表A/B视觉接受 | HC-01-v9 | 仅后续技术实现若含义变化时失效 | Code Builder实施核心与稳定接口；Visual保持暂停 |
+| HC-03-v9-Code | Technical Implementation Result | 9 | `.harness/qa/integrated/v9-r002/aggregate-manifest.json`；21套统一回归、18项Smoke、最终WebGL脚本编译 | Pending | 技术候选已形成；不替代视觉/真机/完整包人工检查 | HC-02-v9-Code | 生产代码或测试范围变化时失效受影响证据 | 外部AppID就绪后真实SDK转换；视觉分支保持暂停 |
+
+过程证据：r015曾按PM内部审查启动Luna High强化A/B差异，但用户明确要求停止并恢复默认Astra High；该代理已中断，r015任何局部输出均为`Invalidated / Do Not Consume`。新的Astra候选使用r016，不覆盖r014/r015。
+
+过程证据：r016随后按用户要求恢复默认Astra High启动；用户再次明确“暂停美术迭代 先完成其他的”，该代理已中断，r016任何局部输出均为`Paused / Do Not Consume`，视觉工作流保持HC-02-v9-Visual Pending。
+
+过程证据：`.harness/qa/TASK-002/v9/sdk-export-r001/`已执行真实SDK转换；Data.br 49,409,930字节、Wasm.br 4,371,092字节，合计53,781,022字节，超过SDK当前30,408,704字节门槛，完成门禁正确拒绝。只读审计证明v3历史资源可仅从新隔离副本排除，但预计仍超限约4.10 MB；不得在未确认资源路线前降低v7画质或改变视觉绑定。
+
+v9同时消费同轮已确认的微信奖励失败策略：复活分享或广告调用失败、无库存、提前关闭时不发奖、不消耗额度，保持复活暂停并回到同一个单按钮弹窗，可重试或主动结束本局。此规则取代CL-046中“当前复活请求取消/失败/不可用立即终局”的旧含义；超时失败仍不出现复活。
+
+### HC-01-v9-r1 Frozen UI Skin Increment
+
+- Scope仅为UI皮肤：屏幕外沿装饰、HUD、计时、进度、订单卡、底栏、弹窗、按钮、标签、状态底板及UI图标；启动、暂停、设置、胜负、复活激励和好友榜只更换卡片壳层。
+- 木桌、铜锅、白瓷盘、食材、盘面布局、物理坐标、点击、供给、库存、订单、随机流和既有动画事件保持不变；不新增运行时换肤入口。
+- A为清爽轻拟物：奶油白、珊瑚红、暖橙、薄荷绿、深暖灰；柔和圆角、浅阴影、细描边和简洁2.5D图标。
+- B为轻新中式：米白、朱砂红、茶青、哑光浅铜、墨灰；现代纸感卡片、细朱砂线、克制蒸汽/圆弧/简化回纹。
+- 两版均禁止厚重金边、红色织物框、木制牌匾、宫廷漆金、书法标题、图片内中文或动态数字；Unity实时文字统一采用现代圆润黑体，优先复用Noto Sans CJK。
+- r014两版必须使用同一权威盘面截图、同一页面状态与同一文字，以UI遮罩外逐像素不变为候选目标；用户在HC-02-v9只选A或B，不默认混搭。
+- 本轮视觉阶段使用Compatibility Prompt调度`gpt-5.6-luna` high作为一次性视觉负责人，并由内置ImageGen按独立资产/变体逐次生成；不得使用CLI或外部API。选定方向及正式UI资产包冻结后，后续Unity集成、QA、构建与全部工作恢复Astra。
+- HC-02前只允许写入`.harness/previews/TASK-001/r014/`及只读设计交付；不得修改Unity Runtime、Scene、Prefab、Resources正式资产、玩法文档或平台代码。
+
+v9供给时钟确定为固定检查节拍：新会话首盘立即检查，此后按有效游玩时间每0.30秒检查一次；三盘入场上限阻塞期间检查节拍继续前移，容量恢复后只在下一个正常节拍提交一只，不立即补发或追赶。入场计数为有效活动盘中心`Y<140`，`Y=140`不计入；空盘残影、队列盘与纯表现运输盘不计入。
 
 ## Agent Session Registry
 
@@ -75,6 +124,10 @@ v6会话：`/root/feature_designer_v6`，Compatibility Prompt，gpt-6-astra/low�
 v6实施会话：`/root/code_builder_v6`，Compatibility Prompt，gpt-6-astra/low，唯一代码写入者；已返回Implementation Ready for Pre-delivery QA Scope。基础证据：`.harness/qa/TASK-001/v6/r001/implementation-preqa.md`；实际改动7个源/规范文件，未修改核心队列、内容、场景或资产。
 
 同一`/root/code_builder_v6`按最终Script Test Scope纠正CL-025并完成run05全量重跑，返回HC-03 Candidate Ready。原`/root/visual_design_agent_v6`随后只读核对真实截图，并仅写`.harness/previews/TASK-001/r006/`，返回Visual QA Evidence Ready。
+
+v7设计会话：`/root/feature_designer_v7`，Native Custom Agent，只读，已返回Design Ready；`/root/visual_design_agent_v7`，Native Custom Agent，仅写`.harness/previews/TASK-001/r007/`，已返回Preview Candidate Ready。两者未直接通信；PM已完成技术合同与视觉候选的统一监修。
+
+v7修订会话：原`/root/visual_design_agent_v7`已仅写`.harness/previews/TASK-001/r008/`完成进度条、盘径和入锅表现；用户明确要求多美术Agent拆分后，新增`/root/visual_failure_reward_v7`仅写`.harness/previews/TASK-001/r009-failure/`完成失败/复活/奖励分享页面分线。原`/root/feature_designer_v7`只读完成HC-01-v7-r2设计增量。所有Agent互不通信，PM统一合并；原Visual仍是最终风格与整合责任人。
 
 | Exact Agent Name | Config Source | Thread ID | Identity Verification | Scope |
 |---|---|---|---|---|
@@ -134,8 +187,94 @@ HC-02 接受后才生产正式拆分资产并集成。方案草稿、预览修�
 |---|---|---|
 | CL-024 | 当前坐标中的原版语义换算 | 高度门槛按“画面上方拥挤暂停供给”的玩家可见语义实现：当前盘面坐标中任意在场盘中心`Y < 377`时阻塞，等于377不阻塞；不再字面使用`Y > 377`。原版一次性`(0,-5)`按屏幕运动方向换算为当前物理坐标中的等效向下初始力，量级保持5，即当前坐标调用`AddForce((0,+5), ForceMode2D.Force)`；保留现有持续向画面下方的物理力。顶部物理墙与几何纠正上移，允许盘部分或完全进入暂存栏后方、继续碰撞并可能再次露出；精确隐藏物理边界由Designer依据现有暂存栏228…292布局提出，但不得阻止已确认的完整隐藏/再露出结果。画面仍以暂存栏下沿硬裁剪，订单区不得漏图或接收盘面点击。 |
 | CL-025 | 打乱范围兼容性纠偏 | Pre-delivery只读核对发现实现把打乱目标从既有304…828扩大到140…828。HC-01/HC-02均要求其他道具规则保持，且Design Handoff原始兼容性结论明确保留304…828；因此PM判定为实现偏差而非新产品选择。打乱目标恢复304+radius…828−radius，镜像/回退结果也必须逐项满足同范围；无合法目标时沿用不生效、不扣额度。仅自然物理运动可把盘带入隐藏区。 |
+| CL-026 | v7问题与边界 | 用户仅不满意Unity当前画面品质；保留核心玩法、物理、供给、遮挡、点击、存档和每日挑战规则。v7覆盖启动、主玩法、暂停、设置、胜负结算、好友榜、分享及激励模拟页面；不含音频、微信导出/上传、真机验收或发布。 |
+| CL-027 | 总体视觉气质 | 保留传统火锅、深暖木桌、红汤铜锅、白瓷器皿和正俯视2D/2.5D；升级为热闹喜庆但不厚重俗艳的商业休闲游戏品质。UI采用轻框架、强层级，象牙白为信息底，深红和铜金只作重点。 |
+| CL-028 | 第一视觉焦点与食材 | 盘面食材为第一视觉焦点，订单保持清楚但顶部HUD降低面积和装饰强度。食材全部重制为饱满半写实风格，减少透明留白和无效细纹，统一顶光、细深棕描边和色彩强度；盘子物理尺寸、碰撞与点击语义不变。 |
+| CL-029 | 背景、信息与道具布局 | 中央操作区保持干净木桌，只在非操作边缘加入柔和暖光、红色织物或金色纹样，不放人物、碗筷或蘸料。31/49单解锁条件进入总进度节点；三个道具进入统一轻量底栏；420×900玩法坐标、Y=292裁剪、Y=377门槛及底部物理边界不变。 |
+| CL-030 | 字体与启动页 | 标题使用招牌手写风，正文、按钮、数字和倒计时使用清晰圆体。启动页采用沸腾红汤火锅主视觉和原创火锅印章；“火锅消消”“每日挑战”等文字由Unity实时排版，不烘焙进图片。 |
+| CL-031 | 弹窗、结算与平台模拟 | 普通弹窗采用象牙白轻卡片；胜利页采用热锅宴席＋真实成绩卡；失败页保持暖色并清楚区分暂存满/超时。好友榜、分享和激励模拟页面使用完整正式皮肤、真实空态或本地数据，并以小型开发标识明确未连接微信服务；不得使用假头像、假排行或虚构奖励。 |
+| CL-032 | 动效与情绪 | 开启锅持续轻沸腾；点击、飞行、落锅、涟漪、端锅和解锁采用短促有力反馈。只有订单完成、开锅和胜利允许轻微整屏冲击；失败温和鼓励重试。动画由既有事件驱动，不改变库存、随机流或状态，且不得阻挡后续点击。 |
+| CL-033 | ImageGen正式资产 | 所有正式可见位图使用内置ImageGen skill生成；不使用CLI或外部API。每个独立资产/变体单独生成，先建立主玩法、食材器皿、UI图标三类锚点，再生产版本化资产家族。透明食材、器皿、图标和特效必须保留真实Alpha，不带文字、水印、白底或多余物件。 |
+| CL-034 | 正式资产范围 | 旧资产只作内容、状态和结构参考；木桌/边缘氛围、16种食材、盘碟、锅层、UI皮肤、图标、VFX、火锅印章、启动主视觉、胜利主视觉和静态分享图全部重制。正式选择写入`Unity/Assets/HotpotSort/Resources/Hotpot/TASK001/v7/r001/`，不覆盖旧版本。 |
+| CL-035 | 性能目标 | 采用效果优先策略；复杂盘面、四锅开启和连续反馈时以Unity实测稳定30 FPS为硬目标，不以追求60 FPS为由主动削弱已批准效果。使用对象复用、并发上限和短生命周期控制透明叠加成本。 |
+| CL-036 | v7音频边界 | v7不制作、替换或验收音乐、环境声和交互音效；设置页仍可完成视觉皮肤。既有Suno方向与许可决定保留为暂停工作流，不得被v7视觉完成状态覆盖。 |
+| CL-037 | HC-02-v7用户审核范围 | 用户要求“放开门槛，我只做风格方面的判断”。HC-02-v7仍保留完整预览、Implementation Plan、QA Intent、Code–Art Interface和Asset Contract作为项目证据，但用户只判断构图、美术气质、食材质感、UI观感与动效方向。PM负责内部审查其余技术内容；不要求用户逐项批准技术方案，且不新增中间人工暂停。 |
+| CL-038 | 顶部进度信息修订 | 顶部不显示31/49解锁单数，也不使用带数字的解锁节点；只保留简洁进度条表达整体进度。锅位自身的锁定/解锁状态和解锁动画承担状态反馈。 |
+| CL-039 | 盘子尺寸差异 | 不改变v6既有按食材数量计算的物理半径与碰撞规则；视觉盘沿必须准确对应既有半径，并强化不同数量盘子的尺寸阶梯，使少食材盘明显更小、多食材盘明显更大，不能再画成近似同尺寸。 |
+| CL-040 | 入锅表现 | 食材点击后只执行轻抬、短弧线飞行和约0.1秒的瞬时水花/涟漪；食材到达后消失，锅面立即恢复原样。锅面不累计食材、不因订单填充进度改变汤面内容；订单进度仍由订单卡呈现。 |
+| CL-041 | 失败与复活触发 | 仅“暂存已满”失败在正式失败结算前弹出复活机会；“时间到”不提供复活，直接进入普通超时失败。每局最多成功复活一次；复活成功后继续同一局，不重置订单、盘面、时间或会话身份。 |
+| CL-042 | 复活效果与退出 | 复活成功自动执行一次既有“清空暂存”效果：暂存中的食材保留itemId并按既有规则组成新混合盘追加到普通盘队尾，然后恢复对局。奖励取消、失败、重复/过期回调或玩家拒绝均不发奖、不扣额度并进入普通暂存已满失败结算。 |
+| CL-043 | 单一激励选择与共享额度 | 复活弹窗一次只显示一种奖励按钮：当分享额度仍有剩余且分享冷却已解锁时优先显示“分享复活”；否则显示“模拟广告复活”。复活分享与提示、清空暂存、打乱共用同一每日三次分享额度池；当天任一分享奖励成功且实际生效才消耗一次。第一次立即可用，第一次成功分享后5分钟解锁第二次，第二次成功分享后15分钟解锁第三次；北京时间06:00按挑战日重置。广告不消耗分享次数。 |
+| CL-044 | 分享页面范围 | 分享主题图不再作为胜利、失败或其他普通结算的独立按钮/页面；只在奖励分享流程中作为激励广告的替代分享内容/开发模拟预览使用。Unity继续明确标注开发模拟，不伪装成已连接微信分享。 |
+| CL-045 | 复活等待暂停 | 暂存满进入复活弹窗的瞬间即暂停倒计时与盘面物理，而不是等玩家按下奖励按钮才暂停。复活成功后仅解除复活自身的暂停原因；用户暂停、后台暂停等其他原因仍保留。拒绝、取消或失败进入终局后不恢复运行。 |
+| CL-046 | 重复与过期回调 | 只有当前会话、当前尚未完成的复活请求收到取消/失败/不可用结果时进入暂存满失败结算。复活已经成功后的重复成功/失败回调、重试或退出后的旧会话回调一律幂等忽略，不得终止已恢复对局或新对局，也不得重复清空或扣额度。 |
+| CL-047 | 旧分享存档迁移 | 旧版本当天已有`used`但没有成功时间戳时，保留已使用次数，旧冷却视为已经结束；不从升级/首次加载时重新补5或15分钟等待。后续新成功分享正常记录时间并执行剩余冷却；06:00仍按挑战日重置。 |
+| CL-048 | 复活成功搬盘表现 | 五个暂存小碟中的全部食材集中到同一只新混合大盘，不分别返回原盘；沿用既有核心规则将新盘追加普通供应队列末尾。推荐动画约0.8秒：复活弹窗收起，新大盘在暂存区下方出现，暂存食材依次快速飞入，大盘缩小并飞向供应入口，随后恢复对局。动画结束前倒计时和盘面物理保持暂停；导致溢出的点击食材仍留在原大盘且不参与搬运。食材不销毁，itemId、数量、槽顺序及新盘队尾语义保持确定。 |
+| CL-049 | v8盘内食材占比与排布 | 盘子之间继续同平面碰撞且不得重叠；只允许同一盘内的食材轻微互相压叠。占比按“整组食材外包络直径 ÷ 整只盘子的外沿直径”计算，不按中央凹面或Alpha像素面积计算，目标为75%至85%；按初始食材数自适应缩放与排布。用户明确“主要看占比”，因此重叠量不设独立数值验收线，只在达到占比与自然构图所需时轻微使用；每份至少保留约75%可见且不得遮住主要识别特征。食材可以压过盘内侧装饰圈，但不得越出盘子外轮廓或被裁切。食材在所属盘生成时独立取得`-15°…+15°`的确定性随机角度，生成后固定；显示、Alpha点击和提示高亮共用同一旋转变换。同日重试和回放保持一致；订单图标与暂存碟图标保持端正。 |
+| CL-050 | v8屏幕外供给与高度门槛 | 普通供应盘必须从屏幕顶部完全不可见的位置进入，不再直接生成于操作区：中心起点按`Y=-radius-8`，保持既有150/260双通道、水平随机偏移、每0.2秒单队首检查、确定性随机流和向画面下方运动。固定高度门槛由377上移至140；任一在场盘中心`Y<140`时阻塞，等于140不阻塞。顶部物理边界随入口上移，不能把新盘弹回可见区；画面仍在Y=292硬裁剪，盘子进入操作区前不得穿透HUD或接收点击。底部边界、盘子半径、盘间不重叠、队列顺序和其余玩法不变。CL-050只取代CL-024/CL-029中的生成起点与固定377门槛。 |
 
-既有需求保留；v6仅按CL-023替换普通盘供给门槛、生成位置、入场力以及暂存栏遮挡/点击边界。v5旧检查结果不能作为v6受影响分支已实现或已验收的依据。
+### HC-01-v8 Requirement Freeze Candidate — 盘内占比与屏外供给
+
+1. 盘子之间不重叠；盘内食材允许轻微重叠，以整组外包络占整只盘子外沿直径75%至85%和清楚识别为优先；允许压过内侧装饰圈，但不得越出外轮廓。
+2. 食材生成时获得确定性的`-15°…+15°`角度；视觉、Alpha点击与提示使用同一变换。
+3. 普通盘从屏幕上边界外完整生成，推荐中心起点`Y=-radius-8`；进入Y=292以下前保持裁剪且不可点击。
+4. 固定供给门槛从Y=377上移至Y=140，仍按“任一中心低于门槛则阻塞”、每0.2秒最多处理一个队首盘执行。
+5. 150/260双通道、水平随机偏移、盘子物理半径、盘间碰撞、底部边界、供给顺序、库存、订单、随机流及其他玩法保持不变。
+
+低风险实施假设：新增旋转只属于表现布局数据，不改变库存或订单；供给入口的顶部物理边界采用能容纳最大盘完整屏外生成的最小安全位置，精确Collider坐标由Designer依据最大半径计算，但不得改变上述玩家可见结果。
+
+### v8 Design Addendum — Implementation Plan / QA Intent / Code–Art Interface
+
+- 盘内布局使用版本化纯表现数据，输入挑战种子、布局版本、plateId、初始食材集合与资产轮廓，输出中心、尺寸、角度和绘制顺序；以80%为调优中心，75%至85%为允许区间。取走食材后剩余项不重新排布、放大或重抽角度。
+- 角度按挑战种子、布局版本、plateId与itemId/sourceIndex独立键控采样，不使用sessionId、RetryIndex、帧时间、平台字符串哈希或现有出生X随机流；同日重试、回放、暂停和打乱保持相同结果。
+- 显示、旋转后包围盒、逆旋转Alpha命中、绘制层级和提示共用唯一item-local与board变换。上层透明像素允许继续命中下层；订单和暂存图标不继承盘内角度。
+- 普通盘出生中心、缓存路径和物理默认路径统一使用`Y=-radius-8`；固定门槛为140、裁剪为292。最大半径63对应顶部物理内表面-134、上墙中心-139/厚10；左右墙延长，底部828与打乱304…828不变。
+- QA覆盖固定C全部初始盘型、返还混合盘、75%至85%外包络、盘外越界、单份可见性、旋转Alpha点击/提示、139.999/140/140.001门槛、各半径屏外出生、双通道旧偏移序列、暂停/重试/回放、盘间不重叠、三比例入场关键帧及v7复活/奖励/订单/胜负回归。
+- 脚本占比代理使用变换后有效轮廓的最小包围圆直径除以注册盘外沿直径；Alpha只提取轮廓，不作为覆盖面积分母。几何通过不能替代构图自然、食欲感与识别特征的人审。
+- 文件所有权按Code Builder建立供给/物理/布局/变换接口 → Visual完成布局参数、渲染、提示和运行画面调优 → Code Builder只做不改变视觉决定的完整技术验证串行推进。
+
+### r013 Visual Candidate
+
+`.harness/previews/TASK-001/r013/`以当前Unity `full-r006`同一盘面为基线，只修改盘内食材缩放、排布与旋转；正式65张位图、HUD、锅区、暂存区和底栏保持不变。1至5份示例统一瞄准整盘外沿80%，主画面最低单份可见约78.3%，盘间无重叠；360×640检查仍可辨认。屏外分镜明确`Y=-radius-8 → 139阻塞 → 140放行 → 292开始可见/可点 → 整盘进入操作区`。137项静态检查和重复渲染哈希通过；运行时点击、真实物理、回放与性能留待HC-02接受后的Unity实施验证。
+
+### v8 Core Interface Result r001
+
+原`code_builder_v7`在HC-02-v8接受后完成屏外供给与稳定表现接口：统一`SpawnY=-radius-8`、严格140门槛、顶部物理内表面-134；保留旧水平随机流、0.2秒单队首、一次向下力、底部和打乱边界。新增`PlateItemLayout`、会话布局缓存及共享旋转/逆变换/UV/包围盒接口，使用r013参数与真实Alpha瞄准80%，取走后不重排；`ViewItem`提供中心、尺寸、角度、UV、sourceIndex、drawOrder和layoutVersion。未修改GameplayView、V7Art、Resources或场景，写入权已交回PM。
+
+证据：`.harness/qa/TASK-001/v8/core-interface-r001/result.json`。14/14规则、8/8复活/奖励回归、Unity编译/Boot与5/5定向PlayMode通过；覆盖150个真实Alpha初始盘、混装返回盘、确定性/不重排、五种盘径、139.999/140/140.001、旋转命中、透明穿透和12盘连续2200物理步。当前旧渲染尚未消费旋转/层级，不能视为最终可玩集成；下一步由Visual接入显示、Alpha点击和提示，再由Code执行完整验证。
+
+### v8 Visual Integration Result r001
+
+原`visual_design_agent_v7`按r013接入实际Unity表现：GameplayView/V7Art消费ViewItem中心、尺寸、角度、UV、drawOrder与layoutVersion；Alpha点击、透明穿透、可点击扫描和提示共用同一变换。订单/暂存图标保持端正，Y=292裁剪、Y=140门槛、复活与奖励表现保持。修复旧盘节点延迟销毁造成的同帧视觉残留，不改变库存。
+
+证据：`.harness/qa/TASK-001/v8/visual-integration-r001/`。Unity 6000.0.26f1真实Boot PlayMode最终run003退出0；404项定向检查、75张三比例截图、7471个旋转命中样本及359个上层透明穿透样本通过；屏外-59/139/140画面像素一致且不可点击，Y=250只露下盘沿，实际物理跨越140、初露与完整入场位置无瞬移。v7顶部/底栏像素和65张正式位图哈希不变。尚未运行最终全量规则/回放/性能/Windows Player或设备验证，不提交HC-03。
+
+### v8 Final Script Test Scope
+
+Designer只读确认现有核心与视觉阶段证据可进入最终验证，并要求修订三项陈旧诊断：U06从v3/55项资源根升级为批准的v7/65张正式位图；HiddenPhysics从旧中心203阻塞改为203完全隐藏但放行、139.999隐藏且阻塞；性能探针从15秒540×960旧夹具升级为真实v8资源/布局、三种正式分辨率各预热后连续120秒。
+
+最终范围：完整14组规则与回放、布局/确定性/取走稳定、五级屏外出生与139.999/140/140.001、12盘2200步盘间不重叠及打乱、独立oracle的旋转Alpha/透明穿透/提示/292裁剪、8组复活奖励及UF01–UF05、16个Unity用例和65张资源/字体/九宫格/Boot绑定、完整页面与三比例截图、Windows x64完整Player实际启动、三档复杂场面性能。脚本代理不替代构图、食欲感、手机真机或最终体验人审；音频、微信导出/上传/发布及真实平台服务仍Out of Scope。
+
+### HC-03-v8 Candidate Result
+
+最终证据`.harness/qa/TASK-001/v8/final-r001/`中所有必需自动阶段退出码为0：规则14/14；复活奖励、UF01至UF05及存档迁移通过；布局/确定性/供给/物理5/5；Unity Smoke 16个必需用例与资源/生命周期检查通过；旋转Alpha/透明穿透/提示/裁剪沿用404项与7471命中样本；页面三比例75+77张、60项页面检查通过；Windows x64 Player构建0错误并实际启动通过。156个受保护文件哈希不变，最终验证只修改诊断、截图与构建脚本，不改玩法、视觉参数、正式资源或场景。
+
+Windows Player：`Builds/TASK001/v8/Final-r003/HotpotSortV8.exe`，必须保留同目录全部144个文件。复杂场面预热15秒后每档连续采样超过120秒：720×1280平均642.85 FPS/P95 9.21ms；1080×1920平均578.57 FPS/P95 9.32ms；1440×3200平均467.49 FPS/P95 9.66ms。环境为Windows 11、Ultra 7 265KF、RTX 5060、D3D11；这是桌面代理，不代表微信手机真机性能。
+
+差异分类：Expected Change——食材80%外沿占比、确定性小角度、盘内轻微压叠、屏外供给与140门槛；No Difference——未受影响v7页面/锅区/暂存/底栏、正式65位图和受保护核心文件；Introduced and resolved——旧盘节点同帧残留及陈旧测试口径已修复并完整重跑；Pre-existing——Unity许可客户端与无音频设备告警；Uncertain/Out of Scope——音频、微信真机与平台服务、最终玩家审美和体验。
+
+### Resolved Clarification v7-C1 — 复活成功搬盘动画
+
+2026-09-22用户以参考图说明：复活成功后，暂存小碟中的食材不能直接消失，应移动到大盘子中并制作可见动画。用户随后确认全部集中到一只大盘，并采用PM推荐的队尾、时长、暂停和溢出项处理，形成CL-048：
+
+1. 五个暂存小碟中的全部食材集中到同一只新大盘；
+2. 新大盘进入普通供应队列末尾，不立即插入当前盘面；
+3. 采用约0.8秒序列：弹窗收起 → 新大盘出现 → 食材依次飞入 → 大盘飞向供应入口 → 恢复对局，且动画期间倒计时和物理继续暂停；
+4. 当前导致溢出的点击食材仍留在原大盘，只搬运五个暂存小碟内食材。
+
+不得把暂存食材画成销毁/瞬间消失；r010、正式表现与QA必须验证搬运、队尾、暂停和溢出项保留。
+
+既有需求保留；v6仅按CL-023替换普通盘供给门槛、生成位置、入场力以及暂存栏遮挡/点击边界。v5旧检查结果不能作为v6受影响分支已实现或已验收的依据。v7按CL-026至CL-036只重做视觉与表现，不重新解释v6核心规则。
 
 ## A/B/C骨架共性记录（2026-09-21，用户要求保存）
 
@@ -171,6 +310,15 @@ HC-02 接受后才生产正式拆分资产并集成。方案草稿、预览修�
 
 当前采用：只完整复刻C的内容结构及已确认的预处理/普通队列规则；不从共性重新随机造盘。普通生成每次仅取当前队首、创建后出队，不一次性生成全部，也不保证消掉一盘立即补一盘。CL-023取代CL-022的空间门槛：每0.2秒仅以场上盘根对象中心Y与spawnGate(377)判断是否供给，使用150/260双生成位和原版水平随机偏移，不再要求生成位完整界内且不重叠。清空暂存追加混合盘与打乱仅调整当前盘位置的既有规则保留。
 
+## v9 HC-02 Implementation Contract
+
+- 供给观察报告`sessionGeneration/snapshotRevision/observationSequence/entryCount/entryLimit=3/gateY=140/canSupply`；观察只报告物理事实，不分配ID、不消费随机流。
+- 调度以有效游玩时间的节拍索引`0,300,600...ms`运行；长帧一次最多检查一次并跨过遗漏节拍。拒绝或阻塞不改变队首、成功计数、出生缓存或水平随机序列。
+- 有效入场盘为活动盘中心`Y<140`；空盘残影、队列盘、复活运输视觉盘排除。三盘连续屏外生成不得新增位置空闲门槛。
+- 物理主题固定`friction=0.08`、`linearDamping=0.08`；弹性、质量、持续向下力、盘径、80%食材布局及碰撞半径保持。
+- 写入顺序：Code稳定合同与核心 → Visual所选A/B正式资产、布局与动效 → Code非侵入构建和回归。共享Scene、GameplayView、Resources与绑定禁止并写。
+- QA覆盖0/1/2/3入场盘、139.999/140/140.001、300ms边界、长帧、暂停叠加、阻塞恢复、不追赶、三盘首个可见帧、盘间不穿叠及旧随机流。
+
 <!-- FROZEN_START -->
 
 # Frozen Requirement
@@ -178,6 +326,10 @@ HC-02 接受后才生产正式拆分资产并集成。方案草稿、预览修�
 ## Goal and Player Outcome
 
 交付高精度的 Unity 每日挑战可玩版。玩家在传统火锅桌上点击整理食材，观察当前可用食材与订单，体验下锅、连续完成订单及清理盘面的爽感。完成全部已确认功能，并以实际游戏画面与声音验收。
+
+### v7 Visual Quality Upgrade
+
+除CL-041至CL-048已接受的暂存满复活、共享冷却和复活搬盘增量外，不改变核心玩法、v6供给/物理/遮挡/点击规则或其他存档、平台接口语义；整套重制Unity可见画面。玩家进入对局后首先注意到饱满、清楚且有食欲的盘面食材；订单和状态信息保持易读但不争抢焦点；沸腾、飞行、下锅、端锅、解锁和复活搬盘形成短促有力的连续反馈。v7画面达到热闹喜庆、轻框架、统一精致的商业休闲游戏品质，并在复杂场面保持Unity实测稳定30 FPS。
 
 ## Core Rules and Confirmed Decisions
 
@@ -192,12 +344,12 @@ HC-02 接受后才生产正式拆分资产并集成。方案草稿、预览修�
 - 初始两口订单锅。三个同类食材完成订单，整锅端走并补单；暂存食材遇到匹配订单自动入锅。
 - 进度按完成订单数 / 61 计算；达到 50%（31 单）开第三锅，80%（49 单）开第四锅。第四锅可提前通过模拟激励解锁。
 - 未开锅位显示未开火铜锅；开锅点火、蒸汽、订单出现。每口锅少量食材、红汤留白，订单图标和进度清楚。
-- 暂存固定五格。已满时再点击不匹配食材直接失败；已满仍可点击匹配订单的食材。
-- 倒计时十分钟；超时直接失败，无续时。手动暂停、后台和激励期间暂停计时。
+- 暂存固定五格。已满时再点击不匹配食材触发暂存满失败分支；已满仍可点击匹配订单的食材。暂存满在正式结算前仅可尝试每局一次复活；成功后自动执行既有清空暂存效果并继续同一局，取消/失败/拒绝则进入普通失败结算。
+- 倒计时十分钟；超时直接失败，无复活、无续时。手动暂停、后台和激励期间暂停计时。
 - 提示只高亮一个可点击且匹配当前订单的食材。
 - 清空暂存把全部暂存食材移到队尾的新混合盘，再按正常生成和点击规则处理。
 - 打乱只重新排列当前剩余盘子的位置，保留盘内内容、生成队列及剩余总量。
-- 三道具通过模拟激励或分享替代获得；每天分享总额三次，共用额度。第四锅提前解锁仅激励。
+- 三道具通过模拟激励或分享替代获得；暂存满复活也可使用同一分享替代。全部分享奖励共用每天三次额度：首次立即可用，首次成功并实际生效后5分钟开放第二次，第二次成功并实际生效后15分钟开放第三次，北京时间06:00重置。复活弹窗只显示一个奖励入口：分享已解锁时优先分享，否则显示模拟广告；每局最多复活一次。第四锅提前解锁仅激励。
 - 可依赖道具解围；不保证无道具可解。
 - 全部食材、订单、暂存结清才胜利；每天首次胜利增加累计通关次数，同日重复胜利不增加。
 - 云开发、分享、开放数据域好友榜仅接口；不接真实云数据或生产服务。Unity 开发模拟明确区分于真实服务。
@@ -210,8 +362,8 @@ HC-02 接受后才生产正式拆分资产并集成。方案草稿、预览修�
 - 16 种食材：肥牛卷、羊肉卷、午餐肉、毛肚、虾、鱼片、鱿鱼、蟹柳、鱼丸、豆腐、鸭血、鹌鹑蛋、玉米段、土豆片、金针菇、青菜。
 - 正俯视 2D/2.5D，暖色深木桌、传统红汤铜锅、白瓷盘与五小碟、细深棕描边，偏写实简化纹理、有食欲。
 - 首版无人物、灯笼、招牌、窗景等桌外布景。独立食材不烘焙整体投影。
-- 全部重做食材、锅开启/未开火状态、器皿、桌面、按钮、弹窗、进度、计时、订单标记、启动/结算/好友榜界面及分享图。
-- 分享图仅为静态主题图，不显示日期、用时、首通、累计或其他动态结果字段。
+- 全部重做食材、锅开启/未开火状态、器皿、桌面、按钮、弹窗、进度、计时、订单标记、启动/结算/好友榜界面及奖励分享主题图。
+- 分享图仅服务于奖励分享替代流程的静态主题/开发模拟预览，不作为普通结算独立页面或按钮；不显示日期、用时、首通、累计或其他动态结果字段。
 - 下锅水花、红油波纹、蒸汽、完成金光、飞行与端锅动画保持清晰且不遮挡操作。
 - 参考图片：C:/Users/charlielu/Documents/WXWork/1688856730932575/Cache/Image/2026-09/92003150-c5e4-4538-80d1-acc34cafb5f6.jpg。仅参考食材与器皿质感，不复制其素材或界面。
 - 首张整屏预览采用 9:16、无具体文案；用户接受后才制作正式拆分资产。
@@ -222,19 +374,20 @@ HC-02 接受后才生产正式拆分资产并集成。方案草稿、预览修�
 
 ## Scope
 
-Unity 完整每日挑战、骨架C内容与供给/订单调度、道具、每日首通本地开发状态、平台接口、正式美术、动画特效、音频、适配与验证。v6本次变更仅涉及当前每日挑战的普通盘供给链、双生成位、入场力、暂存栏遮挡/裁剪与点击边界，其余范围保留。
+Unity 完整每日挑战、骨架C内容与供给/订单调度、道具、每日首通本地开发状态、平台接口、正式美术、动画特效、适配与验证。v6变更仅涉及当前每日挑战的普通盘供给链、双生成位、入场力、暂存栏遮挡/裁剪与点击边界。v7覆盖启动页、主玩法、暂停、设置、胜负结算、好友榜、奖励分享/激励模拟页面的整套视觉、UI、正式位图、动画和VFX重制，并加入暂存满每局一次复活与共享分享冷却；使用内置ImageGen skill生产正式可见位图。
 
 ## Non-goals
 
-新增普通关卡模式、源游戏第二关教学暂停、传送带特殊分支、全服榜、真实云部署/数据、正式微信广告接入、微信导出或真机验收、金币/体力/养成、助力/组队/纪念品、外部发布。
+新增普通关卡模式、源游戏第二关教学暂停、传送带特殊分支、全服榜、真实云部署/数据、正式微信广告接入、微信导出或真机验收、金币/体力/养成、助力/组队/纪念品、外部发布。v7不制作或验收音频；除CL-041至CL-048明确冻结的复活、分享冷却、版本化回放和搬盘表现外，不改变其他玩法/物理/供给/遮挡/点击/存档/平台规则；不使用假头像、假排行、虚构奖励或图片内动态文字。
 
 ## Constraints
 
 - Unity 6000.0.26f1；竖屏参考 720×1280 至 1440×3200，处理刘海及安全区。
-- 性能目标稳定 30 FPS、争取 60 FPS；本轮只能报告 Unity 实测，不能声称完成手机真机性能验证。
+- v7采用效果优先并以复杂盘面稳定30 FPS为硬目标；不为争取60 FPS主动削弱已批准效果。本轮只能报告 Unity 实测，不能声称完成手机真机性能验证。
 - 保留无关已有改动；资源替换通过明确绑定和版本化生产目录，不清理用户历史文件。
 - 预览保存 .harness/previews/TASK-001/rNNN/，不得覆盖旧版本。
 - Code + Art 文件写入范围与接口必须在实施前明确；代码集成只有一个写入者。
+- 正式v7位图使用内置ImageGen逐项生成并写入`Unity/Assets/HotpotSort/Resources/Hotpot/TASK001/v7/r001/`；HC-02-v7 Accepted前仅允许预览输出，不得生产正式拆分资产或修改Unity表现实现。
 
 ## Acceptance Criteria
 
@@ -243,17 +396,25 @@ Unity 完整每日挑战、骨架C内容与供给/订单调度、道具、每日
 | AC-F-01 | Functional | 初始 50 盘/183 单位/16 种、61 单；队列与清空暂存全过程数量守恒 | 数据检查及规则用例 |
 | AC-F-02 | Functional | 盘子保持同一物理平面并正确碰撞；有效区域点击、匹配、暂存回填、31/49 单解锁及终局准确 | 定向检查及 Unity 试玩 |
 | AC-F-03 | Functional | 三道具按定义执行，分享共用三次，激励结果不重复发奖 | 边界用例 |
-| AC-F-04 | Functional | 06:00 换日、同日复现、首通幂等、退出重开 | 时间边界与重复回调用例 |
-| AC-F-05 | Functional | 平台接口可注入模拟实现，未接入真实数据时反馈真实状态 | 接口与 Unity 流程检查 |
+| AC-F-04 | Functional | 暂存满仅提供每局一次复活；分享可用时单一按钮优先分享，否则显示模拟广告；成功自动清空暂存并继续；仅当前未决请求取消/失败/不可用进入失败，成功后的重复回调及旧会话回调幂等忽略；超时永不复活 | 状态、奖励回调、会话代次与完整流程用例 |
+| AC-F-05 | Functional | 三道具与复活共用每日三次分享额度；06:00重置，成功且实际生效后依次执行5分钟、15分钟冷却，跨暂停/后台/重启保持一致 | 持久化时钟、跨日、取消/失败/重复回调用例 |
+| AC-F-09 | Functional | 06:00 换日、同日复现、首通幂等、退出重开 | 时间边界与重复回调用例 |
+| AC-F-10 | Functional | 平台接口可注入模拟实现，未接入真实数据时反馈真实状态 | 接口与 Unity 流程检查 |
 | AC-F-06 | Functional | 每0.2秒最多供给一个队首盘；150/260双位置轮换并带−0.5至+0.5世界单位水平随机偏移；当前盘面坐标中任意在场盘中心Y<377时不出队、Y=377不阻塞，条件恢复后继续同一队首；不使用旧完整界内/无重叠门槛 | 确定性规则用例、供给事件与运行日志 |
 | AC-F-07 | Functional | 新盘按当前坐标仅施加一次(0,+5) Force并保留持续向画面下方的物理力；顶部边界允许盘完整隐藏和再露出；盘清空即退出高度检查；暂停/终局不供给，继续恢复，重开重置队列与轮换 | 物理定向检查、生命周期用例及Unity运行证据 |
 | AC-F-08 | Functional | 暂存栏下沿硬裁剪与前景覆盖同时生效；盘及其内容/边框/高光/选中效果不漏图；UI和遮挡区不穿透，露出有效像素可点击 | 多比例截图、输入边界脚本检查及Unity人工点击 |
+| AC-F-11 | Functional | 复活成功把暂存项按槽0→4集中到一只新混合大盘并严格追加供应队尾；约0.8秒可见搬运结束前计时、物理和供给保持暂停；溢出点击项留在原盘且不参与搬运；食材不销毁、不复制、不换序 | 核心事务、队列前缀、事件批次、暂停叠加、真实Mapper→View流程与Unity分镜对照 |
 | AC-T-01 | Technical | Unity 编译成功，主要状态和资源绑定完整，无阻断运行错误 | 编译、日志和运行证据 |
 | AC-T-02 | Technical | 竖屏与安全区适配、性能及音频循环检查 | Unity 各比例截图及采样 |
 | AC-E-01 | Experiential | 整屏预览与正式整合画面达到高精度、统一且有食欲 | 用户预览与集成验收 |
 | AC-E-02 | Experiential | 定制品质音乐与音效、混音舒适、循环自然 | 音频试听及游戏内人审 |
 | AC-E-03 | Experiential | 高难挑战与整理爽感兼具，飞行/碰撞/端锅连贯 | 用户完整试玩 |
 | AC-E-04 | Experiential | 盘靠近暂存栏时遮挡自然，半露内容清楚可点，供给和堆积节奏符合目标表现 | 用户对比试玩与最终体验确认 |
+| AC-E-05 | Experiential | v7全界面呈现热闹喜庆但不厚重俗艳；盘面食材是第一视觉焦点，UI轻框架且信息层级清楚 | HC-02整屏/状态预览与HC-03集成画面人审 |
+| AC-E-06 | Experiential | 16种食材饱满半写实、正俯视、统一顶光/描边/色彩，小屏下轮廓清楚且彼此可辨 | 360px检查图、全食材接触板与Unity实际缩放人审 |
+| AC-E-07 | Experiential | 持续轻沸腾、点击飞行、落锅、端锅、解锁与胜利反馈短促有力，不遮挡后续点击；失败温和且原因清楚 | 动效分镜、事件状态检查与Unity实际体验 |
+| AC-T-03 | Technical | v7资源版本化完整，透明资产Alpha正确，图片不承载中文/动态数字，旧资源未覆盖，Boot只在正式资产完成后切换批准根 | Asset Contract、资源校验、路径与哈希检查 |
+| AC-T-04 | Technical | 最拥挤盘面、四锅开启和连续反馈组合下Unity实测稳定30 FPS，暂停/退出/重试/换会话可安全清理或去重表现事件 | 性能采样、状态用例和运行日志 |
 
 Test Proxies: 计数、帧率、文件属性、编译成功不能替代审美、音频品质或爽感验收。
 
@@ -468,18 +629,99 @@ manifest必填：`assetId,taskVersion,revision,relativePath,sha256,format,width,
 
 Remaining execution dependencies: Unity实际路径、字体实际来源、外部音频供应方/授权尚待实施前查证；它们不是未决产品规则。r004轻微椭圆/土豆放射纹不改变正俯视真圆和食材识别合同，正式资产仍须按合同并经人审。
 
+## Design Handoff v7 — Visual Quality Upgrade（HC-02-v7 Candidate）
+
+Status: Design Ready / Preview Candidate Ready。输入为HC-01-v7；未修改Unity Runtime、Scene、Prefab、正式Resources或既有v6逻辑。真实实现仍由`GameplayView.cs`运行时构建uGUI，`GameplayFeedback.cs`管理表现反馈，Boot当前仍绑定`Hotpot/TASK001/v3/r001`；这些事实决定v7先收口稳定表现配置，再由Visual串行完成视觉集成。
+
+### Implementation Plan
+
+1. Code Builder先记录现有Boot、规则QA、v6 Unity用例、BuildGuard、资源根和关键页面截图基线；保持`IPresentationPort`、点击命令及供给观察接口不变，并以向后兼容的版本化字段扩展`ViewSnapshot / ViewEvent`，承载CL-048有序搬盘批次，不从已清空的最终快照反推过程。
+2. 在不改变玩法坐标的前提下，将`GameplayView`与`GameplayFeedback`内散落的颜色、资源路径、视觉布局、锚点与动效参数收口为版本化v7表现主题；禁止继续依赖对象中文名称或按钮文字猜测皮肤/图标。
+3. 建立共享表现锚点：四锅、`BufferSlot[0..4]`、`RevivalGatherPlate`、`GatherItemSlot[0..4]`、`SupplyEntryVisual`、盘面裁剪、运输、弹窗和安全区均从同一配置读取；主玩法视觉坐标继续与420×900、Y向下的盘面坐标共用安全区映射，保留Y=292裁剪、Y=377供给和底部边界。
+4. 建立表现生命周期时钟与取消/去重策略，使暂停、退后台、退出、重试、会话切换和重复事件能安全冻结或终止飞行、端锅、解锁与VFX。普通动画不在游戏暂停时继续；CL-048搬盘时钟可在仅有`PauseReasons.Revival`时推进，遇User/Background暂停则冻结并保留进度。退出、重试、换会话清理表现并使完成令牌失效。
+5. Visual按批准锚点逐项生产正式ImageGen资产和manifest，随后唯一负责UI布局、材质、动效、VFX、绑定和实际运行视觉调优；Boot只在正式资产完整并通过校验后切换至`v7/r001`。
+6. Code Builder最后只做不改变视觉决定的编译、构建、资源、状态、性能与回归验证；若修复会改变画面，则退回Visual收口，再完整重跑。
+
+### Code–Art Interface
+
+- `IPresentationPort`和既有事件字段保持兼容；新增表现结构包括`Theme / AssetKey / UIRole`、共享`PresentationAnchors`、可取消`VisualClock`及版本化`RevivalTransferBatch`。搬盘批次至少携带`sessionId/generation、transactionId/eventSeq、revivalOfferId/requestId、newPlateId`，以及按源槽序排列的`itemId、ingredientId、sourceSlot、targetIndex`；不得按itemId、字典顺序或空槽快照反推。
+- 稳定资源键不得依赖层级名或中文文案：`background.table/edge_cloth`、`food.00…15`、`plate.main`、`dish.buffer`、`pot.body/broth/rim/unlit`、`ui.panel/button/order/progress/timer/bottom_bar`、`icon.*`、`fx.*`、`hero.entry/win/share`。
+- 食材显示、透明像素命中和提示候选共用同一纹理、pivot、缩放和局部变换；正式透明命中阈值保持现有`alpha > 0.1`语义，不允许出现“看得到但点不到”或透明留白可点。
+- 锅状态沿用`Unlit → Open → Completing/Serving → Open`；表现事件继续携带现有会话/序列/事务身份，不从最终快照反推中间动画。重复事件幂等，过期会话事件丢弃。
+- 复活集结盘复用`plate.main`与现有食材Sprite，作为不接收Raycast、无物理刚体、不会进入在场盘集合或提前消耗出生随机数的运输代理；源槽坐标在核心清空前由有序搬盘事实提供，飞向`SupplyEntryVisual`只表达队尾语义。仅当前会话和当前批次的一次完成通知可解除`PauseReasons.Revival`。
+- 写入顺序：Code Builder先写主题/锚点/生命周期与校验接口；Visual再写正式资产和表现层；Code Builder最后验证。Scene、Prefab、材质、动画、UI绑定及表现脚本不得并发修改。
+
+### Asset Contract
+
+| Asset group | v7 formal contract |
+|---|---|
+| `food/food_00…15` | 每项独立ImageGen调用；512×512 RGBA PNG；中心pivot；主体至少8%透明边距；真透明，无盘、文字、水印、整幅投影或额外物件；统一正俯视、顶光、细深棕描边。 |
+| `containers/plate_main` / `dish_buffer` | 1024² / 512² RGBA；正俯视真圆；候选可视半径448 / 224px，最终以实际Alpha可视边界测量结果绑定显示与碰撞，不机械套用名义尺寸。 |
+| `pots/{body,broth,rim,unlit}` | 同坐标1024² RGBA分层；外沿候选半径384px、汤面安全区300px；各层严格同心，锁定/开启/完成状态不烘焙动态文字。 |
+| background | 木桌1440×3200 RGB；红色织物/金纹为独立边缘层；中心不得含疑似可点击的餐具、蘸料或人物。 |
+| UI / icons / FX | 面板1024²、按钮512×256、订单牌512×256、图标256²、FX 512² RGBA；九宫格候选panel=128、button=64、order=48、progress/timer=48/32/48/32；VFX不接收Raycast。 |
+| revival transfer proxy | 复用`containers/plate_main`与最多五个`food.*`；独立非交互运输层，不受盘面Y=292硬裁剪，但必须位于模态消失后的盘面UI之上且不遮挡系统安全区；最终缩向`SupplyEntryVisual`，不得表现为立即插入当前盘面。 |
+| hero / share | 启动与胜利主视觉1440×1920；静态分享主题图1200×960；不含中文、动态数字、日期、累计成绩或伪平台数据。 |
+| fonts | 标题为合法可嵌入招牌手写风；正文、按钮、数字和倒计时为合法可嵌入清晰圆体；交付字体文件、许可证与中文字形覆盖结果，正式版不依赖系统字体。 |
+
+Manifest必填：`assetId, taskVersion, revision, relativePath, sha256, format, width, height, alpha, pivot, visibleBounds, safeArea, hitGeometry, nineSliceBorder, state/frame, source, license`。正式选择只复制到`Unity/Assets/HotpotSort/Resources/Hotpot/TASK001/v7/r001/`，旧v3及全部预览保留。
+
+### State Matrix and QA Intent
+
+- 页面/状态：启动、两锅/三锅/四锅、拥挤盘面、半隐藏/全隐藏盘、暂存路由与自动转移、订单完成、31/49解锁、暂停/后台/奖励暂停、设置、胜利、暂存满、超时、好友榜空态、本地数据、分享及广告/分享模拟。
+- 事件风险：连续点击、重复事件、端锅与解锁相邻、暂停/退出/重试/换会话时取消、复活搬盘阶段与完成令牌、模态层级、VFX输入穿透、旧资源漏绑和字体缺字。
+- 自动回归：完整重跑14组规则、v6的16个Unity用例、BuildGuard、Boot与核心流程Smoke；新增资源清单/哈希/尺寸/Alpha/pivot/九宫格/字体字形/稳定键/状态页/生命周期取消、事件去重、有序搬盘事实、队列严格追加、溢出项保留及搬盘完成令牌检查。
+- 视觉回归：输出720×1280、1080×1920、1440×3200三档实际Unity截图；同状态前后对比并分类`Expected Change / Introduced / Pre-existing / Uncertain / No Difference`。
+- 性能代理：Windows Unity最拥挤盘面＋四锅＋连续飞行＋订单完成组合持续采样120秒，目标平均不低于30 FPS且P95帧耗时不高于33.4ms；该结果不替代微信真机性能结论。
+- 人工保留：HC-02只判断风格；HC-03核对正式资产与集成结果；HC-04才判断实际试玩、审美、可读性、手感与最终体验。数量、像素、帧率和脚本通过不能替代后两者。
+
+### Failure / Revival Design Addendum（HC-01-v7-r2）
+
+Status: Design Ready。以下为CL-041至CL-047的技术收口，不新增产品规则。
+
+状态流：`Running → OverflowPending(Paused)`仅发生于首次暂存溢出且本局尚未成功复活；此时不提交`ChallengeFailed`。有效奖励成功后原子执行“暂存项按槽序组成混合盘严格追加队尾 → 清空五槽 → 标记本局已复活 → 生成唯一搬盘批次”，保留sessionId、挑战日期、RetryIndex、已用时间、订单、在场盘、供给计数、出生缓存和随机流；溢出点击项仍留在原盘。随后进入`RevivalTransfer(Paused)`，继续持有`PauseReasons.Revival`，直到当前会话、当前批次的一次有效表现完成通知；完成后清除pending并仅解除复活暂停。拒绝、当前请求取消/失败/不可用或复活后再次溢出才提交一次`Failed(BufferOverflow)`。`Timeout`始终直接失败。奖励提交后及动画中的重复回调、重复完成通知与旧会话回调幂等忽略。
+
+稳定接口增量：
+
+- `DailySession`提供只读`RevivalPending / RevivalUsed / RevivalOfferId`和确定性`ResolveRevival`命令；普通清空与复活共用内部暂存转队尾事务，但复活额外输出有序搬盘批次和唯一完成令牌，不临时恢复Running来绕过`CanClearBuffer`。
+- `SessionController`增加独立`PauseReasons.Revival`；弹窗出现立即停活动时钟、供给和物理。奖励请求暂停可在奖励提交后结束，但`Revival`持续到搬盘完成；成功只解除当前批次自身原因，User/Background等其他暂停保持。
+- `RewardKind`显式增加Revival；`RewardCoordinator`区分Applied、Cancelled、Failed、Unavailable、Stale、Duplicate，未知奖励拒绝，禁止落入Shuffle默认分支。
+- 共享额度服务提供可用性快照、独占预留、生效提交和失败释放。点击时重新查询并冻结路线/额度日期；分享可用优先分享，否则广告；请求中不切换路线或接受第二次点击。
+- 新记录至少包含`day, used, lastEffectiveUtc, dataVersion, committedRequestId`。时间使用可注入UTC源与既有06:00挑战日；后台/暂停/退出期间继续流逝。旧记录无时间戳时保留used并视为冷却结束。
+- 新生产局使用版本化`daily_state_v3 / daily_event_v3 / daily_replay_v3`和`ResolveRevival`回放命令；旧v2金样走LegacyV2保持“溢出立即失败”。内容版本、骨架C、食材映射种子和随机算法不因规则身份升级而改变。
+
+奖励提交顺序固定为：`核验会话/机会/请求 → 核验额度预留 → 原子应用复活核心事务并生成搬盘批次 → 提交次数/时间/requestId → 结束奖励请求暂停 → 等待当前搬盘批次完成 → 解除Revival暂停`。核心核验、应用和额度提交之间不得插入异步等待；表现完成不得二次应用效果或扣额。05:59发起、06:01生效仍提交旧日桶，新日额度独立。
+
+QA增量覆盖：满暂存匹配/不匹配、超时、每局一次、同局状态不重置、五itemId守恒、源槽0→4到新盘sourceIndex 0→4、pending队列严格`Q + [newPlateId]`、动画期间不供给/不消费出生随机、溢出点击项保留、暂停叠加、搬盘各阶段的后台/用户暂停/退出/重试、重复奖励/完成/旧回调、used=0/1/2/3、299.999/300秒、899.999/900秒、四类奖励交叉消费、跨06:00/后台/重启、旧存档迁移、v2/v3回放身份以及普通结算无分享入口。必须至少一条真实核心事务经Mapper送到View的流程证据，不能只构造合成ViewEvent；三档分辨率核对源碟、集结盘、入口和运输层。原v6供给、裁剪、物理、点击与道具基础语义完整重跑，仅定向替换“首次溢出立即终局”的旧断言。
+
 ## Workstream Ownership
 
 | Role | Current scope | Writes |
 |---|---|---|
 | PM | Task 和已确认长期规范同步、汇总证据 | 本 Task、docs/GAME_SPEC.md、docs/ART_BIBLE.md |
 | Feature Designer | Draft 接受后只读实现调查与 QA Intent | None |
-| Visual & Presentation Agent | 整屏预览、迭代；批准预览与冻结资产合同后的正式美术和表现层实施；集成后视觉调优与QA | 本 Task 新预览 Revision、`.harness/artifacts/TASK-001/`及经PM串行交接的表现层路径；不改核心规则/数据/平台逻辑 |
-| Code Builder | v5固定C内容、稳定表现接口与必要技术验证；不做视觉重排和审美调优 | 见当前Design Handoff v5的限定路径；允许实施 |
+| Visual & Presentation Agent | r010/r012整屏预览与总监收口；批准后生产v7正式资产、表现层集成、CL-048搬盘动画、实际运行调优与视觉QA | `.harness/previews/TASK-001/`、`Unity/Assets/HotpotSort/Resources/Hotpot/TASK001/v7/`及经PM串行交接的表现层路径；不改核心规则/数据/平台逻辑 |
+| Code Builder | 复活核心事务、Session暂停、RewardCoordinator、共享额度存档、v2/v3 Replay、v7主题/锚点/有序搬盘事件与完成令牌、资源校验、测试和最终非侵入技术验证；不做视觉重排和审美调优 | HC-02 Accepted后按上文Implementation Plan限定路径串行写入 |
 
 # Visual Direction
 
-Preview Status: r004 accepted as visual direction (HC-011)
+Preview Status: r012 Director Candidate Ready；HC-02-v7-r2 Human Art Approval Pending。r004保留为历史证据，不再作为最终品质目标。
+
+HC-02-v7 Candidate: `.harness/previews/TASK-001/r007/`。主图`gameplay-preview.png`为1080×1920，`qa-mobile-360.png`为360×640；`flow-screen-board.png`覆盖启动、暂停、设置、胜负、好友榜、分享与奖励模拟；`state-board.png`覆盖四锅、拥挤、半隐藏和端锅补单；`motion-storyboard.png`覆盖点击入锅、端锅补单和解锁；`material-anchor.png`、`ui-anchor.png`、`before-after-style.png`、`share-theme-preview.png`分别用于材质、UI、前后对比和静态分享风格判断。`visual-spec.md`、`prompt-record.json`、`preview-evidence.json`保存规范、11次内置ImageGen调用和文件哈希。
+
+PM Visual Review r007: 盘面食材已成为第一焦点；木桌中心干净，红色织物和金纹只在边缘；象牙白轻框架与少量朱红/铜金层级成立；启动、弹窗、结算和平台模拟页面属于同一视觉家族；360px图仍能识别主要食材、锅状态和底栏。正式生产仍须纠正个别器皿轻微透视倾向，并通过Alpha、实际坐标、安全区、字体许可和性能验证；这些是下游合同，不要求用户在HC-02逐项判断。
+
+HC-02-v7 Revision Scope: r007作为历史候选保留。r008只重做受影响的主玩法、状态/尺寸证据、动效分镜、360px检查图和相应规范：顶部移除31/49数字节点；盘子按既有物理半径明显分级；入锅落点允许约0.1秒瞬时反馈，但锅面随后与动作前完全一致。启动、弹窗、结算、好友榜、分享、材质气质和未受影响页面保持有效。
+
+r008 Completed: `.harness/previews/TASK-001/r008/`。顶部仅保留整体进度条；盘子以初始装载数量对应半径39/45/51/57/63，取走食材不缩盘；食材轻抬、短飞行、约100ms涟漪后消失，汤面恢复原样。使用内置ImageGen编辑6次，主图许可区域之外像素差异为0；正式坐标、Alpha点击、动画取消和30 FPS仍待Unity验证。
+
+r009 Failure Substream Completed: `.harness/previews/TASK-001/r009-failure/`。独立覆盖分享复活、模拟广告复活、拒绝/取消/失败后的暂存满结算、时间到直接结算及奖励分享/广告开发模拟；一次只显示一个奖励按钮，不出现钻石、货币或假微信状态。使用内置ImageGen 3次，中文和动态数字均为确定性排版。该分线不单独作为HC-02候选，由原Visual合并至r010并移除普通胜利页分享入口。
+
+r010 Integrated Candidate Ready: `.harness/previews/TASK-001/r010/`。原Visual已整合r008主玩法和r009失败/复活分线，并补齐CL-048约0.8秒“五小碟→一只新大盘→供应队尾”分镜；普通结算无分享入口，奖励分享主题图只在奖励流程出现。主玩法保留无数字解锁节点的整体进度条、半径39/45/51/57/63五级盘径、约100ms落点反馈后恢复原汤面。13张1080×1920页面均有360×640检查图；53张PNG已记录尺寸与SHA-256，51个HTML链接全部可解析，6个权威输入副本字节一致。该版保留为总监整合过程证据；最终候选身份等待r012统一验收。
+
+r011 Support Evidence: `.harness/previews/TASK-001/r011-revival-motion/`提供六帧盘面内搬盘专项分镜，`.harness/previews/TASK-001/r011-mobile-audit/`提供360px对照与字号审查。辅助审查确认r010普通胜负页已移除分享入口；仍需总监判断是否采纳盘面内六帧表达，并在正式排版放大约7.7px的“提前开锅”等过小文字。两分线只作r012输入，不单独提交人工检查。
+
+r012 Director Candidate Ready: `.harness/previews/TASK-001/r012/`。原Visual采纳r010页面家族与分享范围，调整后采纳r011盘面内六帧作为CL-048主证据；运输盘无物理、无碰撞、无Raycast，五份按槽序汇入唯一大盘并缩向屏外供应入口，终帧不立即新增活动盘。提前开锅与底栏文字约12.6px，开发/额度/辅助文字至少约12.2px（均按360宽名义缩放）；普通胜负无分享，复活单一奖励入口。69张PNG哈希和55个本地链接通过静态完整性检查，800ms终帧与r012主图逐像素一致。PM独立目检确认页面家族、盘面焦点、轻UI层级、普通分享移除及搬盘归属表达均达到提交风格判断的条件；Unity运行、暂停/队尾事务、Alpha点击、安全区和30 FPS仍留待HC-03。
 
 r003草图：.harness/previews/TASK-001/r003/gameplay-preview.png；同目录prompt.txt、qa-mobile-360.png。顶部09:59，订单1/3和2/3已显示；941×1672。兼容调度已核验，但该版仍有斜俯视、排列规整及土豆纹理问题，保持Needs Revision，不能用于正式资产生产。
 Latest Approved Preview: .harness/previews/TASK-001/r004/gameplay-preview.png（HC-011 Accepted；仅作为视觉方向，不替代正式资产合同）
@@ -553,8 +795,8 @@ v5固定C与普通供给替换分支已完成自动验证和用户HC-04体验接
 
 # Final Decision
 
-Status: Awaiting Human Check（HC-03-v6 Implementation Result）
-Next checkpoint: 用户对HC-03-v6回复Accepted、Needs Revision或Rejected；Accepted后进入HC-04最终实际试玩与体验判断。
+Status: Awaiting Human Check（HC-03-v8 Pending）
+Next checkpoint: 用户判断实际集成画面；Accepted后进入HC-04最终Windows试玩/体验，不上传、不发布。
 
 ## Task Version History
 
@@ -565,3 +807,5 @@ Next checkpoint: 用户对HC-03-v6回复Accepted、Needs Revision或Rejected；A
 | 3 | 2026-09-21 | 盘子同平面碰撞、互不重叠遮挡，同盘允许混装 | 用户明确修正并确认 | v2多层堆叠要求、相关方案、r001预览方向；其余规则保留 |
 | 5 | 2026-09-21 | 记录A/B/C共性；当前固定完整采用C内容结构，替换预处理与普通盘队列供给链；继续空间门槛访谈 | 用户“请你记录这些规律，但现在的流程完全复刻骨架C”；前序“确定” | v4及更早原创盘内容要求、相应生成方案，以及受影响的供给方案/实现符合性结论/QA预期不再沿用；HC-01/HC-02相关部分须重新确认。保留历史文件、其他玩法和美术/音频决定，不执行代码回滚 |
 | 6 | 2026-09-21 | 普通盘供给改为中心Y高度门槛，采用150/260双生成位、原版水平随机偏移与(0,-5) Force；增加暂存栏硬裁剪、前景覆盖及可见像素点击边界 | 用户确认完整需求复述并明确“确认 实行” | HC-01-v5/HC-02-v5中旧完整界内无重叠门槛和三生成位定义，以及HC-03-v5/HC-04-v5中依赖旧供给、旧入场力、旧显示/点击边界的证据；其余玩法、美术与音频决定保留 |
+| 7 | 2026-09-22 | 全界面画面品质升级：热闹喜庆轻框架、盘面食材优先、全新ImageGen位图家族、完整状态与短促动效；保留v6玩法/物理/供给/遮挡/点击，不含音频与微信发布 | 用户接受完整复述并要求自行完成全流程监修；HC-02只由用户判断风格 | r004旧视觉方向、v3/r001正式视觉资产、当前全界面视觉及依赖它的视觉/体验验收；v6技术实现和自动QA证据不失效 |
+| 8 | 2026-09-22 | 盘内食材扩大到约75%至85%内圈占比、允许盘内轻微重叠并确定性随机旋转；普通盘改为顶部屏幕外完整生成，固定供给门槛由377上移至140 | 用户参考同类游戏布局并反复强调食材占比、盘内重叠与屏外生成/同步提高门槛 | v7当前盘内布局、运行截图、普通盘可见区生成起点、固定377门槛及受影响测试；未受影响资产、页面、核心复活和其他玩法保留 |

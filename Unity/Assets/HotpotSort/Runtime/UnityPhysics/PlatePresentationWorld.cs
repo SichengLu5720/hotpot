@@ -26,7 +26,7 @@ namespace HotpotSort.UnityPhysics
         public IEnumerable<Remnant> Remnants { get { return remnants; } }
         public int OccupiedPlateCount { get { return plates.Count; } }
         private const float Units = .01f;
-        public const float HiddenTop = 140, SupplyGate = 377;
+        public const float HiddenTop = PlateSupplyGeometry.Top, SupplyGate = PlateSupplyGeometry.Gate;
         private static int nextIsland;
         private Vector2 origin;
         private GameObject boundaries;
@@ -36,6 +36,7 @@ namespace HotpotSort.UnityPhysics
         private PhysicsMaterial2D material;
         private bool simulating;
         private string sessionId;
+        private long sessionGeneration,observationSequence;
         public readonly List<Vector2> StepGeometry = new List<Vector2>();
         public int ConstraintRollbacks { get; private set; }
         public int TransientGeometrySteps { get; private set; }
@@ -46,12 +47,12 @@ namespace HotpotSort.UnityPhysics
             localScene=SceneManager.CreateScene("HotpotPlatePhysics_"+nextIsland++,new CreateSceneParameters(LocalPhysicsMode.Physics2D));
             localPhysics=localScene.GetPhysicsScene2D();
             physicsRoot=new GameObject("PlatePhysicsRoot");SceneManager.MoveGameObjectToScene(physicsRoot,localScene);
-            material = new PhysicsMaterial2D("PlatePresentationContact") { friction=.35f, bounciness=.08f };
+            material = new PhysicsMaterial2D("PlatePresentationContact") { friction=.08f, bounciness=.08f };
             boundaries = new GameObject("PlateBounds"); boundaries.transform.SetParent(physicsRoot.transform,false);
-            Boundary("Left",new Vector2(-5,484),new Vector2(10,708));
-            Boundary("Right",new Vector2(425,484),new Vector2(10,708));
+            Boundary("Left",new Vector2(-5,347),new Vector2(10,982));
+            Boundary("Right",new Vector2(425,347),new Vector2(10,982));
             Boundary("Floor",new Vector2(210,833),new Vector2(440,10));
-            Boundary("Ceiling",new Vector2(210,135),new Vector2(440,10));
+            Boundary("Ceiling",new Vector2(210,-139),new Vector2(440,10));
         }
         private Vector2 Physical(Vector2 board) { return origin + board * Units; }
         public Vector2 Position(PlateBody body) { return (body.rigidbody.position-origin)/Units; }
@@ -139,6 +140,7 @@ namespace HotpotSort.UnityPhysics
         public void Reconcile(ViewSnapshot snapshot)
         {
             if(sessionId!=snapshot.sessionId) { Clear(); sessionId=snapshot.sessionId; }
+            sessionGeneration=snapshot.sessionGeneration;
             var alive=new HashSet<string>(); drawOrder.Clear();
             foreach(var p in snapshot.plates)
             {
@@ -150,11 +152,11 @@ namespace HotpotSort.UnityPhysics
                 {
                     var node=new GameObject("Plate_"+p.plateId);SceneManager.MoveGameObjectToScene(node,localScene); node.transform.SetParent(physicsRoot.transform,false);
                     bool animate=p.motion==null || p.motion.animateEntry;
-                    var start=animate?new Vector2(Mathf.Clamp(p.x,p.radius,420-p.radius),304+p.radius):new Vector2(p.x,p.y);
+                    var start=animate?new Vector2(Mathf.Clamp(p.x,p.radius,420-p.radius),PlateSupplyGeometry.SpawnY(p.radius)):new Vector2(p.x,p.y);
                     if(animate && p.motion!=null && p.motion.hasSpawnPosition)start=new Vector2(p.motion.spawnX,p.motion.spawnY);
                     node.transform.position=Physical(start);
                     var rb=node.AddComponent<Rigidbody2D>(); rb.bodyType=RigidbodyType2D.Dynamic;
-                    rb.gravityScale=0; rb.freezeRotation=true; rb.linearDamping=.25f; rb.interpolation=RigidbodyInterpolation2D.None;
+                    rb.gravityScale=0; rb.freezeRotation=true; rb.linearDamping=.08f; rb.interpolation=RigidbodyInterpolation2D.None;
                     rb.collisionDetectionMode=CollisionDetectionMode2D.Continuous; rb.simulated=simulating;
                     var rim=node.AddComponent<CircleCollider2D>(); rim.radius=p.radius*Units; rim.sharedMaterial=material;
                     rb.AddForce(new Vector2(0,5),ForceMode2D.Force);
@@ -178,6 +180,7 @@ namespace HotpotSort.UnityPhysics
                         collider=node.AddComponent<BoxCollider2D>(); collider.isTrigger=true; body.items.Add(item.itemId,collider);
                     }
                     collider.transform.localPosition=new Vector3(item.x*Units,item.y*Units,0);
+                    collider.transform.localRotation=Quaternion.Euler(0,0,item.rotationDegrees);
                     // Broadphase encloses the complete displayed square. The shared
                     // texture alpha predicate removes transparent corners precisely.
                     ((BoxCollider2D)collider).size=Vector2.one*(item.radius*2*Units);
@@ -202,7 +205,8 @@ namespace HotpotSort.UnityPhysics
             {
                 var body=drawOrder[p]; if(!body.rim.OverlapPoint(point))continue;
                 for(int i=body.data.items.Length-1;i>=0;i--)
-                { var item=body.data.items[i]; if(body.items[item.itemId].OverlapPoint(point) && (opaqueHit==null || opaqueHit(item,board-Position(body)-new Vector2(item.x,item.y))))return item.itemId; }
+                { var item=body.data.items[i];var offset=board-Position(body)-new Vector2(item.x,item.y);var local=PlateItemTransform.ToLocalOffset(item,offset.x,offset.y);
+                    if(body.items[item.itemId].OverlapPoint(point) && (opaqueHit==null || opaqueHit(item,new Vector2(local.x,local.y))))return item.itemId; }
                 return null; // Top opaque plate/rim blocks lower food.
             }
             return null;
@@ -216,13 +220,14 @@ namespace HotpotSort.UnityPhysics
         }
         public ViewSupplyObservation ObserveHeightGate(long revision)
         {
-            var result=new ViewSupplyObservation { heightGateClear=true,spaceAvailable=true,fixedGate=SupplyGate,minimumCenterY=float.PositiveInfinity,snapshotRevision=revision };
+            var result=new ViewSupplyObservation { version=ViewSupplyObservation.CurrentVersion,sessionGeneration=sessionGeneration,observationSequence=++observationSequence,minimumCenterY=float.PositiveInfinity,snapshotRevision=revision };
             foreach(var body in drawOrder)
             {
                 if(!body.node || !body.node.activeSelf || body.data.items.Length==0)continue;
                 float y=Position(body).y;result.minimumCenterY=Mathf.Min(result.minimumCenterY,y);
-                if(y<SupplyGate){result.heightGateClear=false;result.spaceAvailable=false;if(result.blockingPlateId==null)result.blockingPlateId=body.data.plateId;}
+                if(y<SupplyGate){result.entryCount++;if(result.blockingPlateId==null)result.blockingPlateId=body.data.plateId;}
             }
+            if(result.canSupply)result.blockingPlateId=null;
             return result;
         }
         public bool TryShuffle(bool commit)
@@ -283,6 +288,7 @@ namespace HotpotSort.UnityPhysics
             foreach(var body in plates.Values) { if(body.node){body.node.SetActive(false); Destroy(body.node);} }
             plates.Clear(); drawOrder.Clear(); remnants.Clear();
             StepGeometry.Clear();ConstraintRollbacks=0;TransientGeometrySteps=0;
+            observationSequence=0;
         }
         private void OnDestroy() { Clear();if(localScene.IsValid()&&localScene.isLoaded)SceneManager.UnloadSceneAsync(localScene);if(material)Destroy(material); }
     }
