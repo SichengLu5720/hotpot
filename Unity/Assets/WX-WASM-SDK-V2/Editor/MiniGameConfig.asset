@@ -60,7 +60,7 @@ MonoBehaviour:
     CleanBuild: 0
     CustomNodePath: 
     autoAdaptScreen: 0
-    showMonitorSuggestModal: 1
+    showMonitorSuggestModal: 0
     enableProfileStats: 0
     enableRenderAnalysis: 0
     enablePerfAnalysis: 0

@@ -97,7 +97,12 @@ namespace HotpotSort.Platform.RemoteAssets
                     verified.Add(asset.logicalPath,value);
                 }
                 Check(current,token);
-                if(!cached)try{cache.Commit(partition,bytes,token);}catch(OperationCanceledException){throw;}catch{throw new AssetFailure(AssetError.CacheIO);}
+                if(!cached)
+                {
+                    // The release has already passed byte integrity, bundle loading, and complete asset validation.
+                    // A device-specific persistent-cache write failure must not discard that verified in-memory release.
+                    try{cache.Commit(partition,bytes,token);}catch(OperationCanceledException){throw;}catch{}
+                }
                 Check(current,token);loaded=candidate;candidate=null;
                 foreach(var pair in verified)complete.Add(pair.Key,pair.Value);
                 Publish(current,AssetReadiness.Ready,bytes:bytes.Length);

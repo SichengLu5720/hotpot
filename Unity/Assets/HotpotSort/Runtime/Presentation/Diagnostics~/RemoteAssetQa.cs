@@ -100,7 +100,7 @@ static class RemoteAssetQa
             Check(fs.Files[commit].SequenceEqual(committed)&&cache.ReadCommitted(partition).SequenceEqual(Bytes),"valid previous commit damaged");
             fs.FailCommit=false;fs.Files[payload]=new byte[]{0};using(var r=new Rig(fs)){Check((await r.Build().PrepareAsync()).State==AssetReadiness.Ready&&r.Net.Calls==1,"corrupt cache did not redownload");}
             fs.Files.Remove(commit);using(var r=new Rig(fs)){Check((await r.Build().PrepareAsync()).State==AssetReadiness.Ready&&r.Net.Calls==1,"uncommitted payload trusted");}
-            using(var r=new Rig()){r.Fs.FailWrite=".record";Check((await r.Build().PrepareAsync()).Error==AssetError.CacheIO&&r.Fs.Files.Count==0,"write failure activated/cached asset");}
+            using(var r=new Rig()){r.Fs.FailWrite=".record";var p=r.Build();Check((await p.PrepareAsync()).State==AssetReadiness.Ready&&p.GetComplete<Sprite>("art/0")!=null&&r.Fs.Files.Count==0,"verified release blocked by optional cache write failure");}
         });
         await Run("R07-controlled-timeout-and-retry",async()=>{
             using(var r=new Rig()){r.Net.Hold=true;var p=r.Build();var pending=p.PrepareAsync();r.Net.Hold=false;r.Delay.Deadline.SetResult(true);Check((await pending).State==AssetReadiness.Ready&&r.Net.Calls==2&&r.Net.MaxActive==1&&r.Delay.Backoff.SequenceEqual(new[]{1d}),"timeout retry/abort");}
