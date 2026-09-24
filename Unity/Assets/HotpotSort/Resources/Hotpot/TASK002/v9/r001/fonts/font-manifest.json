@@ -21,10 +21,10 @@
   "licenseSha256": "6a73f9541c2de74158c0e7cf6b0a58ef774f5a780bf191f2d7ec9cc53efe2bf2",
   "fontToolsVersion": "4.60.1",
   "glyphInventoryPolicy": "Retain checked-in glyph inventory; add ASCII 32-126, C# runtime/contracts literals and Resources JSON strings; Editor, Diagnostics~ and generated TASK002 evidence excluded; open-data nicknames use system fonts",
-  "glyphCount": 364,
-  "glyphsSha256": "dfeb90a651c6b493b5035b7da8f96be1df453bcc4fee828f1e819966b5603c3b",
-  "fontSha256": "3852480ce7057ce4b962ed40b5d01f0ef20c323b2967bedc98eb5d19532fc928",
-  "fontBytes": 167184,
+  "glyphCount": 373,
+  "glyphsSha256": "59094f861ef5d03d805a0354dc086c2349075406caefcb4c8dc563757ecc5648",
+  "fontSha256": "cba9ae22dee935e58f342b78941e4f6c3a22e9b43537f243b3d69b840fa9fecf",
+  "fontBytes": 169432,
   "parameters": {
     "recalc_timestamp": false,
     "canonical_order": true,
@@ -51,11 +51,11 @@
     },
     {
       "path": "Assets/HotpotSort/Contracts/RemoteAssetContracts.cs",
-      "sha256": "ea7edf5b13eea3be722aafce7c81090a0a4c1e7056ffd3afd59472e5981e2e51"
+      "sha256": "c526070ddc6c930b6418e03bb9d4f6619126d4bd1050a11f7cb7de1aa06c3976"
     },
     {
       "path": "Assets/HotpotSort/Contracts/SessionContracts.cs",
-      "sha256": "e059a1ba3693d0dbe0c30470175fe1f82c47315abc3c64808b6053c92a803897"
+      "sha256": "05a3996af54119205ebf091303696ed4211530b41ff1dccc366abd3467ec45b1"
     },
     {
       "path": "Assets/HotpotSort/Contracts/WeChatFriendBoardContracts.cs",
@@ -70,16 +70,28 @@
       "sha256": "55930baff402fed70c618a52144a0d6d828858e7dfe7b78e204fbf5c5deb6982"
     },
     {
+      "path": "Assets/HotpotSort/Resources/Hotpot/TASK001/v10/r001/presentation-theme.json",
+      "sha256": "dd16c39cb209bdcd1efc56f19d717072d6ea3279727c8a7f604d149a3b4827f8"
+    },
+    {
       "path": "Assets/HotpotSort/Resources/Hotpot/TASK001/v7/r001/presentation-theme.json",
-      "sha256": "764927b3fa57bc4eddad5742c537ac79fba200d143c7672dcf419869f33da318"
+      "sha256": "6b89e6132f312894916a026c08f5d938078ed542fcb473a801c542e0302f1977"
+    },
+    {
+      "path": "Assets/HotpotSort/Resources/HotpotSort/Audio/TASK009/Provenance~/audio-manifest.json",
+      "sha256": "fadd45ee2fbc056fb1ab22cbb370aad860e667056ecccb21466772fa947b3017"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Audio/GameplayAudio.cs",
+      "sha256": "e8cb8aecb552d3ea301bd04b54f13dcfeb1656cec7ea5ab527f7e14d5631690c"
     },
     {
       "path": "Assets/HotpotSort/Runtime/Bootstrap/Bootstrap.cs",
-      "sha256": "f487ca286176302fdcb9099fc4c7b600993ce144d43bb4211c441f7206037e1b"
+      "sha256": "ba54f65c245c9ff36956424b00fd443255d6351c743181d004cdb2c2e9698513"
     },
     {
       "path": "Assets/HotpotSort/Runtime/Bootstrap/DailyProductionComposition.cs",
-      "sha256": "2e1e0b00f1420b63644a947980c879d98cf2be3f9cc7d4a8f997ca9634ead13a"
+      "sha256": "62fbcf858c66b7c8ffa8788270633854a15d3a6b1846d1b95ed1ebd375ce358e"
     },
     {
       "path": "Assets/HotpotSort/Runtime/Bootstrap/DailyViewMapper.cs",
@@ -95,7 +107,7 @@
     },
     {
       "path": "Assets/HotpotSort/Runtime/Bootstrap/WeChatGameplayTapInput.cs",
-      "sha256": "ef21bc881193ca1a52474ed38ae58aa7a054a562de69bcc806618c258172a3ca"
+      "sha256": "ceb836db83bc2b3c3272718e288dc4e735e3d418fc5e62ce09774d39dc84bca6"
     },
     {
       "path": "Assets/HotpotSort/Runtime/Core/ActiveSupplySchedule.cs",
@@ -107,7 +119,7 @@
     },
     {
       "path": "Assets/HotpotSort/Runtime/Core/DailyCommands.cs",
-      "sha256": "8fa4bbcd94cd46564ee1d517501a418a458d511cbf3563a7b97b082be90f920a"
+      "sha256": "46df628500981ff40a1df6741bdce83e2bc8ec376fee3164715dffb03323b6b5"
     },
     {
       "path": "Assets/HotpotSort/Runtime/Core/DailyContent.cs",
@@ -115,11 +127,11 @@
     },
     {
       "path": "Assets/HotpotSort/Runtime/Core/DailyDirector.cs",
-      "sha256": "d264de67bb815fb3afe800654f1b966062f54bc642e542efdddd061e8e662bc7"
+      "sha256": "a7223da74d8cefd56a17d63afae88214a9bce39ff6c4e4b94448884ca375af18"
     },
     {
       "path": "Assets/HotpotSort/Runtime/Core/DailySession.cs",
-      "sha256": "323bc0af42b2a5d66be1d8526e791272323e95834fbb6c83076c11ffebd0414b"
+      "sha256": "d3985f8f4f4479589e124990946df69e36cbdd93ac251297d650f0f28b579a34"
     },
     {
       "path": "Assets/HotpotSort/Runtime/Core/DailySessionFactory.cs",
@@ -159,11 +171,11 @@
     },
     {
       "path": "Assets/HotpotSort/Runtime/Platform/RemoteAssets/PresentationAssetProvider.cs",
-      "sha256": "2b4f389d16f26efc67bfd448792082b246baedb914856980362e50433554b014"
+      "sha256": "903074bcefc505cef23daf02bef0ccefefa4981dabc30a7306ca1cecf14485d0"
     },
     {
       "path": "Assets/HotpotSort/Runtime/Platform/RemoteAssets/RemoteAssetValidation.cs",
-      "sha256": "5823f7f400c4f80416fe3e89e42274db577b2a63ab6dcc240f1ca2876ac0eb2b"
+      "sha256": "a8a8efa6f0d2ec8254f3a083f692d583499f169f7b3146773425fff95da33366"
     },
     {
       "path": "Assets/HotpotSort/Runtime/Platform/RemoteAssets/TransactionalAssetCache.cs",
@@ -183,7 +195,7 @@
     },
     {
       "path": "Assets/HotpotSort/Runtime/Platform/WeChat/WeChatAssetTransport.cs",
-      "sha256": "c61d19e58fb5d2f8c0bc746ba01522e09005049c8f4e6eacfedef258b6f7713c"
+      "sha256": "572c3017c70f873d277f04a2fd24b96d04fca92f0639fb50589885d11860a7d1"
     },
     {
       "path": "Assets/HotpotSort/Runtime/Platform/WeChat/WeChatCapabilityState.cs",
@@ -195,7 +207,7 @@
     },
     {
       "path": "Assets/HotpotSort/Runtime/Platform/WeChat/WeChatCloudProfileFunction.cs",
-      "sha256": "91814b39ee1b746b74564425e82abcae83319ca68d12ee09d87ef660666140c4"
+      "sha256": "11eb2d923f207851ddf5a2776cde96542c0b1ddf23deb6143c06f7ccda602939"
     },
     {
       "path": "Assets/HotpotSort/Runtime/Platform/WeChat/WeChatFriendBoardSurface.cs",
@@ -203,7 +215,7 @@
     },
     {
       "path": "Assets/HotpotSort/Runtime/Platform/WeChat/WeChatPlatform.cs",
-      "sha256": "01ceac45e99abb95e2e8ce1a1a80876f1ef22e0095ac94fbb58883fa0a42c275"
+      "sha256": "bc07cd4fb356b1a3f56393381ecc9ed9618e5eedb7e81ffd2df0df7e8fd0181e"
     },
     {
       "path": "Assets/HotpotSort/Runtime/Platform/WeChat/WeChatProfileTransport.cs",
@@ -219,7 +231,7 @@
     },
     {
       "path": "Assets/HotpotSort/Runtime/Platform/WeChat/WeChatRuntimeConfig.cs",
-      "sha256": "c5cb591cc1c3ae3d61c9697fd713838117b378f5423d0cb4293e1c5bc71cb7ae"
+      "sha256": "ad7163ba6c2e6edec243c2ef8937d935f28080e908bd34107170bee9dc711d9f"
     },
     {
       "path": "Assets/HotpotSort/Runtime/Platform/WeChat/WeChatServiceScope.cs",
@@ -239,7 +251,7 @@
     },
     {
       "path": "Assets/HotpotSort/Runtime/Presentation/Contracts/PresentationLifecycle.cs",
-      "sha256": "25915340487c2d5263d01a344e374edd7f5a6dfb3f0819dc547e06f0abc99ddf"
+      "sha256": "71aacd2d8cc62576a9a5d8018f7d114a6fcab4e1660f581473d9a90c7174a031"
     },
     {
       "path": "Assets/HotpotSort/Runtime/Presentation/Contracts/RevivalTransferBatch.cs",
@@ -251,43 +263,67 @@
     },
     {
       "path": "Assets/HotpotSort/Runtime/Presentation/GameplayFeedback.cs",
-      "sha256": "fe833ef8fa674213f48f9129e6c9e85ccaebab13612c81950d58322d36f4af0a"
+      "sha256": "9a8aa7f2cbc6f9f89d9b16339168c89b28111b9fd2d24e9513736aabade8c47b"
     },
     {
       "path": "Assets/HotpotSort/Runtime/Presentation/GameplayView.cs",
-      "sha256": "9c62f83067ab71d8282ab9581981ad0641ff76048eeed1ec9174241cabc78ee7"
+      "sha256": "b92fd46cdad60c56e74a21b73e7bf53a4ff2cdb96d416fe225116ac4c1c89fb7"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Presentation/GameplayViewClickability.cs",
+      "sha256": "c40e28fabb4bb91287f3164ae782c34a55bc851cd7217ef0d0df734769fa783c"
     },
     {
       "path": "Assets/HotpotSort/Runtime/Presentation/GameplayViewFriendBoard.cs",
       "sha256": "60c0b272ff0a501a7edca8b6210b01ab2ea495b03255a42cfede09a2eeeb13bb"
     },
     {
+      "path": "Assets/HotpotSort/Runtime/Presentation/GameplayViewShuffle.cs",
+      "sha256": "e60998b7eb92840fa0592e46563d96ac2681bd15db4050083e31f901d3e17de2"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Presentation/GameplayViewTheme.cs",
+      "sha256": "41b80b9a7247cd2e2c0113ea5530d469b9e84d96f7c5c426354e4286ae0fb988"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Presentation/GameplayViewToolDemo.cs",
+      "sha256": "23d3d80b538accceabf9081138300092e663ffa6d913f88c11d36eb1f58b58e2"
+    },
+    {
       "path": "Assets/HotpotSort/Runtime/Presentation/GameplayViewV7.cs",
-      "sha256": "36d41a8d7133571b437686fffcb8cfc4615403468acf9becf989052bd7e2de3d"
+      "sha256": "708a649c39cfd0ead197fc98c827d1c67823c2cab5ab56260ac785f37af9ac74"
     },
     {
       "path": "Assets/HotpotSort/Runtime/Presentation/ModernPresentation.cs",
-      "sha256": "22da55bf454fba2372893f4c0eea4ccd63c7c3b589c56c803d0caad4ee327ada"
+      "sha256": "dcbec9df6bf4551032252b5289db613eace697194290e5c5f8d12aac729dd6a3"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Presentation/NativeTouchUiInput.cs",
+      "sha256": "712c0bf1e587917367c0795015942d3a2475eea67088f6738f6db7df9d58b852"
     },
     {
       "path": "Assets/HotpotSort/Runtime/Presentation/PresentationPort.cs",
       "sha256": "1058c5f736098eef3fbbb34cbe123690dd413adfe52f2137b306a0ebb9715643"
     },
     {
+      "path": "Assets/HotpotSort/Runtime/Presentation/PresentationThemeValidation.cs",
+      "sha256": "9d9c5a05c45f78689471543034b8ea3b2504f6f6ab7923ce893304d63336c840"
+    },
+    {
       "path": "Assets/HotpotSort/Runtime/Presentation/TaskAssetValidation.cs",
-      "sha256": "4eace0f3eb07241b3883392719b4bde3645aaa2072a33084314fecf21f7cf317"
+      "sha256": "d6359363e40013ad5fbf58f836760842528db5a73625ee057585a14d16e4af33"
     },
     {
       "path": "Assets/HotpotSort/Runtime/Presentation/V7Art.cs",
-      "sha256": "b469f0db9af3067337ea6aad88693de17e5cb2ee8e62bd2026bbc740b2238030"
+      "sha256": "070ac3ccb81a94307b64297456abfb364f0d1b6fb71f0f4e9c226c5875ad3f65"
     },
     {
       "path": "Assets/HotpotSort/Runtime/Presentation/V7VisualLoadProbe.cs",
-      "sha256": "af76f3ccc69d690bd2d1b3665eedbeb44af0ca32f8ddea848014272db24e727b"
+      "sha256": "985e661586688aee460b7b6b656a2d4d6cf680586f29d53f00dd572bcd4d64a0"
     },
     {
       "path": "Assets/HotpotSort/Runtime/Replay/DailyReplay.cs",
-      "sha256": "ef20031db4cd123dd4acb823a828b7f38584175697f397f4ea163878ad6cdd13"
+      "sha256": "79596ed8ed54cbc15093b08a62a20dd5f91c580899078e311e0bff2ddfb31087"
     },
     {
       "path": "Assets/HotpotSort/Runtime/Session/RewardCoordinator.cs",
@@ -295,7 +331,7 @@
     },
     {
       "path": "Assets/HotpotSort/Runtime/Session/SessionController.cs",
-      "sha256": "130b85327b01e40fea4804c463f8ed2d07faa3a3f0346d1a9bad4f9286f01faa"
+      "sha256": "02fc4082d9713fc236491614bcc5780584ff7502ff34a5bbeeb16280aa35f08b"
     },
     {
       "path": "Assets/HotpotSort/Runtime/Session/ShareQuotaLedger.cs",
@@ -307,7 +343,7 @@
     },
     {
       "path": "Assets/HotpotSort/Runtime/UnityPhysics/PlatePresentationWorld.cs",
-      "sha256": "81cdbd8877ce4df7a33a38d911196ad0f33703f5e39f9813e49a4d79e3916e05"
+      "sha256": "2bd9ab8cc59512682f94340f802291a8d40841bc23d53254fcb46b4962600421"
     }
   ]
 }

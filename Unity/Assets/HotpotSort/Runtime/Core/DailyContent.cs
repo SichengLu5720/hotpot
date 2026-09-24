@@ -44,9 +44,12 @@ namespace HotpotSort.Core
         public const string Schema = "daily_content_v1";
         public const string DirectorVersion = "director_v1_approx_d";
         public const string ImporterVersion = "daily_importer_v1_decimal100";
-        public const string CurrentVersion = "hotpot_daily_task001_v5_fixed_c_1";
-        public const string RuntimeFileName = CurrentVersion + ".json";
-        public const string ProductionDigest = "99fb452bf75693f7978afe32c5bf52e3b1293b36e55669068c9fa84065ba6f61";
+        public const string LegacyVersion = "hotpot_daily_task001_v5_fixed_c_1";
+        public const string CurrentVersion = "hotpot_daily_task025_difficulty1_v1";
+        // Stable asset path/GUID; content identity is versioned independently.
+        public const string RuntimeFileName = LegacyVersion + ".json";
+        public const string LegacyProductionDigest = "99fb452bf75693f7978afe32c5bf52e3b1293b36e55669068c9fa84065ba6f61";
+        public const string ProductionDigest = "e4f20831a07608f6c298e41217309471e11dbdc14a5367fe716a23d315961904";
         public const string SkeletonSourceFileName = "skeleton_C.v5.source.json";
         public const string SkeletonSourceHash = "2d0cc7dc3061937efd09832b8635558d6b861bbdcbbc793a92d70f25c554ef54";
         public const string WeightsSourceHash = "40031a2b589537f7c186354b77506d1662179d424b2aa9244ded1edc1a689bbe";
@@ -90,7 +93,7 @@ namespace HotpotSort.Core
                 throw new ArgumentException("Known weight sample mismatch");
         }
         public object Json() => CanonicalJson.Object("schemaVersion", Schema, "contentVersion", ContentVersion,
-            "skeletonId", "C", "skeletonVersion", "skeleton_c_normalized_v1.1", "sourceProfile", "FixedCAcceptedDifficulty3",
+            "skeletonId", "C", "skeletonVersion", "skeleton_c_normalized_v1.1", "sourceProfile", ContentVersion==CurrentVersion?"FixedCAcceptedDifficulty1":"FixedCAcceptedDifficulty3",
             "skeletonSourceSha256", SkeletonIdentity, "weightsSourceSha256", WeightsSourceHash, "importerVersion", ImporterVersion,
             "directorAlgorithmVersion", DirectorVersion, "rngAlgorithm", Pcg32.Version, "seedAlgorithm", Pcg32.SeedVersion,
             "totalPlates", 50, "totalItems", 183, "ingredientKinds", 16, "activeOrderSlots", 2, "maxOrderSlots", 4,
@@ -99,6 +102,7 @@ namespace HotpotSort.Core
             "rows", Rows.Select(r => CanonicalJson.Object("progressBand", r.ProgressBand, "bufferBand", r.BufferBand, "weights", r.Weights)).ToArray());
         public static DailyContent Load(string json, string expectedDigest)
         {
+            json=json.TrimEnd('\r','\n');
             if (CanonicalJson.Hash(json) != expectedDigest) throw new ArgumentException("Content digest mismatch");
             var m = CanonicalJson.Map(CanonicalJson.Parse(json));
             if ((string)m["schemaVersion"] != Schema) throw new ArgumentException("Unknown content schema");
@@ -111,8 +115,10 @@ namespace HotpotSort.Core
         // Production and diagnostics load the same canonical project asset. No fallback generator.
         public static DailyContent LoadProduction(string json)
         {
-            var content = Load(json, ProductionDigest);
-            if (content.ContentVersion != CurrentVersion) throw new ArgumentException("Unsupported production content version");
+            string digest=CanonicalJson.Hash(json.TrimEnd('\r','\n'));
+            if(digest!=ProductionDigest&&digest!=LegacyProductionDigest)throw new ArgumentException("Unknown production content digest");
+            var content = Load(json, digest);
+            if (content.ContentVersion != (digest==ProductionDigest?CurrentVersion:LegacyVersion)) throw new ArgumentException("Unsupported production content version");
             return content;
         }
     }

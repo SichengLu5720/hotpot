@@ -16,6 +16,11 @@ namespace HotpotSort.UnityPhysics
             public Rigidbody2D rigidbody;
             public CircleCollider2D rim;
             public long correctionRevision;
+            internal Vector2 diagnosticAnchor;
+            internal float diagnosticStillSeconds;
+            internal bool diagnosticAnchored;
+            internal string diagnosticClearSource;
+            internal float diagnosticClearTime;
             public readonly Dictionary<string, Collider2D> items = new Dictionary<string, Collider2D>();
         }
         public sealed class Remnant { public string plateId; public Vector2 position; public float radius, remaining = .18f; }
@@ -37,11 +42,127 @@ namespace HotpotSort.UnityPhysics
         private bool simulating;
         private string sessionId;
         private long sessionGeneration,observationSequence;
-        private Vector2[] previousPositions=System.Array.Empty<Vector2>();
         private Vector2[] solverPositions=System.Array.Empty<Vector2>();
         public readonly List<Vector2> StepGeometry = new List<Vector2>();
         public int ConstraintRollbacks { get; private set; }
         public int TransientGeometrySteps { get; private set; }
+        public bool PhysicsDiagnosticsEnabled=false;
+        const int DiagnosticCapacity=32,DiagnosticPlateLimit=6;
+        readonly Queue<string> diagnosticRing=new Queue<string>(DiagnosticCapacity);
+        readonly ContactPoint2D[] diagnosticContacts=new ContactPoint2D[8];
+        float diagnosticTime,diagnosticNextLog;
+        int diagnosticSampleCursor;
+        [System.Serializable] sealed class ContactDiagnostic { public string collider; public Vector2 point,normal; }
+        [System.Serializable] sealed class BodyDiagnostic
+        {
+            public string id,lastVelocityClear;
+            public Vector2 position,velocity;
+            public float radius,stillSeconds,floorClearance,lastVelocityClearTime;
+            public bool floorContact,lowerContact,contactsMayBeTruncated;
+            public ContactDiagnostic[] contacts;
+        }
+        [System.Serializable] sealed class PhysicsDiagnostic
+        {
+            public string kind,velocityClearSource,boundary,boundaryPlate,pairA,pairB;
+            public float activeSeconds,pairGap,boundaryGap;
+            public Vector2 pairPositionA,pairPositionB,boundaryPosition;
+            public int rollbackCount,bodyCount;
+            public BodyDiagnostic[] bodies;
+        }
+        // Snapshot only; does not drain logs or expose player/session identity.
+        public string[] GetPhysicsDiagnosticSnapshot(){return diagnosticRing.ToArray();}
+        void ResetDiagnosticMotion()
+        {foreach(var body in plates.Values){body.diagnosticAnchored=false;body.diagnosticStillSeconds=0;}}
+        void MarkVelocityClear(PlateBody body,string source)
+        {
+            if(!PhysicsDiagnosticsEnabled)return;
+            body.diagnosticClearSource=source;body.diagnosticClearTime=diagnosticTime;
+            if(source!="constraint-rollback"&&DiagnosticReady)
+                EmitDiagnostic(new PhysicsDiagnostic{kind="velocity-clear",velocityClearSource=source,bodies=new[]{DescribeBody(body)}});
+        }
+        BodyDiagnostic DescribeBody(PlateBody body)
+        {
+            var at=Position(body);int n=body.rim.GetContacts(diagnosticContacts);
+            var result=new BodyDiagnostic{id=body.data.plateId,position=at,velocity=body.rigidbody.linearVelocity/Units,
+                radius=body.data.radius,stillSeconds=body.diagnosticStillSeconds,floorClearance=828-at.y-body.data.radius,
+                lastVelocityClear=body.diagnosticClearSource,lastVelocityClearTime=body.diagnosticClearTime,
+                contacts=new ContactDiagnostic[n],contactsMayBeTruncated=n==diagnosticContacts.Length};
+            for(int i=0;i<n;i++)
+            {
+                var contact=diagnosticContacts[i];var other=contact.collider==body.rim?contact.otherCollider:contact.collider;
+                var point=(contact.point-origin)/Units;
+                result.contacts[i]=new ContactDiagnostic{collider=other?other.name:"missing",point=point,normal=contact.normal};
+                result.floorContact|=other&&other.name=="Floor";
+                result.lowerContact|=point.y>at.y+.1f;
+            }
+            return result;
+        }
+        bool DiagnosticReady=>PhysicsDiagnosticsEnabled&&diagnosticTime>=diagnosticNextLog;
+        void EmitDiagnostic(PhysicsDiagnostic record)
+        {
+            record.activeSeconds=diagnosticTime;record.bodyCount=drawOrder.Count;record.rollbackCount=ConstraintRollbacks;
+            string json=JsonUtility.ToJson(record);
+            if(diagnosticRing.Count==DiagnosticCapacity)diagnosticRing.Dequeue();diagnosticRing.Enqueue(json);
+            diagnosticNextLog=diagnosticTime+3f;Debug.Log("HOTPOT_PHYSICS_DIAG "+json);
+        }
+        void RecordGeometryFailure(Vector2[] positions,int count,bool rollback)
+        {
+            if(!DiagnosticReady)return;
+            var record=new PhysicsDiagnostic{kind=rollback?"constraint-rollback":"transient-geometry",velocityClearSource=rollback?"constraint-rollback":null,pairGap=420,boundaryGap=828};
+            int pairA=-1,pairB=-1,boundaryIndex=-1;
+            for(int i=0;i<count;i++)
+            {
+                var at=positions[i];float r=drawOrder[i].data.radius;
+                float gap=at.x-r;string wall="Left";
+                if(420-at.x-r<gap){gap=420-at.x-r;wall="Right";}
+                if(at.y-HiddenTop-r<gap){gap=at.y-HiddenTop-r;wall="Ceiling";}
+                if(828-at.y-r<gap){gap=828-at.y-r;wall="Floor";}
+                if(gap<record.boundaryGap){record.boundaryGap=gap;record.boundary=wall;boundaryIndex=i;record.boundaryPlate=drawOrder[i].data.plateId;record.boundaryPosition=at;}
+                for(int j=i+1;j<count;j++)
+                {
+                    gap=Vector2.Distance(at,positions[j])-r-drawOrder[j].data.radius;
+                    if(gap>=record.pairGap)continue;
+                    record.pairGap=gap;pairA=i;pairB=j;record.pairA=drawOrder[i].data.plateId;record.pairB=drawOrder[j].data.plateId;record.pairPositionA=at;record.pairPositionB=positions[j];
+                }
+            }
+            var samples=new List<BodyDiagnostic>(DiagnosticPlateLimit);
+            if(pairA>=0)samples.Add(DescribeBody(drawOrder[pairA]));
+            if(pairB>=0)samples.Add(DescribeBody(drawOrder[pairB]));
+            if(boundaryIndex>=0&&boundaryIndex!=pairA&&boundaryIndex!=pairB)samples.Add(DescribeBody(drawOrder[boundaryIndex]));
+            // Repeated rollbacks share the global log budget. Include rotating
+            // stationary witnesses so an unrelated failing pair cannot hide them.
+            int nextCursor=diagnosticSampleCursor;
+            for(int offset=0;offset<count&&samples.Count<DiagnosticPlateLimit;offset++)
+            {
+                int index=(diagnosticSampleCursor+offset)%count;nextCursor=(index+1)%count;
+                if(index==pairA||index==pairB||index==boundaryIndex||drawOrder[index].diagnosticStillSeconds<2f)continue;
+                samples.Add(DescribeBody(drawOrder[index]));
+            }
+            diagnosticSampleCursor=nextCursor;
+            if(!rollback)record.kind=record.pairGap < -1f||record.boundaryGap < -1f?"native-penetration-review":"native-contact-slop";
+            record.bodies=samples.ToArray();EmitDiagnostic(record);
+        }
+        void ObserveDiagnosticMotion()
+        {
+            if(!PhysicsDiagnosticsEnabled)return;
+            foreach(var body in drawOrder)
+            {
+                var at=Position(body);
+                if(!body.diagnosticAnchored||(at-body.diagnosticAnchor).sqrMagnitude>1f)
+                {body.diagnosticAnchor=at;body.diagnosticAnchored=true;body.diagnosticStillSeconds=0;}
+                else body.diagnosticStillSeconds+=Time.fixedDeltaTime;
+            }
+            if(!DiagnosticReady)return;
+            List<BodyDiagnostic> samples=null;
+            for(int offset=0;offset<drawOrder.Count;offset++)
+            {
+                int index=(diagnosticSampleCursor+offset)%drawOrder.Count;var body=drawOrder[index];
+                if(body.diagnosticStillSeconds<2f)continue;
+                if(samples==null)samples=new List<BodyDiagnostic>(DiagnosticPlateLimit);
+                samples.Add(DescribeBody(body));if(samples.Count==DiagnosticPlateLimit){diagnosticSampleCursor=(index+1)%drawOrder.Count;break;}
+            }
+            if(samples!=null)EmitDiagnostic(new PhysicsDiagnostic{kind="stationary",bodies=samples.ToArray()});
+        }
         private void Awake()
         {
             // Per-view spatial island. No global physics or project settings are changed.
@@ -49,7 +170,7 @@ namespace HotpotSort.UnityPhysics
             localScene=SceneManager.CreateScene("HotpotPlatePhysics_"+nextIsland++,new CreateSceneParameters(LocalPhysicsMode.Physics2D));
             localPhysics=localScene.GetPhysicsScene2D();
             physicsRoot=new GameObject("PlatePhysicsRoot");SceneManager.MoveGameObjectToScene(physicsRoot,localScene);
-            material = new PhysicsMaterial2D("PlatePresentationContact") { friction=.08f, bounciness=.08f };
+            material = new PhysicsMaterial2D("PlatePresentationContact") { friction=0f, bounciness=.08f };
             boundaries = new GameObject("PlateBounds"); boundaries.transform.SetParent(physicsRoot.transform,false);
             Boundary("Left",new Vector2(-5,347),new Vector2(10,982));
             Boundary("Right",new Vector2(425,347),new Vector2(10,982));
@@ -66,50 +187,40 @@ namespace HotpotSort.UnityPhysics
         }
         public void SetSimulating(bool value)
         {
+            if(!value)ResetDiagnosticMotion();
             simulating=value;
             foreach(var body in plates.Values) body.rigidbody.simulated=value;
         }
         private void FixedUpdate()
         {
             if(!simulating)return;
+            if(PhysicsDiagnosticsEnabled)diagnosticTime+=Time.fixedDeltaTime;
             int count=drawOrder.Count;
             EnsurePositionBuffers(count);
-            for(int i=0;i<count;i++)previousPositions[i]=Position(drawOrder[i]);
-            var beforeGeometry=MeasureGeometry(previousPositions,count);
-            bool previousLegal=beforeGeometry.x>=-.001f && beforeGeometry.y>=-.001f;
             // Board Y increases downward. Per-body force preserves global Physics2D.gravity.
             foreach(var body in plates.Values)
                 body.rigidbody.AddForce(Vector2.up * (960 * Units * body.rigidbody.mass),ForceMode2D.Force);
             localPhysics.Simulate(Time.fixedDeltaTime);
             for(int i=0;i<count;i++)solverPositions[i]=Position(drawOrder[i]);
-            ConstrainGeometry(solverPositions,count);
-            ApplyPositions(solverPositions,count);
-            Physics2D.SyncTransforms();
             var geometry=MeasureGeometry(solverPositions,count);
             if(geometry.x<-.001f || geometry.y<-.001f)
             {
-                // The synchronous step keeps the same object set. A new spawn may
-                // overlap, so only a measured legal pre-step state can be restored.
-                if(previousLegal)
-                {
-                    ApplyPositions(previousPositions,count);
-                    for(int i=0;i<count;i++)drawOrder[i].rigidbody.linearVelocity=Vector2.zero;
-                    Physics2D.SyncTransforms();ConstraintRollbacks++;geometry=MeasureGeometry();
-                }
-                else TransientGeometrySteps++;
+                // Read-only observation of native contact slop or spawn overlap.
+                // Never project positions, replace contact velocities, or rewind bodies.
+                RecordGeometryFailure(solverPositions,count,false);
+                TransientGeometrySteps++;
             }
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             if(StepGeometry.Count<30000)StepGeometry.Add(geometry);
 #endif
+            ObserveDiagnosticMotion();
         }
         void EnsurePositionBuffers(int count)
         {
-            if(previousPositions.Length>=count)return;
+            if(solverPositions.Length>=count)return;
             int capacity=Mathf.NextPowerOfTwo(Mathf.Max(4,count));
-            previousPositions=new Vector2[capacity];solverPositions=new Vector2[capacity];
+            solverPositions=new Vector2[capacity];
         }
-        void ApplyPositions(Vector2[] positions,int count)
-        {for(int i=0;i<count;i++)MoveBody(drawOrder[i],Physical(positions[i]));}
         private static void MoveBody(PlateBody body,Vector2 position)
         {body.rigidbody.position=position;body.node.transform.position=position;}
         private void Update()
@@ -117,30 +228,6 @@ namespace HotpotSort.UnityPhysics
             if(!simulating)return;
             for(int i=remnants.Count-1;i>=0;i--)
             { remnants[i].remaining-=Time.unscaledDeltaTime; if(remnants[i].remaining<=0)remnants.RemoveAt(i); }
-        }
-        private void ConstrainGeometry(Vector2[] positions,int count)
-        {
-            if(!simulating)return;
-            // Box2D permits a small contact slop. Remove that slop before rendering so
-            // the accepted visible rims never overlap; velocities remain physics-owned.
-            for(int pass=0;pass<256;pass++)
-            {
-                bool moved=false;
-                for(int i=0;i<count;i++)
-                {
-                    var a=drawOrder[i];float radius=a.data.radius;var at=positions[i];
-                    var clamped=new Vector2(Mathf.Clamp(at.x,radius,420-radius),Mathf.Clamp(at.y,HiddenTop+radius,828-radius));
-                    if((clamped-at).sqrMagnitude>.0000001f){positions[i]=clamped;at=clamped;moved=true;}
-                    for(int j=i+1;j<count;j++)
-                    {
-                        var b=drawOrder[j];var delta=positions[j]-positions[i];float length=delta.magnitude,required=a.data.radius+b.data.radius+.02f;
-                        if(length>=required)continue;
-                        var direction=length>.001f?delta/length:Vector2.right;var shift=direction*((required-length)*.5f);
-                        positions[i]-=shift;positions[j]+=shift;at=positions[i];moved=true;
-                    }
-                }
-                if(!moved)break;
-            }
         }
         private Vector2 MeasureGeometry()
         {
@@ -188,6 +275,7 @@ namespace HotpotSort.UnityPhysics
                 else if(body.data.x!=p.x || body.data.y!=p.y || body.correctionRevision!=correction)
                 {
                     MoveBody(body,Physical(new Vector2(p.x,p.y)));
+                    MarkVelocityClear(body,"snapshot-correction");
                     body.rigidbody.linearVelocity=Vector2.zero; body.rigidbody.angularVelocity=0;
                     body.correctionRevision=correction;
                 }
@@ -275,7 +363,7 @@ namespace HotpotSort.UnityPhysics
                 if(commit)
                 {
                     // Atomic reposition, no paths that sweep through neighbouring plates.
-                    for(int i=0;i<bodies.Count;i++){MoveBody(bodies[i],Physical(targets[i]));bodies[i].rigidbody.linearVelocity=Vector2.zero;bodies[i].rigidbody.angularVelocity=0;}
+                    for(int i=0;i<bodies.Count;i++){MoveBody(bodies[i],Physical(targets[i]));MarkVelocityClear(bodies[i],"shuffle");bodies[i].rigidbody.linearVelocity=Vector2.zero;bodies[i].rigidbody.angularVelocity=0;}
                     Physics2D.SyncTransforms();
                 }
                 return true;
@@ -295,7 +383,7 @@ namespace HotpotSort.UnityPhysics
                     inVisibleBounds &= next.x-r>=-.001f && next.x+r<=420.001f && next.y-r>=303.999f && next.y+r<=828.001f;
                 }
                 if(!changed || !inVisibleBounds)continue;
-                if(commit){for(int i=0;i<bodies.Count;i++){MoveBody(bodies[i],Physical(targets[i]));bodies[i].rigidbody.linearVelocity=Vector2.zero;bodies[i].rigidbody.angularVelocity=0;}Physics2D.SyncTransforms();}
+                if(commit){for(int i=0;i<bodies.Count;i++){MoveBody(bodies[i],Physical(targets[i]));MarkVelocityClear(bodies[i],"shuffle");bodies[i].rigidbody.linearVelocity=Vector2.zero;bodies[i].rigidbody.angularVelocity=0;}Physics2D.SyncTransforms();}
                 return true;
             }
             return false;
@@ -311,6 +399,7 @@ namespace HotpotSort.UnityPhysics
             plates.Clear(); drawOrder.Clear(); remnants.Clear();
             StepGeometry.Clear();ConstraintRollbacks=0;TransientGeometrySteps=0;
             observationSequence=0;
+            diagnosticRing.Clear();diagnosticTime=diagnosticNextLog=0;diagnosticSampleCursor=0;
         }
         private void OnDestroy() { Clear();if(localScene.IsValid()&&localScene.isLoaded)SceneManager.UnloadSceneAsync(localScene);if(material)Destroy(material); }
     }

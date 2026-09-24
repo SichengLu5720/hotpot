@@ -29,6 +29,13 @@ namespace HotpotSort.Core
             ConfigurationDigest = CanonicalJson.Hash(CanonicalJson.Write(CanonicalJson.Object("contentDigest", content.Digest, "catalogDigest", CatalogDigest)));
         }
         public IGameSession CreateSession(ChallengeContext context) => CreateDailySession(context);
+        public DailySessionFactory ForReplayContent(string digest)
+        {
+            if(Content.Digest==digest)return this;
+            var historical=KnownDailyProfiles.Resolve(Content,digest);
+            // Catalog embeds contentVersion; never reuse the current catalog hash.
+            return FromProductionJson(historical.CanonicalJsonText);
+        }
         public DailySession CreateDailySession(ChallengeContext context, DailyRulesVersion rules = DailyRulesVersion.RevivalV3) => new DailySession(this, context, null, rules);
         public DailySession CreateFixtureSession(ChallengeContext context, DailyFixture fixture, DailyRulesVersion rules = DailyRulesVersion.RevivalV3) => new DailySession(this, context, fixture ?? throw new ArgumentNullException(nameof(fixture)), rules);
     }

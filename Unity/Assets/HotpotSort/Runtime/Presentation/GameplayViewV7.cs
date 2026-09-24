@@ -69,6 +69,7 @@ namespace HotpotSort.Presentation
             frame.anchoredPosition=new Vector2((viewport.width-420*scale)*.5f,-(viewport.height-900*scale)*.5f);
             return frame;
         }
+        public void RefreshOrderPresentation(){Render();}
         void RenderV7()
         {
             if(!content)return;
@@ -114,7 +115,7 @@ namespace HotpotSort.Presentation
             for(int slot=0;slot<4;slot++)
             {
                 orderNodes[slot].gameObject.SetActive(!serving[slot]);
-                var order=Array.Find(LastSnapshot.orders,o=>o.slot==slot);
+                var order=feedback.DisplayOrder(slot,Array.Find(LastSnapshot.orders,o=>o.slot==slot));
                 bool enabled=order!=null&&order.enabled;
                 string signature=enabled+":"+order?.foodId+":"+order?.count;
                 if(orderSignatures[slot]==signature)continue;
@@ -183,7 +184,7 @@ namespace HotpotSort.Presentation
         {
             var n=Node(board,"Tool_"+kind,new Rect(x,831,120,67));
             var hit=n.gameObject.AddComponent<Image>();hit.color=Color.clear;
-            var b=n.gameObject.AddComponent<Button>();b.targetGraphic=hit;b.onClick.AddListener(()=>ChooseReward(kind));StyleButton(b);
+            var b=n.gameObject.AddComponent<Button>();b.targetGraphic=hit;BindButtonClick(b,()=>ChooseReward(kind));StyleButton(b);
             ModernIcon(n,"ToolIcon",icon,UnifiedTheme?new Rect(44,3,32,32):new Rect(42,5,36,36),ModernPalette.Tea);var caption=Label(n,title,new Rect(0,UnifiedTheme?36:42,120,24),18);if(UnifiedTheme)caption.color=ThemeIvory;
         }
         void EntryV7()
@@ -197,7 +198,7 @@ namespace HotpotSort.Presentation
                 PictureContain(frame,art.Texture("brand.hotpot_seal"),new Rect(174,38,72,72),"RestaurantSeal");
                 var title=Label(frame,"火锅消消",new Rect(48,108,324,65),46);title.font=displayFont;title.color=ThemeIvory;
                 PictureContain(frame,art.Texture(AssetKey.Entry),new Rect(-12,224,444,444),"EntryHero");
-                Skin(frame,"RestaurantCounter",new Rect(52,676,316,153),"ui.bottom_bar");
+                Skin(frame,"RestaurantCounter",new Rect(52,676,316,169),"ui.bottom_bar");
             }
             else
             {
@@ -207,9 +208,9 @@ namespace HotpotSort.Presentation
             }
             VButton(frame,"开始下火锅",new Rect(70,700,280,58),()=>Action(ViewAction.StartToday),true,24);
             entryActionButton=frame.Find("Action_开始下火锅").GetComponent<Button>();entryActionLabel=entryActionButton.GetComponentInChildren<Text>();
-            VButton(frame,"设置",new Rect(70,772,133,43),()=>{if(AssetBusy||assetPreparation?.State==AssetReadiness.Failed)Action(ViewAction.Exit);else SettingsRequested?.Invoke();},false,18);
+            EntryIconButton(frame,"设置","settings",new Rect(70,759,133,70),()=>{if(AssetBusy||assetPreparation?.State==AssetReadiness.Failed)Action(ViewAction.Exit);else SettingsRequested?.Invoke();});
             entrySecondaryLabel=frame.Find("Action_设置").GetComponentInChildren<Text>();
-            VButton(frame,"好友榜",new Rect(217,772,133,43),()=>FriendsRequested?.Invoke(),false,18);
+            EntryIconButton(frame,"排行榜","friends",new Rect(217,759,133,70),()=>FriendsRequested?.Invoke());
             if(!UnifiedTheme)Label(frame,"北京时间 06:00 更新",new Rect(30,837,360,26),18).color=V7Art.Ivory;
             entryStatus=Label(frame,"",new Rect(20,866,380,26),17);entryStatus.color=ModernPalette.Paper;RefreshAssetControls();
         }
@@ -313,12 +314,13 @@ namespace HotpotSort.Presentation
         void SettingsV7(PlayerSettings settings,Action<PlayerSettings> save)
         {
             var card=ModalV7("Settings",570);
+            Audio?.SetSettingsOpen(true);
             Label(card,"设置",new Rect(25,28,310,50),32);
             SettingRow(card,settings.MusicEnabled?"music_on":"music_off","音乐",settings.MusicEnabled,112,()=>{settings.MusicEnabled=!settings.MusicEnabled;save(settings);SettingsV7(settings,save);});
             Volume(card,new Rect(55,199,250,12),settings.MusicVolume,v=>{settings.MusicVolume=v;save(settings);});
             SettingRow(card,settings.EffectsEnabled?"effects_on":"effects_off","音效",settings.EffectsEnabled,261,()=>{settings.EffectsEnabled=!settings.EffectsEnabled;save(settings);SettingsV7(settings,save);});
             Volume(card,new Rect(55,348,250,12),settings.EffectsVolume,v=>{settings.EffectsVolume=v;save(settings);});
-            Label(card,"声音暂未开放\n设置已为你保留",new Rect(25,393,310,59),18).color=ModernPalette.Muted;
+            Label(card,"音乐与音效独立调节\n设置自动保存",new Rect(25,393,310,59),18).color=ModernPalette.Muted;
             VButton(card,"完成",new Rect(40,478,280,50),()=>{save(settings);CloseModal();if(LastSnapshot.phase==ViewPhase.Paused)OverlayV7();},true);
         }
         void SettingRow(Transform parent,string icon,string text,bool on,float y,UnityEngine.Events.UnityAction action)
@@ -345,13 +347,23 @@ namespace HotpotSort.Presentation
         void VButton(Transform parent,string text,Rect rect,UnityEngine.Events.UnityAction action,bool primary=true,int size=21)
         {
             var n=Skin(parent,"Action_"+text,rect,primary?"ui.button_primary":"ui.button_secondary");var image=n.GetComponent<Image>();image.raycastTarget=true;
-            var b=n.gameObject.AddComponent<Button>();b.targetGraphic=image;b.onClick.AddListener(()=>{feedback.Button();action();});StyleButton(b);
+            var b=n.gameObject.AddComponent<Button>();b.targetGraphic=image;BindButtonClick(b,action,text=="开始下火锅");StyleButton(b);
             Label(n,text,new Rect(8,0,rect.width-16,rect.height),size).color=UnifiedTheme?ThemeIvory:primary?ModernPalette.Paper:ModernPalette.Ink;
+        }
+        void EntryIconButton(Transform parent,string title,string icon,Rect rect,UnityEngine.Events.UnityAction action)
+        {
+            var n=Node(parent,"Action_"+title,rect);
+            var hit=n.gameObject.AddComponent<Image>();hit.color=Color.clear;hit.raycastTarget=true;
+            var disc=Skin(n,"IconDisc",new Rect((rect.width-52)/2,0,52,52),"ui.icon_disc");
+            var button=n.gameObject.AddComponent<Button>();button.targetGraphic=disc.GetComponent<Image>();
+            BindButtonClick(button,action);StyleButton(button);
+            ModernIcon(disc,"Icon",icon,new Rect(10,10,32,32),ModernPalette.Coral);
+            Label(n,title,new Rect(0,48,rect.width,22),18).color=UnifiedTheme?ThemeIvory:ModernPalette.Paper;
         }
         void IconButton(Transform parent,string title,string icon,Rect rect,UnityEngine.Events.UnityAction action)
         {
             var n=Skin(parent,title,rect,"ui.icon_disc");var image=n.GetComponent<Image>();image.raycastTarget=true;
-            var button=n.gameObject.AddComponent<Button>();button.onClick.AddListener(action);StyleButton(button);ModernIcon(n,icon,icon,new Rect(6,6,rect.width-12,rect.height-12),ModernPalette.Coral);
+            var button=n.gameObject.AddComponent<Button>();BindButtonClick(button,action);StyleButton(button);ModernIcon(n,icon,icon,new Rect(6,6,rect.width-12,rect.height-12),ModernPalette.Coral);
         }
     }
 }

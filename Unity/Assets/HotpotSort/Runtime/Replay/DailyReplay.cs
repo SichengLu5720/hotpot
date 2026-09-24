@@ -26,6 +26,7 @@ namespace HotpotSort.Replay
                 if (package == null || (package.SchemaVersion != DailySession.ReplaySchema && package.SchemaVersion != DailySession.LegacyReplaySchema)) throw new FormatException("Unknown replay version");
                 var root = CanonicalJson.Map(CanonicalJson.Parse(package.CanonicalJson));
                 if ((string)root["schemaVersion"] != package.SchemaVersion) throw new FormatException("Unknown replay schema");
+                factory=factory.ForReplayContent((string)CanonicalJson.Map(root["identities"])["contentDigest"]);
                 var rules=package.SchemaVersion==DailySession.LegacyReplaySchema?DailyRulesVersion.LegacyV2:DailyRulesVersion.RevivalV3;
                 var expected = CanonicalJson.Object("contentDigest", factory.Content.Digest, "catalogDigest", factory.CatalogDigest,
                     "configurationDigest", factory.ConfigurationDigest, "rng", Pcg32.Version, "seed", Pcg32.SeedVersion,
@@ -50,17 +51,26 @@ namespace HotpotSort.Replay
                 {
                     index++; var record = CanonicalJson.Map(raw); var data = CanonicalJson.Map(record["data"]);
                     ulong boundary = CanonicalJson.ReadU64(data["logicalBoundary"]); CommandResult result;
+                    ClickableObservation clickability=null;
+                    if(data.TryGetValue("clickability",out var observed))
+                    {
+                        var observation=CanonicalJson.Map(observed);
+                        if(CanonicalJson.Int(observation["version"])!=1)throw new FormatException("Unknown clickability observation version");
+                        int policy=observation.TryGetValue("policyVersion",out var policyValue)?CanonicalJson.Int(policyValue):1;
+                        if(policy<1||policy>4)throw new FormatException("Unknown clickability policy version");
+                        clickability=new ClickableObservation(session.Snapshot.SessionId,(string)observation["snapshotRevision"],CanonicalJson.Array(observation["itemIds"]).Select(CanonicalJson.Int),observation.TryGetValue("unknownItemIds",out var unknown)?CanonicalJson.Array(unknown).Select(CanonicalJson.Int):null,policy);
+                    }
                     switch ((string)record["type"])
                     {
                         case "Tap":
                             if (!(bool)data["hitAccepted"]) throw new FormatException("Rejected tap in accepted replay");
-                            result = session.Tap(new TapCommand(CanonicalJson.Int(data["itemId"]), CanonicalJson.ReadU64(data["inputSeq"]), boundary, true)); break;
+                            result = session.Tap(new TapCommand(CanonicalJson.Int(data["itemId"]), CanonicalJson.ReadU64(data["inputSeq"]), boundary, true,clickability)); break;
                         case "SupplyCommit":
                             result = session.ReplaySupply(CanonicalJson.Int(data["plateId"]), CanonicalJson.Array(data["itemIds"]).Select(CanonicalJson.Int).ToArray(), boundary, CanonicalJson.ReadU64(data["observationSeq"])); break;
                         case "Pause": result = session.Pause(boundary); break;
                         case "Resume": result = session.Resume(boundary); break;
                         case "ClearBuffer": result = session.ClearBuffer(boundary); break;
-                        case "UnlockFourth": result = session.UnlockFourth(boundary); break;
+                        case "UnlockFourth": result = session.UnlockFourth(boundary,clickability); break;
                         case "Timeout": result = session.Timeout(boundary); break;
                         case "ResolveRevival": result=session.ResolveRevival(new ResolveRevivalCommand((string)data["revivalOfferId"],(string)data["requestId"],(bool)data["success"],boundary));break;
                         case "CompleteRevivalTransfer": result=session.CompleteRevivalTransfer((string)data["revivalOfferId"],(string)data["completionToken"],boundary);break;

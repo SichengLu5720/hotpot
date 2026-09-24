@@ -27,6 +27,8 @@ namespace HotpotSort.Bootstrap
             WX.OnTouchCancel(OnCancel);
             view.UsesExternalTapInput=true;
             view.HapticRequested+=OnHaptic;
+            view.EntryStartHapticRequested+=OnEntryStartHaptic;
+            view.ButtonHapticRequested+=OnButtonHaptic;
         }
         private void OnStart(OnTouchStartListenerResult value)
         {
@@ -63,15 +65,21 @@ namespace HotpotSort.Bootstrap
         private void OnCancel(OnTouchStartListenerResult value){Cancel();}
         private void Cancel(){view?.CancelScreenPress();pressed.Clear();primaryId=null;ui?.Cancel();}
         private void OnHaptic(GameplayHapticKind kind)
+        { Vibrate(kind,false); }
+        private void OnEntryStartHaptic()
+        { Vibrate(GameplayHapticKind.Light,true); }
+        private void OnButtonHaptic()
+        { Vibrate(GameplayHapticKind.Light,false,true); }
+        private void Vibrate(GameplayHapticKind kind,bool entry,bool button=false)
         {
-            if(!view||!view.CanPlayHaptic)return;
+            if(!view||!(button?view.CanPlayButtonHaptic:entry?view.CanPlayEntryHaptic:view.CanPlayHaptic))return;
             long epoch=view.HapticEpoch;
             try
             {
                 WX.VibrateShort(new VibrateShortOption{type=kind==GameplayHapticKind.Medium?"medium":"light",fail=result=>
                 {
                     // Older runtimes may not accept a strength. Retry once with the default short pulse.
-                    if(!this||!isActiveAndEnabled||!view||!view.CanPlayHaptic||view.HapticEpoch!=epoch)return;
+                    if(!this||!isActiveAndEnabled||!view||!(button?view.CanPlayButtonHaptic:entry?view.CanPlayEntryHaptic:view.CanPlayHaptic)||view.HapticEpoch!=epoch)return;
                     try{WX.VibrateShort(new VibrateShortOption());}catch(System.Exception){}
                 }});
             }
@@ -86,7 +94,7 @@ namespace HotpotSort.Bootstrap
             WX.OffTouchEnd(OnEnd);
             WX.OffTouchCancel(OnCancel);
             Cancel();if(ui){ui.enabled=false;Destroy(ui);ui=null;}
-            if(view){view.HapticRequested-=OnHaptic;view.UsesExternalTapInput=false;}
+            if(view){view.HapticRequested-=OnHaptic;view.EntryStartHapticRequested-=OnEntryStartHaptic;view.ButtonHapticRequested-=OnButtonHaptic;view.UsesExternalTapInput=false;}
         }
 #endif
     }

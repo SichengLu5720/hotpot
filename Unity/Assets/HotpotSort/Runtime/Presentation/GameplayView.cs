@@ -19,13 +19,13 @@ namespace HotpotSort.Presentation
         {
             public int pointerId,itemSibling,plateSibling;
             public string itemId;
-            public Vector2 startScreen;
+            public Vector2 startScreen,hitOffset;
             public Vector3 originalScale;
             public float age;
             public RectTransform item,plate;
         }
 
-        const float PressScaleSeconds=.08f,PressedScale=1.12f,PressSlopBoardUnits=14f;
+        const float PressScaleSeconds=.08f,PressedScale=1.5f,PressSlopBoardUnits=14f;
         const float BufferLandingScaleSeconds=.14f;
         public MonoBehaviour portComponent;
         public Font playerFont;
@@ -34,6 +34,34 @@ namespace HotpotSort.Presentation
         public event Action<RewardKind,RewardRoute> RewardRequested;
         public event Action SettingsRequested,FriendsRequested,ShareRequested;
         public event Action<GameplayHapticKind> HapticRequested;
+        public event Action EntryStartHapticRequested;
+        public event Action ButtonHapticRequested;
+        public bool CanPlayButtonHaptic=>isActiveAndEnabled&&foreground&&canvasRoot&&canvasRoot.gameObject.activeInHierarchy;
+        public void NotifyButtonAccepted()
+        {
+            if(!CanPlayButtonHaptic)return;
+            double now=Time.realtimeSinceStartupAsDouble;
+            if(now-lastLightHapticAt<.12)return;
+            lastLightHapticAt=now;ButtonHapticRequested?.Invoke();
+        }
+        void BindButtonClick(Button button,UnityEngine.Events.UnityAction action,bool acceptedStart=false)
+        {
+            button.onClick.AddListener(()=>
+            {
+                if(!button||!button.isActiveAndEnabled||!button.IsInteractable()||!CanPlayButtonHaptic)return;
+                if(!acceptedStart)NotifyButtonAccepted();
+                action();
+            });
+        }
+        public GameplayAudio Audio=>feedback?feedback.Audio:null;
+        public bool CanPlayEntryHaptic=>isActiveAndEnabled&&PresentationForeground&&LastSnapshot?.phase==ViewPhase.Entry&&!(modal&&modal.gameObject.activeInHierarchy);
+        public void NotifyEntryStartAccepted()
+        {
+            if(!CanPlayEntryHaptic)return;
+            double now=Time.realtimeSinceStartupAsDouble;
+            if(now-lastLightHapticAt<.12)return;
+            lastLightHapticAt=now;EntryStartHapticRequested?.Invoke();
+        }
         public ViewSnapshot LastSnapshot { get; private set; }
         public long LastEventSequence { get; private set; }
         public string LastTransactionId { get; private set; }
@@ -131,7 +159,7 @@ namespace HotpotSort.Presentation
         { SetViewport(screenPixelSafeArea,pixelScreenHeight,new Rect()); }
         public void SetViewport(Rect screenPixelSafeArea,float pixelScreenHeight,Rect screenPixelMenuButton)
         { externalViewport = true; viewport = screenPixelSafeArea;viewportScreenHeight=pixelScreenHeight;menuButtonPixels=screenPixelMenuButton;viewportAppliedAt=new Vector2Int(Screen.width,Screen.height);Render();UpdateFriendBoardPresentation(); }
-        public void SetForeground(bool value) { if(!value)CancelInteractionFeedback();foreground = value; UpdateSimulation(); }
+        public void SetForeground(bool value) { if(!value)CancelInteractionFeedback();foreground = value;Audio?.SetForeground(value); UpdateSimulation(); }
         public void Hide(bool hidden) { if(hidden)CancelInteractionFeedback();canvasRoot.gameObject.SetActive(!hidden); UpdateSimulation(); }
         private void UpdateSimulation() { World.SetSimulating(foreground && canvasRoot.gameObject.activeInHierarchy && !FriendBoardVisible && LastSnapshot.phase==ViewPhase.Running && LastSnapshot.pauseReasons==ViewPauseReasons.None); }
         public void ResetView() { CancelScreenPress();CancelShuffleFeedback(); simulation?.TrySetResult(RewardOutcome.Cancelled);simulation=null;pending.Clear();Array.Clear(serving,0,4); LastEventSequence=0; LastTransactionId=null; feedback.ResetFeedback(); World.Clear(); LastSnapshot=new ViewSnapshot { phase=ViewPhase.Entry }; Render(); }
@@ -160,6 +188,7 @@ namespace HotpotSort.Presentation
         }
         private void LateUpdate()
         {
+            TickClickabilityCache();
             TickShuffleFeedback(Time.unscaledDeltaTime);
             TickPressAndLanding(Time.unscaledDeltaTime);
             UpdateFriendBoardPresentation();
@@ -205,6 +234,7 @@ namespace HotpotSort.Presentation
             Vector2 point;string id;
             if(!TryScreenHit(screen,pointerId,out point,out id))return false;
             RequestHaptic(GameplayHapticKind.Light);
+            Audio?.Play(AudioCue.FoodPress);
             return DispatchTap(id,point);
         }
         public bool BeginScreenPress(Vector2 screen,int pointerId=-1)
@@ -214,9 +244,10 @@ namespace HotpotSort.Presentation
             if(!TryScreenHit(screen,pointerId,out point,out id))return false;
             RectTransform item;if(!itemVisuals.TryGetValue(id,out item)||!item)return false;
             var plateNode=item.parent as RectTransform;if(!plateNode)return false;
-            pressedItem=new PressedItem{pointerId=pointerId,itemId=id,startScreen=screen,item=item,plate=plateNode,originalScale=item.localScale,itemSibling=item.GetSiblingIndex(),plateSibling=plateNode.GetSiblingIndex()};
+            pressedItem=new PressedItem{pointerId=pointerId,itemId=id,startScreen=screen,hitOffset=point-World.ItemPosition(id),item=item,plate=plateNode,originalScale=item.localScale,itemSibling=item.GetSiblingIndex(),plateSibling=plateNode.GetSiblingIndex()};
             item.SetAsLastSibling();plateNode.SetAsLastSibling();
             RequestHaptic(GameplayHapticKind.Light);
+            Audio?.Play(AudioCue.FoodPress);
             return true;
         }
         public bool UpdateScreenPress(Vector2 screen,int pointerId=-1)
@@ -232,7 +263,7 @@ namespace HotpotSort.Presentation
             if(!UpdateScreenPress(screen,pointerId)||pressedItem==null)return false;
             var press=pressedItem;pressedItem=null;
             RestorePressedVisual(press);
-            if(!IsItemClickable(press.itemId))return false;
+            if(!ValidateReleasedFood(press))return false;
             return DispatchTap(press.itemId,World.ItemPosition(press.itemId));
         }
         public void CancelScreenPress(int pointerId=-1)
@@ -364,9 +395,15 @@ namespace HotpotSort.Presentation
                 .Where(i=>LastSnapshot.orders.Any(o=>o.enabled && o.foodId==i.foodId && o.count<o.required))
                 .OrderBy(i=>int.Parse(i.itemId)).Select(i=>i.itemId).FirstOrDefault(IsItemClickable);
         }
-        private void Action(ViewAction action) { feedback.Button(); ActionRequested?.Invoke(action); port?.SessionAction(action); }
+        // Compatibility projection; unknown IDs are intentionally not claimed visible.
+        public string[] CaptureClickableItemIds()
+        {
+            return CaptureClickability()?.clickable;
+        }
+        private void Action(ViewAction action) { ActionRequested?.Invoke(action); port?.SessionAction(action); }
         private void Render()
         {
+            Audio?.SetState(LastSnapshot);
             if(art!=null){RenderV7();return;}
             if (!content) return;
             if (viewport.width<=0 || viewport.height<=0) viewport=new Rect(0,0,Screen.width,Screen.height);
@@ -405,7 +442,7 @@ namespace HotpotSort.Presentation
             for(int slot=0;slot<4;slot++)
             {
                 orderNodes[slot].gameObject.SetActive(!serving[slot]);
-                ViewOrder order=Array.Find(LastSnapshot.orders,o=>o.slot==slot);
+                ViewOrder order=feedback.DisplayOrder(slot,Array.Find(LastSnapshot.orders,o=>o.slot==slot));
                 bool enabled=order!=null && order.enabled;
                 string signature=enabled+":"+(order==null?"null":order.foodId+":"+order.count);
                 if(orderSignatures[slot]==signature)continue;
@@ -589,8 +626,9 @@ namespace HotpotSort.Presentation
         public void ShowNotice(string title,string message)=>ShowDialog(title,message,new[]{"知道了"},i=>{CloseModal();if(LastSnapshot.phase!=ViewPhase.Running && LastSnapshot.phase!=ViewPhase.Entry)Overlay();});
         public void ShowSettings(PlayerSettings settings,Action<PlayerSettings> save)
         {
-            if(art!=null){SettingsV7(settings,save);return;}
-            ShowDialog("音乐与音效","正式音频尚未交付时保持静音；设置保存在本机。",new[]{"完成"},i=>{save(settings);CloseModal();if(LastSnapshot.phase==ViewPhase.Paused)Overlay();});
+            if(art!=null){SettingsV7(settings,save);Audio?.SetSettingsOpen(true);return;}
+            ShowDialog("音乐与音效","音乐与音效可分别调节；设置保存在本机。",new[]{"完成"},i=>{save(settings);CloseModal();if(LastSnapshot.phase==ViewPhase.Paused)Overlay();});
+            Audio?.SetSettingsOpen(true);
             float w=viewport.width,y=viewport.height*.4f;
             Button(modal,"音乐开关",new Rect(30,y,w-60,38),()=>{settings.MusicEnabled=!settings.MusicEnabled;save(settings);ShowSettings(settings,save);});
             Label(modal,settings.MusicEnabled?"音乐：开":"音乐：关",new Rect(30,y+40,w-60,24),16);
@@ -607,7 +645,7 @@ namespace HotpotSort.Presentation
             Label(modal,message,new Rect(25,viewport.height*.28f,viewport.width-50,85),17);
             for(int i=0;i<buttons.Length;i++){int index=i;Button(modal,buttons[i],new Rect(35,viewport.height-70-(buttons.Length-i-1)*60,viewport.width-70,46),()=>select(index));}
         }
-        void CloseModal(){if(modal){modal.gameObject.SetActive(false);Destroy(modal.gameObject);modal=null;}}
+        void CloseModal(){Audio?.SetSettingsOpen(false);if(modal){modal.gameObject.SetActive(false);Destroy(modal.gameObject);modal=null;}}
         static void ClearChildren(Transform parent){foreach(Transform child in parent){child.gameObject.SetActive(false);Destroy(child.gameObject);}}
         void Volume(Transform parent,Rect rect,float value,Action<float> changed)
         {
@@ -638,7 +676,7 @@ namespace HotpotSort.Presentation
         private void Button(Transform parent,string text,Rect r,UnityEngine.Events.UnityAction action)
         {
             if(art!=null){VButton(parent,text,r,action);return;}
-            var rt=Panel(parent,"Action_"+text,r,Coral);var button=rt.gameObject.AddComponent<Button>();button.targetGraphic=rt.GetComponent<Image>();button.onClick.AddListener(action);
+            var rt=Panel(parent,"Action_"+text,r,Coral);var button=rt.gameObject.AddComponent<Button>();button.targetGraphic=rt.GetComponent<Image>();BindButtonClick(button,action,text=="开始下火锅");
             string icon=text=="暂停"?"pause":text=="提示"?"hint":text=="清空暂存"?"clear":text=="打乱"?"shuffle":text=="设置"?"settings":text=="好友榜"?"leaderboard":text=="退出"?"home":text=="重新挑战"?"retry":text.Contains("分享")?"share":text.Contains("音乐")?"music":text.Contains("音效")?"sound":text=="继续"||text=="开始下火锅"?"play":text=="模拟激励"||text=="提前开锅"?"ad":text=="取消"||text=="关闭"?"close":null;
             bool round=r.width==r.height&&!string.IsNullOrEmpty(assetRoot);
             if(!round&&r.width<120)icon=null;

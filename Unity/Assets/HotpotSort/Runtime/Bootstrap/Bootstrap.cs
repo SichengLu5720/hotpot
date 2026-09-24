@@ -181,6 +181,8 @@ namespace HotpotSort.Bootstrap
             try
             {
                 var state=assets.Snapshot;
+                if(foreground&&composition is DailyProductionComposition entry)
+                    entry.PlayerView?.NotifyEntryStartAccepted();
                 await (activationFailed||state.State==AssetReadiness.Failed||state.State==AssetReadiness.Cancelled?assets.RetryAsync():assets.PrepareAsync());
                 await StartIfReadyAsync(intent);
             }

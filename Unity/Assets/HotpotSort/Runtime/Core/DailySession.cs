@@ -40,6 +40,9 @@ namespace HotpotSort.Core
         bool revivalPending, revivalUsed;
         string revivalOfferId, revivalTransferToken;
         object revivalTransfer;
+        HashSet<int> commandClickability;
+        HashSet<int> commandUnknownClickability;
+        int commandClickabilityPolicy;
         public bool RevivalPending { get { lock(gate) return revivalPending; } }
         public bool RevivalUsed { get { lock(gate) return revivalUsed; } }
         public string RevivalOfferId { get { lock(gate) return revivalOfferId; } }
@@ -187,7 +190,7 @@ namespace HotpotSort.Core
         CommandResult Publish(bool accepted, string reason)
         {
             var result = new CommandResult(accepted, reason, Hash(), snapshot, new GameEventBatch(sessionId, CanonicalJson.U64(transactionId), batch));
-            try { Changed?.Invoke(snapshot, result.Events); } finally { resolving = false; }
+            try { Changed?.Invoke(snapshot, result.Events); } finally { resolving = false;commandClickability=null; }
             return result;
         }
         CommandResult Reject(string type, string reason, object details)
@@ -197,6 +200,27 @@ namespace HotpotSort.Core
             return new CommandResult(false, reason, Hash(), snapshot, new GameEventBatch(sessionId, CanonicalJson.U64(transactionId), new string[0]));
         }
         string Guard(ulong nextBoundary) => disposed ? "Disposed" : resolving ? "Resolving" : nextBoundary < boundary ? "NonMonotonicBoundary" : null;
+        HashSet<int> ValidateClickability(ClickableObservation observation,Dictionary<string,object> record)
+        {
+            commandUnknownClickability=null;
+            commandClickabilityPolicy=1;
+            if(observation==null||observation.SessionId!=sessionId||observation.SnapshotRevision!=snapshot.TransactionId)return null;
+            if(observation.PolicyVersion<1||observation.PolicyVersion>4)return null;
+            if(observation.ItemIds.Concat(observation.UnknownItemIds).Any(id=>id<1||id>items.Count||items[id-1].Location!="ActiveAvailable"))return null;
+            var valid=new HashSet<int>(observation.ItemIds);
+            if(observation.UnknownItemIds.Any(valid.Contains))return null;
+            commandUnknownClickability=new HashSet<int>(observation.UnknownItemIds);
+            commandClickabilityPolicy=observation.PolicyVersion;
+            var data=CanonicalJson.Object("version",1,"snapshotRevision",observation.SnapshotRevision,"itemIds",valid.OrderBy(id=>id).ToArray());
+            if(commandClickabilityPolicy>=2)data.Add("policyVersion",commandClickabilityPolicy);
+            if(commandUnknownClickability.Count>0)data.Add("unknownItemIds",commandUnknownClickability.OrderBy(id=>id).ToArray());
+            record.Add("clickability",data);
+            return valid;
+        }
+        public bool MayRefillOrdersOnTap(int itemId)
+        {
+            lock(gate)return itemId>=1&&itemId<=items.Count&&items[itemId-1].Location=="ActiveAvailable"&&orders.Any(o=>o.Enabled&&o.Kind==items[itemId-1].Kind&&o.Items.Count==2);
+        }
         public CommandResult Tap(TapCommand command)
         {
             if (command == null) throw new ArgumentNullException(nameof(command));
@@ -210,6 +234,7 @@ namespace HotpotSort.Core
                 if (reason == null && (command.ItemId < 1 || command.ItemId > items.Count || items[command.ItemId - 1].Location != "ActiveAvailable")) reason = "ItemUnavailable";
                 if (reason != null) return Reject("TapRejected", reason, detail);
                 if (command.LogicalBoundary >= 600000) return Timeout(command.LogicalBoundary);
+                commandClickability=ValidateClickability(command.Clickability,detail);
                 inputSeq = command.InputSeq; hasInputSeq = true;
                 string before = Hash(); Begin(command.LogicalBoundary); taps++;
                 var item = items[command.ItemId - 1]; item.Location = "Reserved";
@@ -277,7 +302,7 @@ namespace HotpotSort.Core
         void FillOrder(int slot)
         {
                 var order=orders[slot];
-                var choice = director.Choose(slot, items, orders, buffer, pending, directorRng);
+                var choice = director.Choose(slot, items, orders, buffer, pending, directorRng,clickable:commandClickability,unknown:commandUnknownClickability,completedOrders:commandClickabilityPolicy>=2?completedOrders:15,policyVersion:commandClickabilityPolicy);
                 Emit("DirectorEvaluated", choice.Diagnostic);
                 order.Kind = choice.Kind; order.Identity = ++nextOrderIdentity;
                 if (order.Kind == null) return;
@@ -361,13 +386,14 @@ namespace HotpotSort.Core
                 Emit("RevivalTransferCompleted",data);Close();Record("CompleteRevivalTransfer",data);return Publish(true,null);
             }
         }
-        public CommandResult UnlockFourth(ulong logicalBoundary)
+        public CommandResult UnlockFourth(ulong logicalBoundary,ClickableObservation clickability=null)
         {
             lock(gate)
             {
                 if(Guard(logicalBoundary)!=null || !CanUnlockFourth)return Reject("UnlockRejected","NoTarget",null);
                 if(logicalBoundary>=600000)return Timeout(logicalBoundary);
-                Begin(logicalBoundary);UnlockOrder(3);Settle();Close();Record("UnlockFourth",CanonicalJson.Object("logicalBoundary",CanonicalJson.U64(logicalBoundary)));return Publish(true,null);
+                var detail=CanonicalJson.Object("logicalBoundary",CanonicalJson.U64(logicalBoundary));commandClickability=ValidateClickability(clickability,detail);
+                Begin(logicalBoundary);UnlockOrder(3);Settle();Close();Record("UnlockFourth",detail);return Publish(true,null);
             }
         }
         public CommandResult Timeout(ulong logicalBoundary)

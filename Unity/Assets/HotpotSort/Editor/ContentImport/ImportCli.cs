@@ -17,7 +17,7 @@ namespace HotpotSort.ContentImport
                 Directory.CreateDirectory(args[2]);
                 File.WriteAllText(Path.Combine(args[2], Core.DailyContent.RuntimeFileName), content.CanonicalJsonText, new UTF8Encoding(false));
                 File.WriteAllText(Path.Combine(args[2], "import-manifest-v5.json"), CanonicalJson.Write(CanonicalJson.Object(
-                    "importerVersion", Core.DailyContent.ImporterVersion, "sourceProfile", "FixedCAcceptedDifficulty3", "weightScale", 100,
+                    "importerVersion", Core.DailyContent.ImporterVersion, "sourceProfile", "FixedCAcceptedDifficulty1", "weightScale", 100,
                     "skeletonSourceSha256", Core.DailyContent.SkeletonSourceHash, "weightsSourceSha256", Core.DailyContent.WeightsSourceHash,
                     "output", Core.DailyContent.RuntimeFileName, "outputSha256", content.Digest, "plateCount", 50, "itemCount", 183, "kindCount", 16, "weightRows", 20)), new UTF8Encoding(false));
                 Console.WriteLine("IMPORTED " + content.Digest); return 0;

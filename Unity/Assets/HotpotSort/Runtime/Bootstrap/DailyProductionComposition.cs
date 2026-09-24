@@ -246,9 +246,16 @@ namespace HotpotSort.Bootstrap
             if(friendSurfaceOpen || current==null || !controller.CanAcceptInput) { view.AcknowledgeTap(command.itemId);return; }
             int id;
             if(!int.TryParse(command.itemId,NumberStyles.None,CultureInfo.InvariantCulture,out id)) { view.AcknowledgeTap(command.itemId);return; }
-            var result=current.Tap(new TapCommand(id,(ulong)command.inputSeq,Boundary,true));
+            if(command.snapshotRevision!=shown.revision){view.AcknowledgeTap(command.itemId);return;}
+            var result=current.Tap(new TapCommand(id,(ulong)command.inputSeq,Boundary,true,current.MayRefillOrdersOnTap(id)?CaptureOrderClickability():null));
             if(!result.Accepted)view.AcknowledgeTap(command.itemId);
             else if(result.Events.CanonicalEvents.Any(e=>e.Contains("\"type\":\"ItemRoutedToOrder\"")||e.Contains("\"type\":\"ItemRoutedToBuffer\"")))controller.StartChallengeTimer();
+        }
+        ClickableObservation CaptureOrderClickability()
+        {
+            if(current==null||!view||view.LastSnapshot==null||view.LastSnapshot.sessionId!=current.Snapshot.SessionId||view.LastSnapshot.revision!=shown.revision||view.LastSnapshot.revision.ToString(CultureInfo.InvariantCulture)!=current.Snapshot.TransactionId)return null;
+            var observed=view.CaptureClickability();if(observed==null)return null;
+            return new ClickableObservation(current.Snapshot.SessionId,current.Snapshot.TransactionId,observed.clickable.Select(id=>int.Parse(id,CultureInfo.InvariantCulture)),observed.unknown.Select(id=>int.Parse(id,CultureInfo.InvariantCulture)));
         }
         public void ObserveSupply(ViewSupplyObservation observation)
         {
@@ -284,7 +291,7 @@ namespace HotpotSort.Bootstrap
             {
                 case RewardKind.Hint:var hint=view.FindClickableHint();if(hint==null)return false;view.HighlightItem(hint);return true;
                 case RewardKind.ClearBuffer:return current.ClearBuffer(Boundary).Reason==null;
-                case RewardKind.FourthPot:return current.UnlockFourth(Boundary).Reason==null;
+                case RewardKind.FourthPot:return current.UnlockFourth(Boundary,CaptureOrderClickability()).Reason==null;
                 case RewardKind.Shuffle:return view.TryShuffleWithFeedback();
                 default:return false;
             }

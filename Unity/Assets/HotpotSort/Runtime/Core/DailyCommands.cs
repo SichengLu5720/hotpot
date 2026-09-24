@@ -21,8 +21,19 @@ namespace HotpotSort.Core
         public ulong InputSeq { get; }
         public ulong LogicalBoundary { get; }
         public bool HitAccepted { get; }
-        public TapCommand(int itemId, ulong inputSeq, ulong logicalBoundary, bool hitAccepted)
-        { ItemId = itemId; InputSeq = inputSeq; LogicalBoundary = logicalBoundary; HitAccepted = hitAccepted; }
+        public ClickableObservation Clickability { get; }
+        public TapCommand(int itemId, ulong inputSeq, ulong logicalBoundary, bool hitAccepted,ClickableObservation clickability=null)
+        { ItemId = itemId; InputSeq = inputSeq; LogicalBoundary = logicalBoundary; HitAccepted = hitAccepted;Clickability=clickability; }
+    }
+    public sealed class ClickableObservation
+    {
+        public string SessionId { get; }
+        public string SnapshotRevision { get; }
+        public IReadOnlyList<int> ItemIds { get; }
+        public IReadOnlyList<int> UnknownItemIds { get; }
+        public int PolicyVersion { get; }
+        public ClickableObservation(string sessionId,string snapshotRevision,IEnumerable<int> itemIds,IEnumerable<int> unknownItemIds=null,int policyVersion=4)
+        {SessionId=sessionId;SnapshotRevision=snapshotRevision;ItemIds=new ReadOnlyCollection<int>(new List<int>(itemIds??throw new ArgumentNullException(nameof(itemIds))));UnknownItemIds=new ReadOnlyCollection<int>(new List<int>(unknownItemIds??Array.Empty<int>()));PolicyVersion=policyVersion;}
     }
     public sealed class SupplyObservation
     {

@@ -83,7 +83,7 @@ namespace HotpotSort.Presentation
                 for(int y=535;y<=565&&!found;y+=2)for(int x=180;x<=204&&!found;x+=2)if(view.BeginScreenPress(screen(new Vector2(x,y)),7)){hit=new Vector2(x,y);found=true;}
                 Check(found,"real alpha hit starts press");Check(port.taps==0,"press does not submit");
                 var item=view.GetComponentsInChildren<RectTransform>().First(n=>n.name=="PlateFood_1");
-                PressTick(view,.08f);Check(Mathf.Abs(item.localScale.x-1.12f)<.001f&&item.GetSiblingIndex()==item.parent.childCount-1,"hold reaches approved scale and front layer");
+                PressTick(view,.08f);Check(Mathf.Abs(item.localScale.x-1.5f)<.001f&&item.GetSiblingIndex()==item.parent.childCount-1,"hold reaches approved scale and front layer");
                 Check(!view.EndScreenPress(screen(hit),8)&&port.taps==0,"other pointer cannot release locked item");
                 Check(view.EndScreenPress(screen(hit+Vector2.right*8),7)&&port.taps==1,"small drift releases exactly once");
                 Check(!view.EndScreenPress(screen(hit),7)&&port.taps==1,"duplicate release ignored");

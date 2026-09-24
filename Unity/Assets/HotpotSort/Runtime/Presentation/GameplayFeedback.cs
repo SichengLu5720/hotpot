@@ -19,7 +19,7 @@ namespace HotpotSort.Presentation
         }
         sealed class Serve
         {
-            public RectTransform node;public float age,finishAt;public int slot;public bool exited,routesFlushed;public Vector2 origin;public ServeBatch batch;
+            public RectTransform node;public float age,finishAt;public int slot;public bool exited,routesFlushed,departed;public Vector2 origin;public ServeBatch batch;
         }
         sealed class Arrival
         {
@@ -27,7 +27,7 @@ namespace HotpotSort.Presentation
         }
         sealed class ServeBatch
         {
-            public ViewEvent completion;public readonly Queue<ViewEvent> routes=new Queue<ViewEvent>();
+            public ViewEvent completion;public ViewOrder replacement;public bool flushed;public readonly Queue<ViewEvent> routes=new Queue<ViewEvent>();
         }
         sealed class ClearItem
         {
@@ -47,7 +47,15 @@ namespace HotpotSort.Presentation
         readonly List<Arrival> arrivals=new List<Arrival>();
         readonly Queue<ServeBatch>[] queues={new Queue<ServeBatch>(),new Queue<ServeBatch>(),new Queue<ServeBatch>(),new Queue<ServeBatch>()};
         readonly ServeBatch[] latestBatches=new ServeBatch[4];
+        readonly ViewOrder[] visualOrders=new ViewOrder[4];
+        public ViewOrder DisplayOrder(int slot,ViewOrder authoritative)=>slot>=0&&slot<4?visualOrders[slot]??authoritative:authoritative;
+        static ViewOrder CopyOrder(ViewOrder order)=>order==null?null:new ViewOrder{slot=order.slot,foodId=order.foodId,count=order.count,required=order.required,enabled=order.enabled};
+        void HoldOrder(int slot,ViewSnapshot previous)
+        {
+            if(slot>=0&&slot<4&&visualOrders[slot]==null)visualOrders[slot]=CopyOrder(previous?.orders?.FirstOrDefault(o=>o.slot==slot));
+        }
         readonly Dictionary<long,long> routeHapticEpochs=new Dictionary<long,long>();
+        readonly Dictionary<long,Vector2> routeSources=new Dictionary<long,Vector2>();
         readonly VisualClock clock=new VisualClock(),revivalClock=new VisualClock();
         readonly PresentationEventCursor cursor=new PresentationEventCursor();
         readonly PotAmbientSchedule ambient=new PotAmbientSchedule();
@@ -82,11 +90,12 @@ namespace HotpotSort.Presentation
         public float RevivalElapsed=>transferAge;
         public bool RevivalActive=>transfer!=null;
         public int ClearTransportCount=>clears.Count;
-        public void Initialize(Transform parent,Canvas canvas){view=GetComponent<GameplayView>();}
+        public GameplayAudio Audio {get;private set;}
+        public void Initialize(Transform parent,Canvas canvas){view=GetComponent<GameplayView>();Audio=gameObject.AddComponent<GameplayAudio>();}
         public void ConfigureAssets(string path,Texture2D[] textures){root=path;foods=textures;textureCache.Clear();}
-        // v7 intentionally produces and binds no audio.
+        // Asset selection is separate from the stable runtime binding interface.
         public void ConfigureAudio(string approvedAudioRoot){}
-        public void SetAudioSettings(PlayerSettings settings){}
+        public void SetAudioSettings(PlayerSettings settings){Audio?.SetSettings(settings);}
         public void Button(){}
         public void SetBoard(RectTransform board,RectTransform clippedPlates=null)
         {
@@ -96,11 +105,13 @@ namespace HotpotSort.Presentation
         }
         public void ResetFeedback()
         {
+            Audio?.ResetTransient();
             clock.Cancel();revivalClock.Cancel();cursor.Cancel();
             foreach(var fx in active)if(fx.node)Destroy(fx.node.gameObject);
             foreach(var fx in pool)if(fx.node)Destroy(fx.node.gameObject);
             active.Clear();pool.Clear();
-            routeHapticEpochs.Clear();arrivals.Clear();
+            routeHapticEpochs.Clear();routeSources.Clear();arrivals.Clear();
+            Array.Clear(visualOrders,0,4);
             foreach(var serve in serves){if(serve.node){serve.node.gameObject.SetActive(false);Destroy(serve.node.gameObject);}ReplacementSettling?.Invoke(serve.slot,1);view?.SetOrderServing(serve.slot,false);}serves.Clear();
             foreach(var q in queues)q.Clear();Array.Clear(latestBatches,0,latestBatches.Length);
             ambient.Reset();CancelClears();CancelTransfer();snapshot=null;session=null;generation=0;impulseAge=1;finishedTransferToken=null;
@@ -115,19 +126,21 @@ namespace HotpotSort.Presentation
                 clock.Reset(session,generation);cursor.Reset(session,generation);
             }
             snapshot=state;
-            arrivals.RemoveAll(a=>a.epoch!=view.HapticEpoch||!view.CanPlayHaptic);
             if(transfer!=null&&(!state.revivalPending||state.revivalTransfer==null||!transfer.token.Matches(state.revivalTransfer.token)))CancelTransfer();
             // Revival emits the same queue-return event before its own exact-token transfer.
             bool revivalReturn=state.revivalPending||(update.events??Array.Empty<ViewEvent>()).Any(e=>e!=null&&e.kind=="RevivalTransferStarted"&&e.sessionId==session&&e.sessionGeneration==generation);
+            AudioCue? terminalCue=null;
             foreach(var evt in update.events??Array.Empty<ViewEvent>())
             {
                 if(!cursor.TryAccept(evt))continue;
                 switch(evt.kind)
                 {
                     case "ItemRoutedToOrder":case "ItemRoutedToBuffer":case "BufferAutoAbsorbed":
+                        if(evt.targetContainer=="Order")HoldOrder(evt.targetSlot,previous);
                         routeHapticEpochs[evt.sequence]=view.CanPlayHaptic?view.HapticEpoch:-1;
-                        if(evt.kind=="BufferAutoAbsorbed"&&evt.targetSlot>=0&&evt.targetSlot<4&&latestBatches[evt.targetSlot]!=null)
+                        if(evt.targetContainer=="Order"&&evt.targetSlot>=0&&evt.targetSlot<4&&latestBatches[evt.targetSlot]!=null&&!latestBatches[evt.targetSlot].flushed)
                         {
+                            if(evt.sourceContainer!="Buffer"&&position!=null)routeSources[evt.sequence]=position(evt.itemId);
                             latestBatches[evt.targetSlot].routes.Enqueue(evt);
                         }
                         else StartRouteFlight(evt,position);
@@ -136,18 +149,29 @@ namespace HotpotSort.Presentation
                     case "OrderCompleted":
                         if(evt.slot>=0&&evt.slot<4)
                         {
+                            HoldOrder(evt.slot,previous);
                             var batch=new ServeBatch{completion=evt};latestBatches[evt.slot]=batch;
                             queues[evt.slot].Enqueue(batch);StartServing(evt.slot);
                         }
+                        break;
+                    case "OrderCreated":
+                        if(evt.slot>=0&&evt.slot<4&&latestBatches[evt.slot]!=null)
+                            latestBatches[evt.slot].replacement=new ViewOrder{slot=evt.slot,foodId=FoodId(evt.ingredientId),count=0,required=3,enabled=true};
                         break;
                     case "PotUnlocked":
                         var unlocked=Pot(evt.slot);Pulse(unlocked,"ignition",.32f,96);
                         Spawn("UnlockSteam",Load(SteamKey(evt.slot)),unlocked+new Vector2(0,-10),unlocked+new Vector2(8,-48),80,.82f,2,0,.28f);
                         break;
-                    case "ChallengeWon":Pulse(new Vector2(210,350),"victory_accent",.7f,360);break;
+                    case "ChallengeWon":terminalCue=AudioCue.Win;Pulse(new Vector2(210,350),"victory_accent",.7f,360);break;
+                    case "ChallengeFailed":terminalCue=AudioCue.Lose;break;
                     case "RevivalTransferStarted":BeginTransfer(evt.revivalTransfer);break;
                 }
             }
+            if(terminalCue.HasValue)
+                Audio?.BeginTerminal(session,generation,
+                    arrivals.Any(a=>a.route.targetContainer=="Order")||queues.Any(q=>q.Any(b=>b.routes.Count>0)),
+                    queues.Any(q=>q.Count>0),
+                    queues.Any(q=>q.Count>0)||serves.Any(s=>!s.departed),terminalCue.Value);
             // Snapshot convergence also starts the exact pending token after a view remount.
             if(state.revivalPending&&state.revivalUsed&&state.revivalTransfer!=null&&transfer==null&&state.revivalTransfer.token.completionToken!=finishedTransferToken)BeginTransfer(state.revivalTransfer);
             if(state.phase==ViewPhase.Entry||state.phase==ViewPhase.Aborted||state.phase==ViewPhase.Won||state.phase==ViewPhase.Overflow)
@@ -155,15 +179,16 @@ namespace HotpotSort.Presentation
                 for(int i=active.Count-1;i>=0;i--)if(state.phase!=ViewPhase.Won||!active[i].node||active[i].node.name!="victory_accent")Release(i);
                 foreach(var serve in serves){if(serve.node){serve.node.gameObject.SetActive(false);Destroy(serve.node.gameObject);}ReplacementSettling?.Invoke(serve.slot,1);view.SetOrderServing(serve.slot,false);}serves.Clear();foreach(var q in queues)q.Clear();Array.Clear(latestBatches,0,latestBatches.Length);
                 CancelClears();
+                arrivals.Clear();Array.Clear(visualOrders,0,4);
             }
             if(state.phase==ViewPhase.Won)CancelClears();
+            view.RefreshOrderPresentation();
         }
         void Update(){Tick(Time.unscaledDeltaTime);}
         // Deterministic visual tick also used by Editor-only capture, with no core state mutation.
         public void Tick(float delta)
         {
             if(!view||!view.PresentationForeground||snapshot==null||!layer)return;
-            arrivals.RemoveAll(a=>a.epoch!=view.HapticEpoch||!view.CanPlayHaptic);
             float dt=(float)clock.Advance(Mathf.Min(delta,.1f),snapshot);
             // Preserve the existing one-shot victory accent; terminal ambient/serve effects were cleared in Apply.
             if(snapshot.phase==ViewPhase.Won&&snapshot.pauseReasons==ViewPauseReasons.None)dt=Mathf.Min(delta,.1f);
@@ -207,13 +232,17 @@ namespace HotpotSort.Presentation
                     var arrival=arrivals[i];arrival.age+=dt;if(arrival.age<arrival.duration)continue;
                     arrivals.RemoveAt(i);var route=arrival.route;
                     bool order=route.targetContainer=="Order";
+                    if(order&&route.targetSlot>=0&&route.targetSlot<4&&visualOrders[route.targetSlot]!=null)
+                    {visualOrders[route.targetSlot].count=Math.Max(visualOrders[route.targetSlot].count,route.filledAfter);view.RefreshOrderPresentation();}
                     if(!order)view.PulseBufferArrival(route.targetSlot,route.itemId);
-                    view.RequestHaptic(order&&route.filledAfter==3?GameplayHapticKind.Medium:GameplayHapticKind.Light);
+                    if(arrival.epoch==view.HapticEpoch&&view.CanPlayHaptic)Audio?.Play(order?AudioCue.PotArrival:AudioCue.PlateArrival);
+                    if(arrival.epoch==view.HapticEpoch&&view.CanPlayHaptic)view.RequestHaptic(order&&route.filledAfter==3?GameplayHapticKind.Medium:GameplayHapticKind.Light);
                 }
                 for(int i=serves.Count-1;i>=0;i--)
                 {
                     var serve=serves[i];serve.age+=dt;
                     float lift=Mathf.Max(.01f,Settings.serveLift),hold=Mathf.Max(0,Settings.serveHold),exit=Mathf.Max(.01f,Settings.serveExit),settle=Mathf.Max(.01f,Settings.serveSettle);
+                    if(!serve.departed&&serve.age>=lift+hold){serve.departed=true;Audio?.Play(AudioCue.Serve);}
                     if(serve.node&&!serve.exited)
                     {
                         float lifted=Mathf.SmoothStep(0,1,Mathf.Clamp01(serve.age/lift));
@@ -225,7 +254,7 @@ namespace HotpotSort.Presentation
                     float settledAt=lift+hold+exit+settle;
                     if(serve.age>=lift+hold+exit)
                     {
-                        if(!serve.exited){serve.exited=true;if(serve.node){serve.node.gameObject.SetActive(false);Destroy(serve.node.gameObject);}view.SetOrderServing(serve.slot,false);}
+                        if(!serve.exited){serve.exited=true;Audio?.Play(AudioCue.NewPot);if(serve.node){serve.node.gameObject.SetActive(false);Destroy(serve.node.gameObject);}visualOrders[serve.slot]=CopyOrder(serve.batch.replacement)??CopyOrder(snapshot.orders.FirstOrDefault(o=>o.slot==serve.slot));view.SetOrderServing(serve.slot,false);view.RefreshOrderPresentation();}
                         ReplacementSettling?.Invoke(serve.slot,Mathf.Clamp01((serve.age-lift-hold-exit)/settle));
                     }
                     if(serve.age>=settledAt&&!serve.routesFlushed)
@@ -239,6 +268,11 @@ namespace HotpotSort.Presentation
                         if(latestBatches[serve.slot]==serve.batch)latestBatches[serve.slot]=null;
                         serves.RemoveAt(i);StartServing(serve.slot);
                     }
+                }
+                for(int slot=0;slot<4;slot++)
+                {
+                    StartServing(slot);
+                    if(visualOrders[slot]!=null&&!IsServing(slot)&&queues[slot].Count==0&&!arrivals.Any(a=>a.route.targetContainer=="Order"&&a.route.targetSlot==slot)){visualOrders[slot]=null;view.RefreshOrderPresentation();}
                 }
                 for(int i=clears.Count-1;i>=0;i--)
                 {
@@ -270,7 +304,9 @@ namespace HotpotSort.Presentation
         void StartServing(int slot)
         {
             if(!layer||serves.Any(s=>s.slot==slot)||queues[slot].Count==0)return;
+            if(arrivals.Any(a=>a.route.targetContainer=="Order"&&a.route.targetSlot==slot))return;
             var batch=queues[slot].Dequeue();var evt=batch.completion;view.SetOrderServing(slot,true);
+            Audio?.Play(AudioCue.OrderComplete);
             impulseAge=0;
             var node=view.CreateServingPot(layer,slot,FoodId(evt.ingredientId));
             if(node)foreach(var graphic in node.GetComponentsInChildren<Graphic>(true))graphic.raycastTarget=false;
@@ -282,6 +318,7 @@ namespace HotpotSort.Presentation
         int FlushDeferredRoutes(ServeBatch batch)
         {
             if(batch==null)return 0;
+            batch.flushed=true;
             int count=0;
             while(batch.routes.Count>0){StartRouteFlight(batch.routes.Dequeue(),null);count++;}
             return count;
@@ -290,13 +327,15 @@ namespace HotpotSort.Presentation
         {
             long routeEpoch; if(!routeHapticEpochs.TryGetValue(evt.sequence,out routeEpoch))routeEpoch=-1;
             routeHapticEpochs.Remove(evt.sequence);
+            if(routeEpoch==view.HapticEpoch&&view.CanPlayHaptic)Audio?.Play(AudioCue.Flight);
             Vector2 target=evt.targetContainer=="Buffer"?Buffer(evt.targetSlot):Pot(evt.targetSlot);
             Vector2 from=evt.sourceContainer=="Buffer"?Buffer(evt.sourceSlot):(position!=null?position(evt.itemId):Vector2.zero);
+            if(routeSources.TryGetValue(evt.sequence,out var savedSource)){from=savedSource;routeSources.Remove(evt.sequence);}
             int food=FoodId(evt.ingredientId);
             bool bufferToOrder=evt.sourceContainer=="Buffer"&&evt.targetContainer=="Order";
             float duration=bufferToOrder?BufferOrderFlightSeconds:FlightSeconds;
             // Arrival feedback is authoritative even when the bounded VFX pool cannot allocate a flight.
-            if(routeEpoch==view.HapticEpoch&&view.CanPlayHaptic)arrivals.Add(new Arrival{duration=duration,epoch=routeEpoch,route=evt});
+            arrivals.Add(new Arrival{duration=duration,epoch=routeEpoch,route=evt});
             // Food entering a pot follows a direct line; buffer auto-absorb is intentionally slower.
             var flight=Spawn("FlyingItem",Food(food),from,target,36,duration,1,0);
             if(flight!=null&&view.VisualArt!=null&&food>=0)flight.image.uvRect=view.VisualArt.FoodUv(food);

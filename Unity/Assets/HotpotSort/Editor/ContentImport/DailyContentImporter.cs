@@ -25,7 +25,7 @@ namespace HotpotSort.ContentImport
             var rows = new List<WeightRow>(); var thresholds = new[] { 0.40m, 0.65m, 0.85m, 1.00m };
             foreach (var entry in CanonicalJson.Array(CanonicalJson.Parse(new UTF8Encoding(false, true).GetString(weightsSource))))
             {
-                var row = CanonicalJson.Map(entry); if (CanonicalJson.Int(row["Difficulty"]) != 3) continue;
+                var row = CanonicalJson.Map(entry); if (CanonicalJson.Int(row["Difficulty"]) != (contentVersion==DailyContent.CurrentVersion?1:3)) continue;
                 int band = System.Array.IndexOf(thresholds, Convert.ToDecimal(row["LevelProgress"], CultureInfo.InvariantCulture));
                 if (band < 0) throw new ArgumentException("Unknown progress threshold");
                 var weights = new int[5];
