@@ -26,7 +26,7 @@ internal static class Program
 internal sealed class Dashboard : Form
 {
     private const string Inherit = "继承宿主";
-    private static readonly (string Key, string Label)[] Agents = [("feature_designer", "Feature Designer"), ("visual_design_agent", "Visual & Presentation"), ("code_builder", "Code Builder")];
+    private static readonly (string Key, string Label)[] Agents = [("code_agent", "Code Agent"), ("visual_agent", "Visual Agent")];
     private readonly string root;
     private readonly Dictionary<string, (ComboBox Model, ComboBox Effort)> fields = [];
     private readonly Label status = new();
@@ -34,12 +34,12 @@ internal sealed class Dashboard : Form
     public Dashboard(string root)
     {
         this.root = root;
-        Text = "Harness 开发看板"; Font = new Font("Microsoft YaHei UI", 9F); BackColor = Color.FromArgb(247, 248, 250);
-        ClientSize = new Size(800, 388); StartPosition = FormStartPosition.CenterScreen; FormBorderStyle = FormBorderStyle.FixedDialog; MaximizeBox = false;
+        Text = "Harness Lite 模型看板"; Font = new Font("Microsoft YaHei UI", 9F); BackColor = Color.FromArgb(247, 248, 250);
+        ClientSize = new Size(800, 340); StartPosition = FormStartPosition.CenterScreen; FormBorderStyle = FormBorderStyle.FixedDialog; MaximizeBox = false;
         Controls.Add(new Panel { Dock = DockStyle.Top, Height = 4, BackColor = Color.FromArgb(38, 132, 214) });
         Controls.Add(new Label { Text = "Agent 模型设置", Font = new Font(Font, FontStyle.Bold), AutoSize = true, Location = new Point(24, 24) });
-        Controls.Add(new Label { Text = "固定当前 v0.6 角色；仅修改模型和推理强度", AutoSize = true, ForeColor = Color.DimGray, Location = new Point(24, 52) });
-        var grid = new TableLayoutPanel { Location = new Point(24, 88), Size = new Size(752, 168), ColumnCount = 3, RowCount = 4, CellBorderStyle = TableLayoutPanelCellBorderStyle.Single, BackColor = Color.White };
+        Controls.Add(new Label { Text = "两个轻量执行角色；Integrator 由其中一个 Agent 兼任", AutoSize = true, ForeColor = Color.DimGray, Location = new Point(24, 52) });
+        var grid = new TableLayoutPanel { Location = new Point(24, 88), Size = new Size(752, 126), ColumnCount = 3, RowCount = 3, CellBorderStyle = TableLayoutPanelCellBorderStyle.Single, BackColor = Color.White };
         grid.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 210)); grid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100)); grid.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 150));
         foreach (var text in new[] { "Subagent", "模型", "强度" }) grid.Controls.Add(new Label { Text = text, Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft, Padding = new Padding(9,0,0,0), Font = new Font(Font, FontStyle.Bold) }, Array.IndexOf(new[] { "Subagent", "模型", "强度" }, text), 0);
         for (var i = 0; i < Agents.Length; i++)
@@ -52,9 +52,9 @@ internal sealed class Dashboard : Form
             grid.Controls.Add(model, 1, i + 1); grid.Controls.Add(effort, 2, i + 1); fields[Agents[i].Key] = (model, effort);
         }
         Controls.Add(grid);
-        status.Location = new Point(24, 288); status.Size = new Size(500, 32); Controls.Add(status);
-        var refresh = new Button { Text = "刷新", Location = new Point(580, 284), Size = new Size(82, 32) }; refresh.Click += (_, _) => Reload(); Controls.Add(refresh);
-        var save = new Button { Text = "保存应用", Location = new Point(674, 284), Size = new Size(100, 32) }; save.Click += (_, _) => Save(); Controls.Add(save);
+        status.Location = new Point(24, 246); status.Size = new Size(500, 32); Controls.Add(status);
+        var refresh = new Button { Text = "刷新", Location = new Point(580, 242), Size = new Size(82, 32) }; refresh.Click += (_, _) => Reload(); Controls.Add(refresh);
+        var save = new Button { Text = "保存应用", Location = new Point(674, 242), Size = new Size(100, 32) }; save.Click += (_, _) => Save(); Controls.Add(save);
         Reload();
     }
     private void Reload()
@@ -70,7 +70,7 @@ internal sealed class Dashboard : Form
 internal sealed record ModelValue(string Model, string Effort);
 internal static class ModelConfig
 {
-    private static readonly Dictionary<string,string> Files = new() { ["feature_designer"]="feature-designer.toml", ["visual_design_agent"]="visual-design-agent.toml", ["code_builder"]="code-builder.toml" };
+    private static readonly Dictionary<string,string> Files = new() { ["code_agent"]="code-agent.toml", ["visual_agent"]="visual-agent.toml" };
     private static readonly Regex Section = new(@"^\[agents\.([a-z0-9_]+)\]$");
     private static readonly Regex Value = new("^(model|effort)\\s*=\\s*\"(.*)\"$");
     private static readonly Regex Managed = new(@"(?ms)^# BEGIN HARNESS MODEL\r?\n.*?^# END HARNESS MODEL\r?\n?");
@@ -83,7 +83,7 @@ internal static class ModelConfig
     }
     public static void Validate(string root)
     {
-        var config=Load(root); if(!config.Keys.ToHashSet().SetEquals(Files.Keys)) throw new InvalidOperationException("models.toml 必须且只能包含当前三个 Agent。");
+        var config=Load(root); if(!config.Keys.ToHashSet().SetEquals(Files.Keys)) throw new InvalidOperationException("models.toml 必须且只能包含当前两个 Agent。");
         foreach(var (key,value) in config) { if(!new[]{"none","minimal","low","medium","high","xhigh","max","ultra"}.Contains(value.Effort)) throw new InvalidOperationException("强度无效。"); var agentPath=Path.Combine(root,".codex","agents",Files[key]); if(!File.Exists(agentPath)) throw new InvalidOperationException("缺少 Agent 配置。"); var agentText=File.ReadAllText(agentPath); var bodyAt=agentText.IndexOf("developer_instructions = \"\"\"",StringComparison.Ordinal); var header=bodyAt>=0 ? agentText[..bodyAt] : agentText; if(Regex.Matches(header,@"(?m)^model\s*=").Count!=1 || Regex.Matches(header,@"(?m)^model_reasoning_effort\s*=").Count!=1) throw new InvalidOperationException($"Agent 模型字段必须且只能各有一项：{key}"); if(!header.Contains($"model = \"{value.Model}\"",StringComparison.Ordinal) || !header.Contains($"model_reasoning_effort = \"{value.Effort}\"",StringComparison.Ordinal)) throw new InvalidOperationException($"Agent 模型配置与 models.toml 不一致：{key}"); }
         var dispatchPath=Path.Combine(root,".codex","config.toml"); if(!File.Exists(dispatchPath)) throw new InvalidOperationException("缺少 .codex/config.toml 调度映射。");
         var dispatch=File.ReadAllText(dispatchPath); foreach(var (key,file) in Files) { if(!dispatch.Contains($"[agents.{key}]",StringComparison.Ordinal) || !dispatch.Contains($"config_file = \"./agents/{file}\"",StringComparison.Ordinal)) throw new InvalidOperationException($"Agent 调度映射无效：{key}"); }

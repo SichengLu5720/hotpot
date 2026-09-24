@@ -2,14 +2,10 @@
 enabled = true
 max_concurrent_threads_per_session = 4
 
-[agents.feature_designer]
-description = "Read-only implementation designer and QA-scope author for an accepted GameDev Harness Task."
-config_file = "./agents/feature-designer.toml"
+[agents.code_agent]
+description = "Implements scoped code work packages and may integrate code-owned shared files."
+config_file = "./agents/code-agent.toml"
 
-[agents.visual_design_agent]
-description = "End-to-end visual owner for preview, production assets, presentation implementation, and integrated visual QA."
-config_file = "./agents/visual-design-agent.toml"
-
-[agents.code_builder]
-description = "Core logic, stable presentation interfaces, technical integration validation, regression, and scripted-QA agent."
-config_file = "./agents/code-builder.toml"
+[agents.visual_agent]
+description = "Creates previews, production assets, presentation implementation, and visual integration for scoped work packages."
+config_file = "./agents/visual-agent.toml"

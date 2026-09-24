@@ -1,14 +1,9 @@
-# Harness model targets. Blank model means inherit the host default.
+# Model targets for agents started after saving. Blank model inherits the host default.
 schema_version = 1
 
-[agents.feature_designer]
+[agents.code_agent]
 model = "gpt-6-astra"
-effort = "high"
-
-[agents.visual_design_agent]
+effort = "low"
+[agents.visual_agent]
 model = "gpt-6-astra"
-effort = "high"
-
-[agents.code_builder]
-model = "gpt-6-astra"
-effort = "high"
+effort = "low"
