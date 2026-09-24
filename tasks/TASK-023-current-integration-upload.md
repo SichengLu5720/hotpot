@@ -1,6 +1,6 @@
 # TASK-023：当前更新整合、Push 与微信开发版上传
 
-Status: Working
+Status: Review
 
 ## Current Change
 
@@ -54,4 +54,8 @@ Integrator: PM
 
 ## Result
 
-Working：WP-INT-01 已按 TASK-025 冻结源码重新完成。核心 20961 项、Boot 13 项、ContentBuildGuard、20 行 Difficulty 1 原表、新旧内容/策略回放兼容、物理、点击、按压、入口、音频和连锁订单检查通过；正式 SDK 导出 `exportDone=true` 且面板配置未改变。唯一最终包位于 `.harness/qa/TASK-015/export-r015/build/wechat/TASK-002-v9-export-20260924T101137-2dd79149d0b84881b752482e8d829d4e/minigame`，主包 2,107,995 B、wasm 分包 4,625,829 B、data 分包 16,116,856 B。311 条源码/内容记录匹配；包内已确认 `hotpot_daily_task025_difficulty1_v1`、canonical digest `e4f20831a07608f6c298e41217309471e11dbdc14a5367fe716a23d315961904`、policy 4、旧 D3 归档、原生震动、GLX、12 个正式音频及关键规则符号。字体仍仅从同一正式字体最小补入 9 个缺失字形，原 364 个字形轮廓与度量未改变。等待精确提交/Push 和微信开发版上传。
+Review：WP-INT-01 已按 TASK-025 冻结源码重新完成。核心 20961 项、Boot 13 项、ContentBuildGuard、20 行 Difficulty 1 原表、新旧内容/策略回放兼容、物理、点击、按压、入口、音频和连锁订单检查通过；正式 SDK 导出 `exportDone=true` 且面板配置未改变。唯一最终包位于 `.harness/qa/TASK-015/export-r015/build/wechat/TASK-002-v9-export-20260924T101137-2dd79149d0b84881b752482e8d829d4e/minigame`，主包 2,107,995 B、wasm 分包 4,625,829 B、data 分包 16,116,856 B。311 条源码/内容记录匹配；包内已确认 `hotpot_daily_task025_difficulty1_v1`、canonical digest `e4f20831a07608f6c298e41217309471e11dbdc14a5367fe716a23d315961904`、policy 4、旧 D3 归档、原生震动、GLX、12 个正式音频及关键规则符号。字体仍仅从同一正式字体最小补入 9 个缺失字形，原 364 个字形轮廓与度量未改变。
+
+WP-INT-02 已完成：Harness Lite 提交 `1e1b795`，游戏整合提交 `5a6fc13`；`feat/auto-push-skill` 已推送，首次推送后本地与远端均为 `5a6fc1335e853d1f9860ffe27272fba74f427c19`。生成证据、构建、Unity 缓存、测试 `bin/obj`、预览与本地工具产物未纳入提交。
+
+WP-INT-03 已完成：同一最终包已上传微信开发版 `0.0.15`，CLI `upload` 退出码 0；CLI `auto-preview` 退出码 0。上传回执总量 23,187,264 B，其中 main 2,444,553 B、data-package 16,116,869 B、wasmcode 4,625,842 B。回执保存在 `.harness/qa/TASK-023/delivery/`。未执行体验版激活、提审或发布；手机是否实际收到/打开，以及真机音效、震动与性能，仍待用户确认。
