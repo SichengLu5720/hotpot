@@ -1,6 +1,6 @@
 # TASK-036：真实食材交换与三日锅底助力
 
-- Status: Working
+- Status: Review
 - Current Change: 将 TASK-030 食材交换与 TASK-031 锅底助力从本地/未部署状态接成真实微信账号、真实分享落地和真实云端事务；因当前工作区已有 `0.0.21` 开发版记录，本轮防回退顺延交付 `0.0.22`。
 
 ## Goal
@@ -67,4 +67,8 @@ Integrator: PM。
 ## Result
 
 - Requirement: Confirmed on 2026-09-26.
-- Implementation / Deployment / Upload: In progress.
+- WP-036-CLOUD: Completed. Four Node suites passed; the authoritative function was created in the bound development environment with Node.js 20.19, `index.main`, 15-second timeout and 256 MB memory. The collection now denies direct client read/write. Downloaded deployed source matched all 10 local source files by SHA-256.
+- WP-036-CLIENT: Completed. TASK-036 social checks passed 18/18, existing TASK-031 platform checks passed 23/23, full Runtime + Contracts WeChat conditional compile completed with 0 errors, and Unity batch Boot/activity/helper/countdown smoke passed.
+- WP-036-DELIVERY: Completed. Reproducible font subset was regenerated with fontTools 4.60.1 (533 glyphs); Unity WeChat export and final package verification passed, including current social IL2CPP markers, GLX and 2x render ratio. Source commit `d73c2a2` was pushed to `feat/auto-push-skill`.
+- Official WeChat CLI uploaded development version `0.0.22`, description `真实食材交换与三日锅底助力`; total package 23,768,142 bytes, main package 2,442,491 bytes. Automatic preview also succeeded.
+- Not performed: two-account physical-device share/trade/challenge verification, review submission, release, or experience-version activation.
