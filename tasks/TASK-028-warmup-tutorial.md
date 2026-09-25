@@ -64,8 +64,8 @@ Updated At: 2026-09-25
 - Build / Launch: Unity 真实 Boot→Composition→Core→Mapper→GameplayView 集成通过，日志标记 `TASK028_INTEGRATION_PASS`；独立表现检查 22 项通过，日志标记 `TASK028_VISUAL_CAPTURE_PASS`。
 - Current Change Check: 热身 18 份/3 类/6 单、4–8 盘同日复现、无计时、失败重试、广告开锅继承、累计 37/55、首次真实到锅引导、整排五格警告、任意点击关闭、提示道具放大手指、最后提示消失后正式供给、正式首点计时与旧回调拒绝均通过定向检查。
 - Screenshot / Artifact: `.harness/previews/TASK-028/{first-food,order-explanation,buffer-warning,hint-pointer,last-stage}.png`; `unity-visual.log`; `unity-integration.log`。
-- Source Delivery: 游戏源码提交 `25da68c`、字体子集提交 `498201a` 已推送到 `origin/feat/auto-push-skill`；微信包由 `498201a` 构建。
-- Cloud / Upload: `hotpotProfileSync` 已部署到开发云环境并处于 `Active`；线上下载源码的 4 个文件 SHA-256 与本地全部一致。微信开发版本 `0.0.16` 上传成功，包总计 21,754,171 字节（主包 2,445,054；数据分包 14,671,092；WASM 分包 4,638,025），CLI 自动预览成功。
+- Source Delivery: 游戏源码提交 `25da68c`、字体子集提交 `498201a`、稳定盘面教程修复提交 `c476f7d` 已推送到 `origin/feat/auto-push-skill`；最新微信包由 `c476f7d` 构建。
+- Cloud / Upload: `hotpotProfileSync` 已部署到开发云环境并处于 `Active`；线上下载源码的 4 个文件 SHA-256 与本地全部一致。最新微信开发版本 `0.0.17` 上传成功，包总计 21,751,653 字节（主包 2,445,054；数据分包 14,666,365；WASM 分包 4,640,234），CLI 自动预览成功；该版本替代 `0.0.16` 作为当前开发候选。
 - Stable Tutorial Follow-up: 首次热身新增 `WaitingForBoard`；初始供给完成且全部真实盘子连续 0.3 秒保持稳定后才显示食材教程。等待期间食材与全部道具锁定；非首次热身不增加等待。Unity 真实 Boot 集成与定向检查通过，日志标记 `TASK028_INTEGRATION_PASS`。
 - Known Issues: 微信真机是否收到并打开自动预览、真机体验和用户最终视觉判断尚未确认；未提审、未发布、未启用体验版。
 - Baseline: Not Saved
