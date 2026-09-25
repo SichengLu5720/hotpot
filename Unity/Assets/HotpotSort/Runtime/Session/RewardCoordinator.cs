@@ -52,7 +52,7 @@ namespace HotpotSort.Session
             if(active!=null)return RewardApplicationResult.Unavailable;
             if(!Enum.IsDefined(typeof(RewardKind),request.Kind)||!Enum.IsDefined(typeof(RewardRoute),request.Route)||!hasTarget())return RewardApplicationResult.Unavailable;
             bool share=RewardRoutes.IsShare(request.Route);
-            if(share && (request.Kind==RewardKind.FourthPot||!quota.TryReserveShare(request.QuotaChallengeDate,request.RequestId,UtcNow)))return RewardApplicationResult.Unavailable;
+            if(share && (request.Kind==RewardKind.ThirdPot||request.Kind==RewardKind.FourthPot||!quota.TryReserveShare(request.QuotaChallengeDate,request.RequestId,UtcNow)))return RewardApplicationResult.Unavailable;
             active=request;activePause=pause;activeGeneration=generation;
             try
             {

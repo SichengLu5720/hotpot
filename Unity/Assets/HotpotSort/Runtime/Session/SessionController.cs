@@ -4,7 +4,7 @@ using HotpotSort.Contracts;
 
 namespace HotpotSort.Session
 {
-    [Flags] public enum PauseReasons { None = 0, User = 1, Background = 2, Reward = 4, Revival = 8 }
+    [Flags] public enum PauseReasons { None = 0, User = 1, Background = 2, Reward = 4, Revival = 8, Tutorial = 16 }
     public interface IPlatformLifecycleAdapter : IDisposable
     {
         event Action<PlatformLifecycle> Changed;
@@ -37,6 +37,7 @@ namespace HotpotSort.Session
         public double ActiveSeconds => accumulated + (counting ? Math.Max(0, clock.Seconds - runningSince) : 0);
         public double ChallengeSeconds => challengeAccumulated + (challengeCounting ? Math.Max(0, clock.Seconds - challengeRunningSince) : 0);
         public bool ChallengeTimerStarted => challengeTimerStarted;
+        public ChallengeStage Stage => (session as IChallengeStageState)?.Stage??ChallengeStage.Legacy;
         public bool CanAcceptInput => !disposed && !busy && Pauses == PauseReasons.None && Snapshot?.Status == GameStatus.Running;
         public event Action ObservationChanged;
 
@@ -81,13 +82,13 @@ namespace HotpotSort.Session
                 case SessionAction.Exit: Exit(); break;
             }
         }
-        private void Create(ChallengeContext context)
+        private void Create(ChallengeContext context, ChallengeStage stage=ChallengeStage.Warmup,int inheritedPotMask=0)
         {
             accumulated = challengeAccumulated = 0;
             counting = challengeCounting = challengeTimerStarted = false;
             view = views.CreateView() ?? throw new InvalidOperationException("view-factory-returned-null");
             view.Bind(this); if (viewport != null) view.SetViewport(viewport); view.ShowLoading();
-            session = core.CreateSession(context) ?? throw new InvalidOperationException("core-factory-returned-null");
+            session = (core is IChallengeStageFactory staged?staged.CreateStage(context,stage,inheritedPotMask):core.CreateSession(context)) ?? throw new InvalidOperationException("core-factory-returned-null");
             var expected = session; var generation = Generation;
             listener = (snapshot, events) =>
             {
@@ -121,7 +122,7 @@ namespace HotpotSort.Session
         }
         public bool StartChallengeTimer()
         {
-            if(disposed||challengeTimerStarted||session==null)return false;
+            if(disposed||challengeTimerStarted||session==null||Stage==ChallengeStage.Warmup)return false;
             challengeTimerStarted=true;
             if(Snapshot?.Status==GameStatus.Running&&Pauses==PauseReasons.None)
             {challengeRunningSince=clock.Seconds;challengeCounting=true;}
@@ -137,6 +138,16 @@ namespace HotpotSort.Session
             Notify();
         }
         public void SetRewardPaused(bool value) => SetPause(PauseReasons.Reward, value);
+        public void SetTutorialPaused(bool value) => SetPause(PauseReasons.Tutorial,value);
+        public bool ContinueToFormal(string sessionId,long generation)
+        {
+            if(disposed||busy||generation!=Generation||Snapshot?.SessionId!=sessionId||Snapshot.Status!=GameStatus.Won||Stage!=ChallengeStage.Warmup||Pauses!=PauseReasons.None)return false;
+            int mask=((IChallengeStageState)session).UnlockedExtraPotMask;var context=Resolved.Context;
+            busy=true;
+            try{Release();Create(context,ChallengeStage.Formal,mask);return true;}
+            catch(Exception ex){Fail(ex);return false;}
+            finally{busy=false;Notify();}
+        }
         public void SetRevivalPaused(bool value)
         {
             if(!value && session is IRevivalSessionState revival && revival.RevivalPending)return;
@@ -159,6 +170,7 @@ namespace HotpotSort.Session
             busy = true; Error = null;
             var previous = Resolved;
             var c = previous.Context;
+            int retryMask=Stage==ChallengeStage.Warmup?((IChallengeStageState)session).UnlockedExtraPotMask:0;
             long generation=0;
             try
             {
@@ -169,7 +181,7 @@ namespace HotpotSort.Session
                 if(disposed || Generation!=generation)return;
                 var retry = new ChallengeContext(fresh.Context.ChallengeId, c.ContentVersion, c.ConfigurationDigest, fresh.Context.TimeSource, fresh.Context.ChallengeId==c.ChallengeId?checked(c.RetryIndex+1):0);
                 Resolved = new ResolvedChallenge(retry, fresh.ResolvedUtc, fresh.FallbackReason);
-                Create(retry);
+                Create(retry,ChallengeStage.Warmup,fresh.Context.ChallengeId==c.ChallengeId?retryMask:0);
             }
             catch (Exception ex) { if(!disposed && generation==Generation)Fail(ex); }
             finally { if(generation==Generation){busy = false; Notify();} }

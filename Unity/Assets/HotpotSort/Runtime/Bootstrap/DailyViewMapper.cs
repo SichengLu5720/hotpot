@@ -61,10 +61,19 @@ namespace HotpotSort.Bootstrap
                 }).ToArray()
             };
             var stats=CanonicalJson.Map(state["statistics"]);
+            view.completedOrders=CanonicalJson.Int(stats["completedOrderCount"]);
+            var stage=state.ContainsKey("challengeStage")?(ChallengeStage)CanonicalJson.Int(state["challengeStage"]):ChallengeStage.Legacy;
+            view.isWarmup=stage==ChallengeStage.Warmup;
+            view.warmupComplete=view.isWarmup&&snapshot.Status==GameStatus.Won;
+            if(view.warmupComplete)view.phase=ViewPhase.Running; // Intermediate clear is not a settlement/win.
+            view.completedOrders+=stage==ChallengeStage.Formal?6:0;
+            view.totalOrders=stage==ChallengeStage.Legacy?content.Plates.Sum(p=>p.Kinds.Count)/3:67;
+            view.thirdPotThreshold=stage==ChallengeStage.Legacy?31:37;
+            view.fourthPotThreshold=stage==ChallengeStage.Legacy?49:55;
             view.message=(string)stats["failureCode"];
             view.facts=new[]
             {
-                new ViewFact { label="已完成订单",value=Convert.ToString(stats["completedOrderCount"],CultureInfo.InvariantCulture) },
+                new ViewFact { label="已完成订单",value=view.completedOrders.ToString(CultureInfo.InvariantCulture) },
                 new ViewFact { label="已处理食材",value=Convert.ToString(stats["processedItemCount"],CultureInfo.InvariantCulture) },
                 new ViewFact { label="有效点击",value=Convert.ToString(stats["acceptedTapCount"],CultureInfo.InvariantCulture) },
                 new ViewFact { label="最大暂存",value=Convert.ToString(stats["maxBufferCount"],CultureInfo.InvariantCulture) },

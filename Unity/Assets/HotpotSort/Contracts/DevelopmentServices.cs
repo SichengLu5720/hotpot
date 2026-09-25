@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace HotpotSort.Contracts
 {
-    public enum RewardKind { Hint, ClearBuffer, Shuffle, FourthPot, Revival }
+    public enum RewardKind { Hint, ClearBuffer, Shuffle, FourthPot, Revival, ThirdPot }
     public enum RewardRoute { SimulatedAd, SimulatedShare, WeChatShare, WeChatRewardedVideo }
     public static class RewardRoutes
     {
@@ -46,6 +46,22 @@ namespace HotpotSort.Contracts
         bool TryConsumeShare(string challengeDay,string requestId);
         PlayerSettings LoadSettings();
         void SaveSettings(PlayerSettings value);
+    }
+    public interface ITutorialProfileStore
+    {
+        bool WarmupTutorialCompleted { get; }
+        bool BufferWarningCompleted { get; }
+        void CompleteTutorial(bool bufferWarning);
+    }
+    public enum ChallengeStage { Legacy, Warmup, Formal }
+    public interface IChallengeStageState
+    {
+        ChallengeStage Stage { get; }
+        int UnlockedExtraPotMask { get; }
+    }
+    public interface IChallengeStageFactory
+    {
+        IGameSession CreateStage(ChallengeContext context, ChallengeStage stage, int inheritedPotMask);
     }
     // Optional extension leaves existing profile implementations source compatible.
     // Production development storage implements this extension to persist UTC cooldowns.
@@ -92,6 +108,7 @@ namespace HotpotSort.Contracts
     [Serializable] public sealed class ProfileDocument
     {
         public int schemaVersion=1;
+        public bool warmupTutorialCompleted,bufferWarningCompleted;
         public long localRevision;
         public string environment,account,confirmationCursor;
         public List<string> firstWinDays=new List<string>(),legacyRequestIds=new List<string>();
@@ -135,4 +152,15 @@ namespace HotpotSort.Contracts
     public sealed class FriendRecord { public string DisplayName;public int FirstWins; }
     public interface IFriendBoard { bool IsDevelopmentSimulation { get; } Task<IReadOnlyList<FriendRecord>> LoadAsync(); }
     public interface IThemeShare { bool IsDevelopmentSimulation { get; } Task<RewardOutcome> ShareThemeAsync(string resourceAddress); }
+    // Optional extension: existing theme-share implementations remain source compatible.
+    public interface IResultThemeShare : IThemeShare { Task<RewardOutcome> ShareThemeAsync(string resourceAddress,string title); }
+    public static class SettlementShareText
+    {
+        public static string Title(bool won,int completedOrders,int totalOrders)
+        {
+            double ratio=totalOrders>0?Math.Max(0,Math.Min(1,(double)completedOrders/totalOrders)):0;
+            int percent=won?100:(int)Math.Floor(ratio*100+.5);
+            return "下锅喽！本局"+(won?"胜利":"失败")+"，完成进度 "+percent.ToString(System.Globalization.CultureInfo.InvariantCulture)+"%";
+        }
+    }
 }

@@ -4,7 +4,7 @@ using HotpotSort.Contracts;
 
 namespace HotpotSort.Platform
 {
-    public sealed class WeChatShareService : IThemeShare, IRewardRequestCancellation, IDisposable
+    public sealed class WeChatShareService : IResultThemeShare, IRewardRequestCancellation, IDisposable
     {
         readonly IWeChatRewardRuntime runtime;
         readonly WeChatRuntimeConfig config;
@@ -32,10 +32,12 @@ namespace HotpotSort.Platform
         }
 
         // Ordinary sharing creates no reward request or lifecycle listener.
-        public Task<RewardOutcome> ShareThemeAsync(string resourceAddress)
+        public Task<RewardOutcome> ShareThemeAsync(string resourceAddress)=>ShareThemeAsync(resourceAddress,config.shareTitle);
+        public Task<RewardOutcome> ShareThemeAsync(string resourceAddress,string title)
         {
             if (!Available || active!=null) return Task.FromResult(RewardOutcome.Unavailable);
-            try { runtime.Share(config.shareTitle,config.shareImagePath); return Task.FromResult(RewardOutcome.Success); }
+            // Success means the native share sheet was requested, not proof of sending.
+            try { runtime.Share(string.IsNullOrEmpty(title)?config.shareTitle:title,config.shareImagePath); return Task.FromResult(RewardOutcome.Success); }
             catch { return Task.FromResult(RewardOutcome.Failed); }
         }
 

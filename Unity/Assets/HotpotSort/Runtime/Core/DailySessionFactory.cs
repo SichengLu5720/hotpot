@@ -29,6 +29,8 @@ namespace HotpotSort.Core
             ConfigurationDigest = CanonicalJson.Hash(CanonicalJson.Write(CanonicalJson.Object("contentDigest", content.Digest, "catalogDigest", CatalogDigest)));
         }
         public IGameSession CreateSession(ChallengeContext context) => CreateDailySession(context);
+        public DailySession CreateStage(ChallengeContext context, ChallengeStage stage, int inheritedPotMask=0)
+            => new DailySession(this,context,null,DailyRulesVersion.RevivalV3,stage,inheritedPotMask);
         public DailySessionFactory ForReplayContent(string digest)
         {
             if(Content.Digest==digest)return this;

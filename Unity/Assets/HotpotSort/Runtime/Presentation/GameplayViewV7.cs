@@ -117,6 +117,7 @@ namespace HotpotSort.Presentation
                 orderNodes[slot].gameObject.SetActive(!serving[slot]);
                 var order=feedback.DisplayOrder(slot,Array.Find(LastSnapshot.orders,o=>o.slot==slot));
                 bool enabled=order!=null&&order.enabled;
+                RefreshFireProgress(slot);
                 string signature=enabled+":"+order?.foodId+":"+order?.count;
                 if(orderSignatures[slot]==signature)continue;
                 orderSignatures[slot]=signature;var box=orderNodes[slot];ClearChildren(box);
@@ -130,8 +131,8 @@ namespace HotpotSort.Presentation
                 }
                 else
                 {
-                    ModernIcon(box,"Locked","lock",new Rect(31,69,38,38),ModernPalette.Paper);
-                    if(slot==3)VButton(box,"提前开锅",new Rect(4,113,92,32),()=>RewardRequested?.Invoke(RewardKind.FourthPot,RewardRoute.SimulatedAd),false,18);
+                    RewardPlus(box,"PotPlus",new Rect(37,75,26,26));
+                    if(slot>=2)LockedPotControls(box,slot);
                 }
             }
             for(int slot=0;slot<5;slot++)
@@ -170,6 +171,7 @@ namespace HotpotSort.Presentation
                 ghostVisuals.Add(ghost,node);
             }
 
+            RefreshLockedPotDialog();
             feedback.SetBoard(board,plateLayer);hud.SetAsLastSibling();
             string flow=LastSnapshot.sessionId+":"+LastSnapshot.sessionGeneration+":"+LastSnapshot.phase+":"+LastSnapshot.revivalPending+":"+LastSnapshot.revivalUsed+":"+LastSnapshot.pauseReasons;
             if(flow!=flowSignature)
@@ -177,8 +179,107 @@ namespace HotpotSort.Presentation
                 CloseModal();flowSignature=flow;
                 if((LastSnapshot.pauseReasons&ViewPauseReasons.User)!=0)OverlayV7();
                 else if(LastSnapshot.revivalPending&&!LastSnapshot.revivalUsed)RevivalOfferV7();
-                else if(!LastSnapshot.revivalPending&&LastSnapshot.phase!=ViewPhase.Running)OverlayV7();
+                else if(!LastSnapshot.revivalPending&&LastSnapshot.phase!=ViewPhase.Running&&LastSnapshot.pauseReasons!=ViewPauseReasons.Tutorial)OverlayV7();
             }
+        }
+        int lockedPotDialogSlot=-1;
+        Text lockedPotRemainingLabel;
+        int LockedPotCompletedOrders=>Mathf.Max(0,LastSnapshot?.completedOrders??0);
+        int LockedPotThreshold(int slot)=>Mathf.Max(1,LastSnapshot==null?1:slot==2?LastSnapshot.thirdPotThreshold:LastSnapshot.fourthPotThreshold);
+        bool IsLockedPot(int slot)=>slot>=2&&slot<=3&&LastSnapshot!=null&&!LastSnapshot.orders.Any(o=>o.slot==slot&&o.enabled);
+        RectTransform PotCapsule(Transform parent,string name,Rect rect,Color color)
+        {
+            var node=Node(parent,name,rect);var image=node.gameObject.AddComponent<Image>();
+            image.sprite=rounded;image.type=Image.Type.Sliced;image.color=color;image.raycastTarget=false;
+            if(rounded)image.pixelsPerUnitMultiplier=Mathf.Max(.01f,rounded.border.x/(rect.height*.5f));
+            return node;
+        }
+        void LockedPotControls(RectTransform box,int slot)
+        {
+            var hit=Node(box,"LockedPotHit",new Rect(-14,30,128,128));
+            var image=hit.gameObject.AddComponent<Image>();image.color=Color.clear;
+            var button=hit.gameObject.AddComponent<Button>();button.targetGraphic=image;
+            BindButtonClick(button,()=>ShowLockedPotDialog(slot));
+            var track=PotCapsule(box,"UnlockProgress",new Rect(10,119,80,12),ThemeInk);
+            PotCapsule(track,"TrackInset",new Rect(2,2,76,8),ModernPalette.Muted);
+            EnsureFireGradient();
+            var fill=Node(track,"Fill",new Rect(2,2,76,8)).gameObject.AddComponent<Image>();
+            fill.sprite=fireGradient;fill.type=Image.Type.Filled;fill.fillMethod=Image.FillMethod.Horizontal;fill.fillOrigin=0;fill.raycastTarget=false;
+            fireFills[slot]=fill;RefreshFireProgress(slot);
+        }
+        readonly Image[] fireFills=new Image[4];
+        Sprite fireGradient;
+        Texture2D fireGradientTexture;
+        public static Color FireProgressColor(float progress)
+        {
+            Color a=new Color32(0x78,0x1C,0x14,255),b=new Color32(0xB5,0x26,0x18,255),c=new Color32(0xE4,0x3B,0x1F,255),d=new Color32(0xFF,0x76,0x26,255);
+            float t=Mathf.Clamp01(progress)*3;
+            return t<=1?Color.Lerp(a,b,t):t<=2?Color.Lerp(b,c,t-1):Color.Lerp(c,d,t-2);
+        }
+        void EnsureFireGradient()
+        {
+            if(fireGradient)return;
+            const int width=304,height=32;
+            fireGradientTexture=new Texture2D(width,height,TextureFormat.RGBA32,false);fireGradientTexture.wrapMode=TextureWrapMode.Clamp;
+            for(int y=0;y<height;y++)for(int x=0;x<width;x++)
+            {
+                Color color=FireProgressColor(x/(float)(width-1));
+                float dx=Mathf.Max(0,Mathf.Abs(x-(width-1)*.5f)-(width*.5f-8)),dy=Mathf.Max(0,Mathf.Abs(y-(height-1)*.5f)-(height*.5f-8));
+                color.a=Mathf.Clamp01(8-Mathf.Sqrt(dx*dx+dy*dy));fireGradientTexture.SetPixel(x,y,color);
+            }
+            fireGradientTexture.Apply();fireGradient=Sprite.Create(fireGradientTexture,new Rect(0,0,width,height),new Vector2(.5f,.5f));
+        }
+        void RefreshFireProgress(int slot)
+        {
+            if(slot>=2&&fireFills[slot])fireFills[slot].fillAmount=Mathf.Clamp01(LockedPotCompletedOrders/(float)LockedPotThreshold(slot));
+        }
+        Sprite rewardCircle;
+        Texture2D rewardCircleTexture;
+        void RewardPlus(Transform parent,string name,Rect rect)
+        {
+            if(!rewardCircle)
+            {
+                rewardCircleTexture=new Texture2D(64,64,TextureFormat.RGBA32,false);
+                for(int y=0;y<64;y++)for(int x=0;x<64;x++)rewardCircleTexture.SetPixel(x,y,new Color(1,1,1,Mathf.Clamp01(31.5f-Vector2.Distance(new Vector2(x,y),new Vector2(31.5f,31.5f)))));
+                rewardCircleTexture.Apply();rewardCircle=Sprite.Create(rewardCircleTexture,new Rect(0,0,64,64),new Vector2(.5f,.5f));
+            }
+            var badge=PotCapsule(parent,name,rect,ThemeInk);
+            badge.GetComponent<Image>().sprite=rewardCircle;badge.GetComponent<Image>().type=Image.Type.Simple;
+            float side=rect.width,stroke=side*.11f,length=side*.48f;
+            var horizontal=Node(badge,"PlusHorizontal",new Rect((side-length)/2,(side-stroke)/2,length,stroke)).gameObject.AddComponent<Image>();
+            horizontal.color=ThemeIvory;horizontal.raycastTarget=false;
+            var vertical=Node(badge,"PlusVertical",new Rect((side-stroke)/2,(side-length)/2,stroke,length)).gameObject.AddComponent<Image>();
+            vertical.color=ThemeIvory;vertical.raycastTarget=false;
+        }
+        void ShowLockedPotDialog(int slot)
+        {
+            if(!IsLockedPot(slot)||LastSnapshot.phase!=ViewPhase.Running||LastSnapshot.pauseReasons!=ViewPauseReasons.None||modal)return;
+            if(art==null)
+            {
+                ShowDialog("提前开锅","再完成 "+Mathf.Max(0,LockedPotThreshold(slot)-LockedPotCompletedOrders)+" 锅订单即可解锁",new[]{"看视频解锁","关闭"},i=>{CloseModal();if(i==0)RequestLockedPotReward(slot);});
+                lockedPotDialogSlot=slot;
+                lockedPotRemainingLabel=modal.GetComponentsInChildren<Text>().FirstOrDefault(t=>t.text.StartsWith("再完成 "));
+                return;
+            }
+            var card=ModalV7("LockedPotUnlock",390);
+            lockedPotDialogSlot=slot;
+            Label(card,"提前开锅",new Rect(35,31,290,48),30);
+            IconButton(card,"关闭","close",new Rect(301,14,42,42),CloseModal);
+            PictureContain(card,potUnlit,new Rect(124,86,112,112),"LockedPotPreview");
+            lockedPotRemainingLabel=Label(card,"",new Rect(22,208,316,38),21);
+            VButton(card,"看视频解锁",new Rect(40,292,280,54),()=>{CloseModal();RequestLockedPotReward(slot);},true,22);
+            RefreshLockedPotDialog();
+        }
+        void RequestLockedPotReward(int slot)
+        {
+            if(IsLockedPot(slot)&&LastSnapshot.phase==ViewPhase.Running&&LastSnapshot.pauseReasons==ViewPauseReasons.None)
+                RewardRequested?.Invoke(slot==2?RewardKind.ThirdPot:RewardKind.FourthPot,RewardRoute.SimulatedAd);
+        }
+        void RefreshLockedPotDialog()
+        {
+            if(lockedPotDialogSlot<0||!modal)return;
+            if(!IsLockedPot(lockedPotDialogSlot)){CloseModal();return;}
+            if(lockedPotRemainingLabel)lockedPotRemainingLabel.text="再完成 "+Mathf.Max(0,LockedPotThreshold(lockedPotDialogSlot)-LockedPotCompletedOrders)+" 锅订单即可解锁";
         }
         void ToolButton(string title,string icon,float x,RewardKind kind)
         {
@@ -186,6 +287,7 @@ namespace HotpotSort.Presentation
             var hit=n.gameObject.AddComponent<Image>();hit.color=Color.clear;
             var b=n.gameObject.AddComponent<Button>();b.targetGraphic=hit;BindButtonClick(b,()=>ChooseReward(kind));StyleButton(b);
             ModernIcon(n,"ToolIcon",icon,UnifiedTheme?new Rect(44,3,32,32):new Rect(42,5,36,36),ModernPalette.Tea);var caption=Label(n,title,new Rect(0,UnifiedTheme?36:42,120,24),18);if(UnifiedTheme)caption.color=ThemeIvory;
+            RewardPlus(n,"ToolPlus",new Rect(83,10,18,18));
         }
         void EntryV7()
         {
@@ -231,27 +333,66 @@ namespace HotpotSort.Presentation
         }
         void OverlayV7()
         {
+            if(IsSettlement){SettlementOverlay();return;}
             bool paused=LastSnapshot.phase==ViewPhase.Paused||(LastSnapshot.pauseReasons&ViewPauseReasons.User)!=0,won=LastSnapshot.phase==ViewPhase.Won;
             if(LastSnapshot.revivalPending&&!paused){if(!LastSnapshot.revivalUsed)RevivalOfferV7();return;}
-            string title=paused?"歇一会儿":won?"热锅开席！":LastSnapshot.message=="Timeout"?"时间到":"暂存已满";
+            string title=paused?"歇一会儿":won?"热锅开席！":"失败";
             if(LastSnapshot.phase==ViewPhase.Aborted)title="挑战已中止";
-            var card=ModalV7("Flow_"+LastSnapshot.phase,won?620:460);
+            var card=ModalV7("Flow_"+LastSnapshot.phase,won?744:460);
             var head=Label(card,title,new Rect(25,28,310,55),34);head.font=displayFont;
+            if(IsSettlement)BuildSettlementProgress(card,new Rect(40,94,280,58));
             if(won)
             {
-                if(UnifiedTheme)PictureContain(card,art.Texture(AssetKey.Win),new Rect(45,78,270,267),"WinHero");
-                else Picture(card,art.Texture(AssetKey.Win),new Rect(80,78,200,267),"WinHero");
-                int i=0;foreach(var fact in LastSnapshot.facts){Label(card,fact.label+"："+fact.value,new Rect(25,350+i*30,310,29),17);i++;}
-                VButton(card,"重新挑战",new Rect(40,477,280,52),()=>Action(ViewAction.RetrySameDay),true);
-                VButton(card,"返回首页",new Rect(40,543,280,46),()=>Action(ViewAction.Exit),false);
+                if(UnifiedTheme)PictureContain(card,art.Texture(AssetKey.Win),new Rect(45,158,270,267),"WinHero");
+                else Picture(card,art.Texture(AssetKey.Win),new Rect(80,158,200,267),"WinHero");
+                int i=0;foreach(var fact in LastSnapshot.facts){Label(card,fact.label+"："+fact.value,new Rect(25,430+i*30,310,29),17);i++;}
+                SettlementButtons(()=>{
+                    VButton(card,"重新挑战",new Rect(40,601,280,52),()=>Action(ViewAction.RetrySameDay),true);
+                    VButton(card,"返回首页",new Rect(40,667,280,46),()=>Action(ViewAction.Exit),false);
+                });
             }
             else
             {
-                Label(card,paused?"食材等你回来，再开一锅。":LastSnapshot.message=="Timeout"?"这一桌先收好，再来一次吧。":"这一桌满了，下一锅再接再厉。",new Rect(30,99,300,58),18);
+                Label(card,paused?"食材等你回来，再开一锅。":LastSnapshot.message=="Timeout"?"这一桌先收好，再来一次吧。":"这一桌满了，下一锅再接再厉。",new Rect(30,IsSettlement?173:99,300,58),18);
                 if(paused)VButton(card,"设置",new Rect(40,196,280,46),()=>SettingsRequested?.Invoke(),false);
+                SettlementButtons(()=>{
                 VButton(card,paused?"继续下锅":"重新挑战",new Rect(40,271,280,52),()=>Action(paused?ViewAction.Resume:ViewAction.RetrySameDay),true);
                 VButton(card,"返回首页",new Rect(40,337,280,46),()=>Action(ViewAction.Exit),false);
+                });
             }
+        }
+        void SettlementOverlay()
+        {
+            CloseModal();
+            modal=Node(content,"Flow_"+LastSnapshot.phase,new Rect(0,0,viewport.width,viewport.height));
+            var shade=modal.gameObject.AddComponent<Image>();shade.color=new Color(.055f,.035f,.02f,.78f);shade.raycastTarget=true;
+            var frame=LogicalFrame(modal,"ModalFrame");
+            bool won=LastSnapshot.phase==ViewPhase.Won;
+            var title=Label(frame,won?"胜利":"失败",new Rect(42,145,336,80),58);title.font=displayFont;title.color=Cream;
+            Label(frame,won?"热锅开席，今日挑战完成！":LastSnapshot.message=="Timeout"?"这一桌先收好，再来一次吧。":"这一桌满了，下一锅再接再厉。",new Rect(40,236,340,54),19).color=Cream;
+            BuildSettlementProgress(frame,new Rect(52,330,316,108));
+            var stats=Node(frame,"SettlementStatistics",new Rect(64,471,292,155));
+            int index=0;
+            foreach(var fact in LastSnapshot.facts)
+            {
+                var label=Label(stats,fact.label,new Rect(0,index*31,180,28),17);label.alignment=TextAnchor.MiddleLeft;label.color=Cream;
+                var value=Label(stats,fact.value,new Rect(176,index*31,116,28),18);value.alignment=TextAnchor.MiddleRight;value.color=Cream;
+                index++;
+            }
+            SettlementButtons(()=>{
+                if(art!=null)
+                {
+                    VButton(frame,"重新挑战",new Rect(70,669,280,48),()=>Action(ViewAction.RetrySameDay),true);
+                    VButton(frame,"分享",new Rect(70,729,280,46),()=>ShareRequested?.Invoke(),false);
+                    VButton(frame,"返回首页",new Rect(70,787,280,46),()=>Action(ViewAction.Exit),false);
+                }
+                else
+                {
+                    Button(frame,"重新挑战",new Rect(70,669,280,48),()=>Action(ViewAction.RetrySameDay));
+                    Button(frame,"分享",new Rect(70,729,280,46),()=>ShareRequested?.Invoke());
+                    Button(frame,"返回首页",new Rect(70,787,280,46),()=>Action(ViewAction.Exit));
+                }
+            });
         }
         void RevivalOfferV7(RewardApplicationResult? lastResult=null)
         {

@@ -89,6 +89,7 @@ namespace HotpotSort.Presentation
         public int PoolSize=>pool.Count+active.Count;
         public float RevivalElapsed=>transferAge;
         public bool RevivalActive=>transfer!=null;
+        public bool WarmupTransitionBusy=>arrivals.Count>0||serves.Count>0||queues.Any(q=>q.Count>0)||clears.Count>0||active.Any(f=>f.mode==1)||transfer!=null;
         public int ClearTransportCount=>clears.Count;
         public GameplayAudio Audio {get;private set;}
         public void Initialize(Transform parent,Canvas canvas){view=GetComponent<GameplayView>();Audio=gameObject.AddComponent<GameplayAudio>();}
@@ -162,7 +163,7 @@ namespace HotpotSort.Presentation
                         var unlocked=Pot(evt.slot);Pulse(unlocked,"ignition",.32f,96);
                         Spawn("UnlockSteam",Load(SteamKey(evt.slot)),unlocked+new Vector2(0,-10),unlocked+new Vector2(8,-48),80,.82f,2,0,.28f);
                         break;
-                    case "ChallengeWon":terminalCue=AudioCue.Win;Pulse(new Vector2(210,350),"victory_accent",.7f,360);break;
+                    case "ChallengeWon":if(!state.isWarmup){terminalCue=AudioCue.Win;Pulse(new Vector2(210,350),"victory_accent",.7f,360);}break;
                     case "ChallengeFailed":terminalCue=AudioCue.Lose;break;
                     case "RevivalTransferStarted":BeginTransfer(evt.revivalTransfer);break;
                 }
@@ -190,6 +191,7 @@ namespace HotpotSort.Presentation
         {
             if(!view||!view.PresentationForeground||snapshot==null||!layer)return;
             float dt=(float)clock.Advance(Mathf.Min(delta,.1f),snapshot);
+            if(snapshot.pauseReasons==ViewPauseReasons.Tutorial)dt=Mathf.Min(delta,.1f);
             // Preserve the existing one-shot victory accent; terminal ambient/serve effects were cleared in Apply.
             if(snapshot.phase==ViewPhase.Won&&snapshot.pauseReasons==ViewPauseReasons.None)dt=Mathf.Min(delta,.1f);
             if(dt>0)
@@ -237,6 +239,7 @@ namespace HotpotSort.Presentation
                     if(!order)view.PulseBufferArrival(route.targetSlot,route.itemId);
                     if(arrival.epoch==view.HapticEpoch&&view.CanPlayHaptic)Audio?.Play(order?AudioCue.PotArrival:AudioCue.PlateArrival);
                     if(arrival.epoch==view.HapticEpoch&&view.CanPlayHaptic)view.RequestHaptic(order&&route.filledAfter==3?GameplayHapticKind.Medium:GameplayHapticKind.Light);
+                    if(order)view.NotifyTutorialFoodArrived(route.itemId);
                 }
                 for(int i=serves.Count-1;i>=0;i--)
                 {

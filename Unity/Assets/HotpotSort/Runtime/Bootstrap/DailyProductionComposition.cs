@@ -12,7 +12,7 @@ using UnityEngine;
 
 namespace HotpotSort.Bootstrap
 {
-    public sealed class DailyProductionComposition : ProductionComposition, IGameSessionFactory, IGameViewFactory, IGameView, IPresentationPort, IRevivalPresentationPort
+    public sealed class DailyProductionComposition : ProductionComposition, IGameSessionFactory, IGameViewFactory, IGameView, IPresentationPort, IRevivalPresentationPort, IChallengeStageFactory, IWarmupPresentationPort
     {
         [SerializeField] private TextAsset dailyContent;
         [SerializeField] private Font playerFont;
@@ -20,6 +20,10 @@ namespace HotpotSort.Bootstrap
         public string ApprovedAssetRoot=>approvedAssetRoot;
         private DailySessionFactory factory;
         private DailySession current;
+        private ViewTutorialStep tutorialStep;
+        private string tutorialItemId;
+        private int tutorialOrderSlot=-1;
+        private bool bufferWarning,pendingBufferWarning;
         private SessionController controller;
         private GameplayView view;
         private ISessionActions actions;
@@ -149,6 +153,7 @@ namespace HotpotSort.Bootstrap
             view.RewardRequested+=RequestReward;
             view.SettingsRequested+=ShowSettings;
             view.FriendsRequested+=ShowFriends;
+            view.ShareRequested+=ShareTheme;
             FriendSurfaceChanged+=OnFriendPresentationChanged;
             view.SetAudioSettings(profile.LoadSettings());
             view.Bind(this);
@@ -171,10 +176,14 @@ namespace HotpotSort.Bootstrap
         private void OnDestroy() { rewards?.InvalidateSession();CloseFriendSurface();FriendSurfaceChanged-=OnFriendPresentationChanged;if(profile is IAsyncProfileStore sync){sync.ProfileChanged-=OnProfileChanged;sync.InvalidateSyncCallbacks();}if(controller!=null)controller.ObservationChanged-=OnSessionObservation; }
         private void OnApplicationFocus(bool focused){if(focused){_=SyncProfileAsync();PublishFriendScore();RefreshFriendSurface();}}
         public IGameSession CreateSession(ChallengeContext context)
+            =>CreateStage(context,ChallengeStage.Warmup,0);
+        public IGameSession CreateStage(ChallengeContext context,ChallengeStage stage,int inheritedPotMask)
         {
             EnsureFactory(); showingError=false; supplySequence=0; supplySchedule.Reset();lastSupplyObservation=0; ResetSpawnPresentation();
             (profile as IAsyncProfileStore)?.InvalidateSyncCallbacks();revivalRouteOffer=null;
-            current=factory.CreateDailySession(context); return current;
+            tutorialStep=stage==ChallengeStage.Warmup&&(profile as ITutorialProfileStore)?.WarmupTutorialCompleted!=true?ViewTutorialStep.SelectFood:ViewTutorialStep.None;
+            tutorialItemId=null;tutorialOrderSlot=-1;bufferWarning=pendingBufferWarning=false;
+            current=factory.CreateStage(context,stage,inheritedPotMask); return current;
         }
         public IGameView CreateView() { return this; }
         void IGameView.Bind(ISessionActions value) { actions=value; }
@@ -198,7 +207,9 @@ namespace HotpotSort.Bootstrap
                 }
                 plate.motion=motion;plate.x=motion.spawnX;plate.y=motion.spawnY;
             }
-            if(snapshot.Status==GameStatus.Won && winRecordedSession!=snapshot.SessionId)
+            if(!bufferWarning&&tutorialStep==ViewTutorialStep.None&&snapshot.Status==GameStatus.Running&&update.snapshot.buffer.Count(i=>i!=null)==4&&profile is ITutorialProfileStore tutorialProfile&&!tutorialProfile.BufferWarningCompleted)pendingBufferWarning=true;
+            update.snapshot.tutorialStep=tutorialStep;update.snapshot.tutorialItemId=tutorialItemId;update.snapshot.tutorialOrderSlot=tutorialOrderSlot;update.snapshot.bufferWarning=bufferWarning;
+            if(snapshot.Status==GameStatus.Won && current.Stage!=ChallengeStage.Warmup && winRecordedSession!=snapshot.SessionId)
             {profile.RecordFirstWin(snapshot.Challenge.ChallengeId);winRecordedSession=snapshot.SessionId;}
             shown=update.snapshot; Updated?.Invoke(update);
             ValidatePendingReward();
@@ -211,6 +222,7 @@ namespace HotpotSort.Bootstrap
             CloseFriendSurface();revivalRouteOffer=null;
             (profile as IAsyncProfileStore)?.InvalidateSyncCallbacks();
             current=null; supplySequence=0; supplySchedule.Reset();lastSupplyObservation=0;observingSupply=false;winRecordedSession=null;ResetSpawnPresentation();
+            tutorialStep=ViewTutorialStep.None;tutorialItemId=null;tutorialOrderSlot=-1;bufferWarning=pendingBufferWarning=false;
             if(!showingError) { shown=new ViewSnapshot { phase=ViewPhase.Entry }; view.ResetView(); }
         }
         void IDisposable.Dispose() { /* View persists as the approved entry after session Exit. Bootstrap owns its lifetime. */ }
@@ -243,12 +255,15 @@ namespace HotpotSort.Bootstrap
         }
         public void Tap(ViewTap command)
         {
-            if(friendSurfaceOpen || current==null || !controller.CanAcceptInput) { view.AcknowledgeTap(command.itemId);return; }
+            if(friendSurfaceOpen || current==null || !controller.CanAcceptInput || bufferWarning || pendingBufferWarning ||
+                (tutorialStep!=ViewTutorialStep.None&&(tutorialStep!=ViewTutorialStep.SelectFood||command.itemId!=tutorialItemId))) { view.AcknowledgeTap(command.itemId);return; }
             int id;
             if(!int.TryParse(command.itemId,NumberStyles.None,CultureInfo.InvariantCulture,out id)) { view.AcknowledgeTap(command.itemId);return; }
             if(command.snapshotRevision!=shown.revision){view.AcknowledgeTap(command.itemId);return;}
+            bool tutorialTap=tutorialStep==ViewTutorialStep.SelectFood;
+            if(tutorialTap)tutorialStep=ViewTutorialStep.FoodInFlight;
             var result=current.Tap(new TapCommand(id,(ulong)command.inputSeq,Boundary,true,current.MayRefillOrdersOnTap(id)?CaptureOrderClickability():null));
-            if(!result.Accepted)view.AcknowledgeTap(command.itemId);
+            if(!result.Accepted){if(tutorialTap)tutorialStep=ViewTutorialStep.SelectFood;view.AcknowledgeTap(command.itemId);}
             else if(result.Events.CanonicalEvents.Any(e=>e.Contains("\"type\":\"ItemRoutedToOrder\"")||e.Contains("\"type\":\"ItemRoutedToBuffer\"")))controller.StartChallengeTimer();
         }
         ClickableObservation CaptureOrderClickability()
@@ -268,6 +283,8 @@ namespace HotpotSort.Bootstrap
         private void Update()
         {
             if(controller==null)return;
+            if(current!=null&&pendingBufferWarning&&current.Snapshot.Status==GameStatus.Running)
+            {pendingBufferWarning=false;bufferWarning=true;controller.SetTutorialPaused(true);}
             view?.SetRemainingTime(Math.Max(0,600-controller.ChallengeSeconds));
             if(current==null || !controller.CanAcceptInput)return;
             if(controller.ChallengeSeconds>=600){current.Timeout(Boundary);return;}
@@ -278,11 +295,38 @@ namespace HotpotSort.Bootstrap
             try{view.ObserveSupply(new Vector2(DailyViewMapper.SpawnX(successfulSpawns),DailyViewMapper.SpawnY(radius)),radius);}
             finally{observingSupply=false;}
         }
+        bool CurrentTutorialSession(string id,long generation)=>current!=null&&controller!=null&&current.Snapshot.SessionId==id&&controller.Generation==generation;
+        public bool SelectTutorialFood(string sessionId,long generation,string itemId)
+        {
+            if(!CurrentTutorialSession(sessionId,generation)||tutorialStep!=ViewTutorialStep.SelectFood||!controller.CanAcceptInput)return false;
+            var item=shown.plates.SelectMany(p=>p.items).FirstOrDefault(i=>i.itemId==itemId);
+            var order=item==null?null:shown.orders.FirstOrDefault(o=>o.enabled&&o.foodId==item.foodId&&o.count<3);
+            if(order==null||view.CaptureClickability()?.clickable.Contains(itemId)!=true)return false;
+            tutorialItemId=itemId;tutorialOrderSlot=order.slot;Show(current.Snapshot,null);return true;
+        }
+        public bool TutorialFoodArrived(string sessionId,long generation,string itemId)
+        {
+            if(!CurrentTutorialSession(sessionId,generation)||tutorialStep!=ViewTutorialStep.FoodInFlight||tutorialItemId!=itemId)return false;
+            tutorialStep=ViewTutorialStep.OrderExplanation;controller.SetTutorialPaused(true);return true;
+        }
+        public bool CompleteOpeningTutorial(string sessionId,long generation)
+        {
+            if(!CurrentTutorialSession(sessionId,generation)||tutorialStep!=ViewTutorialStep.OrderExplanation)return false;
+            (profile as ITutorialProfileStore)?.CompleteTutorial(false);
+            tutorialStep=ViewTutorialStep.None;tutorialItemId=null;tutorialOrderSlot=-1;controller.SetTutorialPaused(false);return true;
+        }
+        public bool CompleteBufferWarning(string sessionId,long generation)
+        {
+            if(!CurrentTutorialSession(sessionId,generation)||!bufferWarning)return false;
+            (profile as ITutorialProfileStore)?.CompleteTutorial(true);
+            bufferWarning=false;controller.SetTutorialPaused(false);return true;
+        }
+        public bool CompleteWarmup(string sessionId,long generation)=>controller!=null&&controller.ContinueToFormal(sessionId,generation);
         bool HasTarget(RewardKind kind)
         {
             if(kind==RewardKind.Revival)return current!=null&&current.RevivalPending&&!current.RevivalUsed;
-            if(current==null || !controller.CanAcceptInput || view.ShuffleFeedbackActive)return false;
-            switch(kind){case RewardKind.Hint:return view.FindClickableHint()!=null;case RewardKind.ClearBuffer:return current.CanClearBuffer;case RewardKind.FourthPot:return current.CanUnlockFourth;case RewardKind.Shuffle:return view.World.TryShuffle(false);default:return false;}
+            if(current==null || !controller.CanAcceptInput || view.ShuffleFeedbackActive || tutorialStep!=ViewTutorialStep.None || bufferWarning || pendingBufferWarning)return false;
+            switch(kind){case RewardKind.Hint:return view.FindClickableHint()!=null;case RewardKind.ClearBuffer:return current.CanClearBuffer;case RewardKind.ThirdPot:return current.CanUnlockThird;case RewardKind.FourthPot:return current.CanUnlockFourth;case RewardKind.Shuffle:return view.World.TryShuffle(false);default:return false;}
         }
         bool ApplyReward(RewardKind kind)
         {
@@ -291,6 +335,7 @@ namespace HotpotSort.Bootstrap
             {
                 case RewardKind.Hint:var hint=view.FindClickableHint();if(hint==null)return false;view.HighlightItem(hint);return true;
                 case RewardKind.ClearBuffer:return current.ClearBuffer(Boundary).Reason==null;
+                case RewardKind.ThirdPot:return current.UnlockThird(Boundary,CaptureOrderClickability()).Reason==null;
                 case RewardKind.FourthPot:return current.UnlockFourth(Boundary,CaptureOrderClickability()).Reason==null;
                 case RewardKind.Shuffle:return view.TryShuffleWithFeedback();
                 default:return false;
@@ -390,6 +435,7 @@ namespace HotpotSort.Bootstrap
             {
                 case RewardKind.Revival:valid=current.RevivalPending&&!current.RevivalUsed&&current.RevivalOfferId==request.RevivalOfferId;break;
                 case RewardKind.ClearBuffer:valid=shown.buffer.Any(i=>i!=null);break;
+                case RewardKind.ThirdPot:valid=shown.orders.Any(o=>o.slot==2&&!o.enabled);break;
                 case RewardKind.FourthPot:valid=shown.orders.Any(o=>o.slot==3&&!o.enabled);break;
                 case RewardKind.Hint:valid=shown.plates.Any(p=>p.items.Length>0);break;
                 case RewardKind.Shuffle:valid=shown.plates.Length>1;break;
@@ -398,8 +444,16 @@ namespace HotpotSort.Bootstrap
         }
         async void ShareTheme()
         {
-            try{await sharing.ShareThemeAsync(string.IsNullOrEmpty(approvedAssetRoot)?null:approvedAssetRoot+"/share/share_theme");}
-            catch(Exception ex){view.ShowNotice("分享未完成",ex.Message);}
+            var result=shown;
+            if(result==null||(result.phase!=ViewPhase.Won&&result.phase!=ViewPhase.Overflow)||sharing==null)return;
+            string image=string.IsNullOrEmpty(approvedAssetRoot)?null:approvedAssetRoot+"/share/share_theme";
+            string title=SettlementShareText.Title(result.phase==ViewPhase.Won,result.completedOrders,result.totalOrders);
+            try
+            {
+                if(sharing is IResultThemeShare resultShare)await resultShare.ShareThemeAsync(image,title);
+                else await sharing.ShareThemeAsync(image);
+            }
+            catch(Exception ex){Debug.LogWarning("Settlement share unavailable: "+ex.GetType().Name);}
         }
     }
 }

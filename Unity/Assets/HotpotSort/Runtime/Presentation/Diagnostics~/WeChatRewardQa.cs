@@ -67,6 +67,7 @@ static class WeChatRewardQa
         var fresh=service.RequestAsync(Request(RewardRoute.WeChatRewardedVideo));oldClose(true);oldLoaded();r.Flush();Check(!fresh.IsCompleted&&r.Video.Shows==0,"old callbacks ignored");
         r.Video.LoadedNow();r.Video.Close(true);service.CancelAll();r.Flush();Outcome(fresh,RewardOutcome.Cancelled,"cancel beats queued ad success");
         Outcome(service.RequestAsync(Request(RewardRoute.WeChatShare,RewardKind.FourthPot)),RewardOutcome.Unavailable,"fourth pot cannot share");
+        Outcome(service.RequestAsync(Request(RewardRoute.WeChatShare,RewardKind.ThirdPot)),RewardOutcome.Unavailable,"third pot cannot share");
         var shareReq=Request(RewardRoute.WeChatShare);var shareTask=service.RequestAsync(shareReq);r.Hide();service.CancelAll();Outcome(shareTask,RewardOutcome.Cancelled,"outer cancel propagates to share");Check(r.Listeners==0,"outer share cancellation detaches");
         var after=service.RequestAsync(Request(RewardRoute.WeChatRewardedVideo));service.Dispose();Outcome(after,RewardOutcome.Cancelled,"service dispose");
         Outcome(service.RequestAsync(Request(RewardRoute.WeChatRewardedVideo)),RewardOutcome.Unavailable,"disposed ad unavailable");share.Dispose();

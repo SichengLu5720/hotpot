@@ -35,7 +35,9 @@ namespace HotpotSort.Replay
                 var c = CanonicalJson.Map(root["context"]);
                 var context = new ChallengeContext((string)c["challengeId"], (string)c["contentVersion"], (string)c["configurationDigest"], (string)c["timeSource"], CanonicalJson.Int(c["retryIndex"]));
                 if (context.ContentVersion != factory.Content.ContentVersion || context.ConfigurationDigest != factory.ConfigurationDigest) throw new FormatException("Context configuration mismatch");
-                if (CanonicalJson.ReadU64(root["dailySeed"]) != Pcg32.DailySeed(context.ChallengeId, context.ContentVersion)) throw new FormatException("Daily seed mismatch");
+                var stage=root.ContainsKey("challengeStage")?(ChallengeStage)CanonicalJson.Int(root["challengeStage"]):ChallengeStage.Legacy;
+                int inherited=root.ContainsKey("inheritedPotMask")?CanonicalJson.Int(root["inheritedPotMask"]):0;
+                if (CanonicalJson.ReadU64(root["dailySeed"]) != (stage==ChallengeStage.Warmup?WarmupContent.Seed(context.ChallengeId,context.ContentVersion):Pcg32.DailySeed(context.ChallengeId, context.ContentVersion))) throw new FormatException("Daily seed mismatch");
                 DailyFixture fixture = null;
                 if (root["fixture"] != null)
                 {
@@ -44,7 +46,8 @@ namespace HotpotSort.Replay
                         CanonicalJson.Array(f["orders"]).Select(x => { var o = CanonicalJson.Map(x); return new FixtureOrder((string)o["kind"], CanonicalJson.Array(o["itemIds"]).Select(CanonicalJson.Int)); }),
                         CanonicalJson.Array(f["completed"]).Select(CanonicalJson.Int));
                 }
-                session = fixture == null ? factory.CreateDailySession(context,rules) : factory.CreateFixtureSession(context, fixture,rules);
+                if(stage!=ChallengeStage.Legacy&&(fixture!=null||rules!=DailyRulesVersion.RevivalV3))throw new FormatException("Unsupported stage fixture/rules");
+                session = stage!=ChallengeStage.Legacy?factory.CreateStage(context,stage,inherited):fixture == null ? factory.CreateDailySession(context,rules) : factory.CreateFixtureSession(context, fixture,rules);
                 if (session.Snapshot.Status == GameStatus.Aborted) throw new FormatException("Replay initialization aborted");
                 if (session.InitialHash != (string)root["initialHash"]) throw new FormatException("Initial hash mismatch");
                 foreach (var raw in CanonicalJson.Array(root["records"]))
@@ -71,6 +74,7 @@ namespace HotpotSort.Replay
                         case "Resume": result = session.Resume(boundary); break;
                         case "ClearBuffer": result = session.ClearBuffer(boundary); break;
                         case "UnlockFourth": result = session.UnlockFourth(boundary,clickability); break;
+                        case "UnlockThird": result = session.UnlockThird(boundary,clickability); break;
                         case "Timeout": result = session.Timeout(boundary); break;
                         case "ResolveRevival": result=session.ResolveRevival(new ResolveRevivalCommand((string)data["revivalOfferId"],(string)data["requestId"],(bool)data["success"],boundary));break;
                         case "CompleteRevivalTransfer": result=session.CompleteRevivalTransfer((string)data["revivalOfferId"],(string)data["completionToken"],boundary);break;

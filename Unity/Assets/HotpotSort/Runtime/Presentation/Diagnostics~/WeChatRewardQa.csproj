@@ -6,6 +6,7 @@
   <ItemGroup>
     <Compile Include="WeChatRewardQa.cs"/><Compile Include="WeChatRewardQaUnityShim.cs"/>
     <Compile Include="../../../Contracts/DevelopmentServices.cs" Condition="'$(IsolatedContracts)' != 'true'"/>
+    <Compile Include="../../../Contracts/SessionContracts.cs" Condition="'$(IsolatedContracts)' != 'true'"/>
     <Compile Include="WeChatRewardQaContractsFixture.cs" Condition="'$(IsolatedContracts)' == 'true'"/>
     <Compile Include="../../../Contracts/WeChatRewardContracts.cs"/>
     <Compile Include="../../../Contracts/RemoteAssetContracts.cs"/>

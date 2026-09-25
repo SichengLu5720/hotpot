@@ -6,7 +6,7 @@ using HotpotSort.Determinism;
 
 namespace HotpotSort.Core
 {
-    public sealed class DailySession : IGameSession, IRevivalSessionState
+    public sealed class DailySession : IGameSession, IRevivalSessionState, IChallengeStageState
     {
         public const string StateSchema = "daily_state_v3", EventSchema = "daily_event_v3", ReplaySchema = "daily_replay_v3";
         public const string LegacyStateSchema = "daily_state_v2", LegacyEventSchema = "daily_event_v2", LegacyReplaySchema = "daily_replay_v2";
@@ -29,6 +29,11 @@ namespace HotpotSort.Core
         readonly Pcg32 mappingRng, directorRng, presentationRng;
         readonly ulong seed;
         readonly DailyFixture fixture;
+        public ChallengeStage Stage { get; }
+        readonly int inheritedPotMask;
+        int TotalItems => Stage==ChallengeStage.Warmup?18:183;
+        public int UnlockedExtraPotMask => (orders[2].Enabled?1:0)|(orders[3].Enabled?2:0);
+        public int CumulativeCompletedOrders => completedOrders+(Stage==ChallengeStage.Formal?6:0);
         GameStatus status = GameStatus.Ready;
         GameSnapshot snapshot;
         ulong eventSeq, transactionId, boundary, inputSeq, observationSeq, elapsed;
@@ -54,12 +59,14 @@ namespace HotpotSort.Core
         public string DiagnosticsJson { get { lock (gate) return "[" + string.Join(",", diagnostics) + "]"; } }
         public event Action<GameSnapshot, GameEventBatch> Changed;
 
-        internal DailySession(DailySessionFactory factory, ChallengeContext context, DailyFixture fixture, DailyRulesVersion rules)
+        internal DailySession(DailySessionFactory factory, ChallengeContext context, DailyFixture fixture, DailyRulesVersion rules, ChallengeStage stage=ChallengeStage.Legacy, int inheritedPotMask=0)
         {
             if(!Enum.IsDefined(typeof(DailyRulesVersion),rules))throw new ArgumentOutOfRangeException(nameof(rules));
             this.rules=rules;
+            if(!Enum.IsDefined(typeof(ChallengeStage),stage)||inheritedPotMask<0||inheritedPotMask>3)throw new ArgumentException("Invalid challenge stage");
+            Stage=stage;this.inheritedPotMask=inheritedPotMask;
             this.factory = factory; this.context = context ?? throw new ArgumentNullException(nameof(context)); this.fixture = fixture;
-            seed = Pcg32.DailySeed(context.ChallengeId, context.ContentVersion);
+            seed = stage==ChallengeStage.Warmup?WarmupContent.Seed(context.ChallengeId,context.ContentVersion):Pcg32.DailySeed(context.ChallengeId, context.ContentVersion);
             mappingRng = new Pcg32(Pcg32.StreamSeed(seed, "MappingRng")); directorRng = new Pcg32(Pcg32.StreamSeed(seed, "DirectorRng")); presentationRng = new Pcg32(Pcg32.StreamSeed(seed, "PresentationRng"));
             director = new DailyDirector(factory.Content);
             Begin(0);
@@ -68,7 +75,7 @@ namespace HotpotSort.Core
                 if (context.ContentVersion != factory.Content.ContentVersion || context.ConfigurationDigest != factory.ConfigurationDigest)
                     throw new ArgumentException("ConfigurationIdentityMismatch");
                 int id = 1;
-                foreach (var plate in factory.Content.Plates)
+                foreach (var plate in stage==ChallengeStage.Warmup?WarmupContent.Generate(context.ChallengeId,context.ContentVersion):factory.Content.Plates)
                 {
                     plateSizes.Add(plate.PlateId, plate.Kinds.Count);
                     pending.Add(plate.PlateId);
@@ -81,6 +88,8 @@ namespace HotpotSort.Core
                 Emit("ChallengeInitialized", CanonicalJson.Object("challengeId", context.ChallengeId, "contentVersion", context.ContentVersion, "dailySeed", CanonicalJson.U64(seed), "identities", Identities()));
                 Emit("IngredientMappingCreated", CanonicalJson.Object("mapping", mapping, "rng", mappingRng.Snapshot()));
                 OpeningOrders();
+                if((inheritedPotMask&1)!=0)UnlockOrder(2);
+                if((inheritedPotMask&2)!=0)UnlockOrder(3);
                 if (fixture != null) ApplyFixture(fixture);
             }
             catch (ArgumentException e) { Abort("InitializationError", e.Message); }
@@ -172,7 +181,7 @@ namespace HotpotSort.Core
             if (evaluate && status == GameStatus.Running)
             {
                 int completed = items.Count(x => x.Location == "Completed");
-                if (completed == 183)
+                if (completed == TotalItems)
                 {
                     if (pending.Count != 0 || active.Count != 0 || buffer.Any(x => x.HasValue) || orders.Any(x => x.Items.Count > 0)) Abort("InconsistentWin", "Containers not empty");
                     else { status = GameStatus.Won; Emit("ChallengeWon", CanonicalJson.Object("tapCount", taps, "maxBuffer", maxBuffer, "durationBoundaries", CanonicalJson.U64(elapsed))); }
@@ -233,7 +242,7 @@ namespace HotpotSort.Core
                 if (reason == null && !command.HitAccepted) reason = "HitRejected";
                 if (reason == null && (command.ItemId < 1 || command.ItemId > items.Count || items[command.ItemId - 1].Location != "ActiveAvailable")) reason = "ItemUnavailable";
                 if (reason != null) return Reject("TapRejected", reason, detail);
-                if (command.LogicalBoundary >= 600000) return Timeout(command.LogicalBoundary);
+                if (Stage!=ChallengeStage.Warmup && command.LogicalBoundary >= 600000) return Timeout(command.LogicalBoundary);
                 commandClickability=ValidateClickability(command.Clickability,detail);
                 inputSeq = command.InputSeq; hasInputSeq = true;
                 string before = Hash(); Begin(command.LogicalBoundary); taps++;
@@ -281,8 +290,8 @@ namespace HotpotSort.Core
         {
             while (status == GameStatus.Running)
             {
-                if (completedOrders >= 31 && !orders[2].Enabled) UnlockOrder(2);
-                if (completedOrders >= 49 && !orders[3].Enabled) UnlockOrder(3);
+                if (CumulativeCompletedOrders >= (Stage==ChallengeStage.Legacy?31:37) && !orders[2].Enabled) UnlockOrder(2);
+                if (CumulativeCompletedOrders >= (Stage==ChallengeStage.Legacy?49:55) && !orders[3].Enabled) UnlockOrder(3);
                 int slot = System.Array.FindIndex(orders, o => o.Items.Count == 3);
                 if (slot < 0) break;
                 var order = orders[slot]; string kind = order.Kind;
@@ -291,6 +300,8 @@ namespace HotpotSort.Core
                 Emit("OrderCompleted", CanonicalJson.Object("slotId", slot, "kind", kind, "filledBefore", 3, "filledAfter", 3, "completionOrdinal", completedOrders));
                 order.Kind = null;
                 FillOrder(slot);
+                if(Stage==ChallengeStage.Warmup)
+                    for(int i=0;i<orders.Length;i++)if(i!=slot&&orders[i].Enabled&&orders[i].Kind==null)FillOrder(i);
             }
         }
         void UnlockOrder(int slot)
@@ -302,7 +313,7 @@ namespace HotpotSort.Core
         void FillOrder(int slot)
         {
                 var order=orders[slot];
-                var choice = director.Choose(slot, items, orders, buffer, pending, directorRng,clickable:commandClickability,unknown:commandUnknownClickability,completedOrders:commandClickabilityPolicy>=2?completedOrders:15,policyVersion:commandClickabilityPolicy);
+                var choice = director.Choose(slot, items, orders, buffer, pending, directorRng,clickable:commandClickability,unknown:commandUnknownClickability,completedOrders:commandClickabilityPolicy>=2?completedOrders:15,policyVersion:commandClickabilityPolicy,strictKinds:Stage==ChallengeStage.Warmup);
                 Emit("DirectorEvaluated", choice.Diagnostic);
                 order.Kind = choice.Kind; order.Identity = ++nextOrderIdentity;
                 if (order.Kind == null) return;
@@ -324,13 +335,15 @@ namespace HotpotSort.Core
             lock(gate) return status == GameStatus.Running ? items.Where(i=>i.Location=="ActiveAvailable" && orders.Any(o=>o.Enabled && o.Kind==i.Kind && o.Items.Count<3)).Select(i=>i.Id).DefaultIfEmpty(0).First() : 0;
         }
         public bool CanClearBuffer { get { lock(gate) return status==GameStatus.Running && buffer.Any(i=>i.HasValue); } }
-        public bool CanUnlockFourth { get { lock(gate) return status==GameStatus.Running && !orders[3].Enabled; } }
+        public bool CanUnlockFourth => CanUnlockPot(3);
+        public bool CanUnlockThird => CanUnlockPot(2);
+        public bool CanUnlockPot(int slot) { lock(gate) return (slot==2||slot==3) && status==GameStatus.Running && !orders[slot].Enabled; }
         public CommandResult ClearBuffer(ulong logicalBoundary)
         {
             lock(gate)
             {
                 if(Guard(logicalBoundary)!=null || !CanClearBuffer)return Reject("ClearBufferRejected","NoTarget",null);
-                if(logicalBoundary>=600000)return Timeout(logicalBoundary);
+                if(Stage!=ChallengeStage.Warmup&&logicalBoundary>=600000)return Timeout(logicalBoundary);
                 Begin(logicalBoundary);ReturnBufferToQueue();
                 Close();Record("ClearBuffer",CanonicalJson.Object("logicalBoundary",CanonicalJson.U64(logicalBoundary)));return Publish(true,null);
             }
@@ -387,20 +400,24 @@ namespace HotpotSort.Core
             }
         }
         public CommandResult UnlockFourth(ulong logicalBoundary,ClickableObservation clickability=null)
+            => UnlockPot(3,logicalBoundary,clickability);
+        public CommandResult UnlockThird(ulong logicalBoundary,ClickableObservation clickability=null)
+            => UnlockPot(2,logicalBoundary,clickability);
+        public CommandResult UnlockPot(int slot,ulong logicalBoundary,ClickableObservation clickability=null)
         {
             lock(gate)
             {
-                if(Guard(logicalBoundary)!=null || !CanUnlockFourth)return Reject("UnlockRejected","NoTarget",null);
-                if(logicalBoundary>=600000)return Timeout(logicalBoundary);
+                if(Guard(logicalBoundary)!=null || !CanUnlockPot(slot))return Reject("UnlockRejected","NoTarget",null);
+                if(Stage!=ChallengeStage.Warmup&&logicalBoundary>=600000)return Timeout(logicalBoundary);
                 var detail=CanonicalJson.Object("logicalBoundary",CanonicalJson.U64(logicalBoundary));commandClickability=ValidateClickability(clickability,detail);
-                Begin(logicalBoundary);UnlockOrder(3);Settle();Close();Record("UnlockFourth",detail);return Publish(true,null);
+                Begin(logicalBoundary);UnlockOrder(slot);Settle();Close();Record(slot==2?"UnlockThird":"UnlockFourth",detail);return Publish(true,null);
             }
         }
         public CommandResult Timeout(ulong logicalBoundary)
         {
             lock(gate)
             {
-                if(Guard(logicalBoundary)!=null || status!=GameStatus.Running || logicalBoundary<600000)return Reject("TimeoutRejected","NotDue",null);
+                if(Stage==ChallengeStage.Warmup || Guard(logicalBoundary)!=null || status!=GameStatus.Running || logicalBoundary<600000)return Reject("TimeoutRejected","NotDue",null);
                 Begin(logicalBoundary);status=GameStatus.Failed;failureCode="Timeout";
                 Emit("ChallengeFailed",CanonicalJson.Object("reason",failureCode));Close();Record("Timeout",CanonicalJson.Object("logicalBoundary",CanonicalJson.U64(logicalBoundary)));return Publish(true,"Timeout");
             }
@@ -417,7 +434,7 @@ namespace HotpotSort.Core
                 if (reason == null && (!observation.CanSpawn || !observation.CooldownReady)) reason = "SupplyBlocked";
                 if (reason == null && pending.Count == 0) reason = "PendingEmpty";
                 if (reason != null) return Reject("SupplyRejected", reason, data);
-                if (observation.LogicalBoundary >= 600000) return Timeout(observation.LogicalBoundary);
+                if (Stage!=ChallengeStage.Warmup && observation.LogicalBoundary >= 600000) return Timeout(observation.LogicalBoundary);
                 observationSeq = observation.ObservationSeq; hasObservationSeq = true;
                 return CommitSupply(observation.LogicalBoundary, observation.ObservationSeq);
             }
@@ -481,11 +498,13 @@ namespace HotpotSort.Core
         {
             lock (gate)
             {
-                var json = CanonicalJson.Write(CanonicalJson.Object("schemaVersion", CurrentReplaySchema,
+                var payload = CanonicalJson.Object("schemaVersion", CurrentReplaySchema,
                     "context", CanonicalJson.Object("challengeId", context.ChallengeId, "contentVersion", context.ContentVersion, "configurationDigest", context.ConfigurationDigest, "timeSource", context.TimeSource, "retryIndex", context.RetryIndex),
                     "identities", Identities(), "dailySeed", CanonicalJson.U64(seed), "initialHash", initialHash, "fixture", FixtureJson(fixture),
                     "records", records.Select(CanonicalJson.Parse).ToArray(), "diagnostics", diagnostics.Select(CanonicalJson.Parse).ToArray(), "finalHash", Hash(),
-                    "coreEventsHash", CanonicalJson.Hash("[" + string.Join(",", allEvents) + "]")));
+                    "coreEventsHash", CanonicalJson.Hash("[" + string.Join(",", allEvents) + "]"));
+                if(Stage!=ChallengeStage.Legacy){var fields=CanonicalJson.Map(payload);fields["challengeStage"]=(int)Stage;fields["inheritedPotMask"]=inheritedPotMask;}
+                var json=CanonicalJson.Write(payload);
                 return new ReplayPackage(sessionId, CurrentReplaySchema, json);
             }
         }
@@ -503,26 +522,27 @@ namespace HotpotSort.Core
             "items", items.Select(x => CanonicalJson.Object("itemId", x.Id, "plateId", x.PlateId, "sourceIndex", x.SourceIndex, "kind", x.Kind, "location", x.Location, "slot", x.Slot)).ToArray(),
             "plateSizes", plateSizes.OrderBy(p=>p.Key).Select(p=>CanonicalJson.Object("plateId",p.Key,"size",p.Value)).ToArray(),
             "buffer", buffer, "orders", orders.Select((o, i) => CanonicalJson.Object("slotId", i, "state", !o.Enabled ? "Locked" : o.Kind == null ? "Empty" : "Active", "orderIdentity",o.Identity,"kind", o.Kind, "itemIds", o.Items, "filled", o.Items.Count)).ToArray(),
-            "progressNumerator", items.Count(x => x.Location == "Completed" || x.Location == "Order"), "progressDenominator", 183, "statistics", Statistics(),
+            "progressNumerator", items.Count(x => x.Location == "Completed" || x.Location == "Order"), "progressDenominator", TotalItems, "statistics", Statistics(),
             "mappingRng", mappingRng.Snapshot(), "directorRng", directorRng.Snapshot(), "transactionId", CanonicalJson.U64(transactionId), "eventSeq", CanonicalJson.U64(eventSeq));
             if(rules==DailyRulesVersion.RevivalV3)
             {
                 var fields=CanonicalJson.Map(state);
                 fields["revivalPending"]=revivalPending;fields["revivalUsed"]=revivalUsed;fields["revivalOfferId"]=revivalOfferId;fields["revivalTransfer"]=revivalTransfer;
             }
+            if(Stage!=ChallengeStage.Legacy){var fields=CanonicalJson.Map(state);fields["challengeStage"]=(int)Stage;fields["inheritedPotMask"]=inheritedPotMask;}
             return state;
         }
         string Hash() => CanonicalJson.Hash(CanonicalJson.Write(State()));
         void RefreshSnapshot() { snapshot = new GameSnapshot(sessionId, context, status, CanonicalJson.U64(eventSeq), CanonicalJson.U64(transactionId), CurrentStateSchema, CanonicalJson.Write(State())); }
         string InvariantError()
         {
-            if (items.Count != 183 || items.Select(x => x.Id).Distinct().Count() != 183) return "Item count/identity";
+            if (items.Count != TotalItems || items.Select(x => x.Id).Distinct().Count() != TotalItems) return "Item count/identity";
             if (pending.Distinct().Count() != pending.Count || !pending.SequenceEqual(pending.OrderBy(x => x)) || active.Distinct().Count() != active.Count || pending.Intersect(active).Any()) return "Plate identity/order";
             if (orders.Where(o=>!o.Enabled).Any(o => o.Kind != null || o.Items.Count != 0)) return "Locked order occupied";
             var located = new HashSet<int>();
             foreach (var item in items)
             {
-                if (item.Id < 1 || item.Id > 183 || items[item.Id - 1] != item) return "Item ID indexing";
+                if (item.Id < 1 || item.Id > TotalItems || items[item.Id - 1] != item) return "Item ID indexing";
                 if (item.Location == "Pending" && pending.Contains(item.PlateId) && item.Slot == -1) located.Add(item.Id);
                 else if (item.Location == "ActiveAvailable" && active.Contains(item.PlateId) && item.Slot == -1) located.Add(item.Id);
                 else if (item.Location == "Completed" && item.Slot == -1) located.Add(item.Id);
@@ -530,15 +550,15 @@ namespace HotpotSort.Core
             }
             for (int i = 0; i < 5; i++) if (buffer[i].HasValue)
             {
-                int id = buffer[i].Value; if (id < 1 || id > 183 || !located.Add(id) || items[id - 1].Location != "Buffer" || items[id - 1].Slot != i) return "Buffer location mismatch";
+                int id = buffer[i].Value; if (id < 1 || id > TotalItems || !located.Add(id) || items[id - 1].Location != "Buffer" || items[id - 1].Slot != i) return "Buffer location mismatch";
             }
             for (int i = 0; i < 4; i++)
             {
                 var order = orders[i]; if (order.Items.Count > 3 || (order.Kind == null && order.Items.Count > 0)) return "Order capacity/state";
                 foreach (int id in order.Items)
-                    if (id < 1 || id > 183 || !located.Add(id) || items[id - 1].Location != "Order" || items[id - 1].Slot != i || items[id - 1].Kind != order.Kind) return "Order location mismatch";
+                    if (id < 1 || id > TotalItems || !located.Add(id) || items[id - 1].Location != "Order" || items[id - 1].Slot != i || items[id - 1].Kind != order.Kind) return "Order location mismatch";
             }
-            if (located.Count != 183) return "Inventory conservation";
+            if (located.Count != TotalItems) return "Inventory conservation";
             if (active.Any(p => !items.Any(x => x.PlateId == p && x.Location == "ActiveAvailable"))) return "Empty active plate";
             if (pending.Any(p => items.Any(x => x.PlateId == p && x.Location != "Pending"))) return "Non-pending queue item";
             if (items.Count(x => x.Location == "Completed") != completedOrders * 3) return "Completed count";

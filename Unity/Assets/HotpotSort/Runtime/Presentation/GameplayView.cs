@@ -49,6 +49,7 @@ namespace HotpotSort.Presentation
             button.onClick.AddListener(()=>
             {
                 if(!button||!button.isActiveAndEnabled||!button.IsInteractable()||!CanPlayButtonHaptic)return;
+                if(WarmupControlsLocked&&(!warmupOverlay||!button.transform.IsChildOf(warmupOverlay)))return;
                 if(!acceptedStart)NotifyButtonAccepted();
                 action();
             });
@@ -114,8 +115,68 @@ namespace HotpotSort.Presentation
             for(int i=0;i<bufferLandingActive.Length;i++){bufferLandingActive[i]=false;if(bufferFoodNodes[i])bufferFoodNodes[i].localScale=Vector3.one;}
         }
         private void OnDisable(){CancelInteractionFeedback();}
-        private void OnApplicationFocus(bool focused){if(!focused)CancelInteractionFeedback();}
-        private void OnApplicationPause(bool paused){if(paused)CancelInteractionFeedback();}
+        private bool settlementAppFocused=true,settlementAppPaused;
+        private void OnApplicationFocus(bool focused){settlementAppFocused=focused;if(!focused)CancelInteractionFeedback();}
+        private void OnApplicationPause(bool paused){settlementAppPaused=paused;if(paused)CancelInteractionFeedback();}
+        private float settlementElapsed,settlementTarget,settlementBarWidth;
+        private bool settlementStarted;
+        private RectTransform settlementFill,settlementMarker;
+        private Text settlementPercent;
+        private System.Action settlementShowButtons;
+        private bool IsSettlement=>LastSnapshot!=null&&(LastSnapshot.phase==ViewPhase.Won||LastSnapshot.phase==ViewPhase.Overflow)&&!LastSnapshot.revivalPending;
+        private void CancelSettlement()
+        {settlementStarted=false;settlementElapsed=0;settlementFill=null;settlementMarker=null;settlementPercent=null;settlementShowButtons=null;}
+        private void PrepareSettlement(ViewSnapshot next)
+        {
+            bool terminal=(next.phase==ViewPhase.Won||next.phase==ViewPhase.Overflow)&&!next.revivalPending;
+            bool same=LastSnapshot!=null&&LastSnapshot.sessionId==next.sessionId&&LastSnapshot.sessionGeneration==next.sessionGeneration&&LastSnapshot.phase==next.phase;
+            if(!terminal||!same)CancelSettlement();
+            if(terminal&&!settlementStarted)
+            {
+                settlementStarted=true;settlementTarget=next.phase==ViewPhase.Won?1:Mathf.Clamp01(next.totalOrders>0?(float)next.completedOrders/next.totalOrders:0);
+                renderedPhase=(ViewPhase)(-1);
+            }
+        }
+        private void BuildSettlementProgress(RectTransform parent,Rect area)
+        {
+            var progress=Node(parent,"SettlementProgress",area);
+            var caption=Label(progress,"本局进度",new Rect(0,0,area.width-90,32),19);caption.alignment=TextAnchor.MiddleLeft;caption.color=Cream;
+            settlementPercent=Label(progress,"0%",new Rect(area.width-90,-3,90,36),28);settlementPercent.alignment=TextAnchor.MiddleRight;settlementPercent.color=Cream;
+            var track=PotCapsule(progress,"ProgressTrack",new Rect(0,70,area.width,16),new Color32(216,196,163,255));
+            settlementBarWidth=area.width-4;
+            EnsureFireGradient();
+            settlementFill=Node(track,"ProgressFill",new Rect(2,2,settlementBarWidth,12));
+            var fill=settlementFill.gameObject.AddComponent<Image>();
+            fill.sprite=fireGradient;fill.type=Image.Type.Filled;fill.fillMethod=Image.FillMethod.Horizontal;fill.fillOrigin=0;fill.raycastTarget=false;
+            settlementMarker=Node(progress,"ProgressHotpot",new Rect(0,52,52,52));
+            settlementMarker.pivot=new Vector2(.5f,1);
+            Picture(settlementMarker,potBody,new Rect(0,0,52,52),"PotBody");
+            Picture(settlementMarker,potBroth,new Rect(0,0,52,52),"PotBroth");
+            Picture(settlementMarker,potRim,new Rect(0,0,52,52),"PotRim");
+            PaintSettlement();
+        }
+        private void PaintSettlement()
+        {
+            float t=Mathf.Clamp01(settlementElapsed/1.5f),value=settlementTarget*t*t*(3-2*t);
+            if(settlementFill){settlementFill.GetComponent<Image>().fillAmount=value;settlementFill.gameObject.SetActive(value>0);}
+            if(settlementPercent)settlementPercent.text=Mathf.FloorToInt(value*100+.5f)+"%";
+            if(settlementMarker&&settlementFill)
+            {
+                var track=(RectTransform)settlementFill.parent;
+                float left=track.anchoredPosition.x, right=left+track.rect.width;
+                float half=settlementMarker.rect.width*.5f;
+                float front=left+settlementFill.anchoredPosition.x+settlementFill.rect.width*value;
+                settlementMarker.anchoredPosition=new Vector2(Mathf.Clamp(front,left+half,right-half),settlementMarker.anchoredPosition.y);
+            }
+        }
+        private void SettlementButtons(System.Action create)
+        {if(!IsSettlement||settlementElapsed>=1.5f)create();else settlementShowButtons=create;}
+        private void TickSettlement(float delta)
+        {
+            if(!settlementStarted||!IsSettlement||settlementElapsed>=1.5f||!foreground||!settlementAppFocused||settlementAppPaused||!canvasRoot.gameObject.activeInHierarchy)return;
+            settlementElapsed=Mathf.Min(1.5f,settlementElapsed+Mathf.Max(0,delta));PaintSettlement();
+            if(settlementElapsed>=1.5f){var create=settlementShowButtons;settlementShowButtons=null;create?.Invoke();}
+        }
         private static readonly Color Cream = new Color32(248,235,208,255), Ink = new Color32(77,40,23,255), Coral = new Color32(149,36,26,255), Green = new Color32(221,183,119,255);
         private void Awake()
         {
@@ -146,6 +207,8 @@ namespace HotpotSort.Presentation
         }
         public void Bind(IPresentationPort source)
         {
+            CancelWarmupPresentation();
+            CancelSettlement();renderedPhase=(ViewPhase)(-1);
             CancelInteractionFeedback();
             CancelShuffleFeedback();
             if(FriendBoardVisible)CloseFriendBoardView();
@@ -162,9 +225,9 @@ namespace HotpotSort.Presentation
         public void SetForeground(bool value) { if(!value)CancelInteractionFeedback();foreground = value;Audio?.SetForeground(value); UpdateSimulation(); }
         public void Hide(bool hidden) { if(hidden)CancelInteractionFeedback();canvasRoot.gameObject.SetActive(!hidden); UpdateSimulation(); }
         private void UpdateSimulation() { World.SetSimulating(foreground && canvasRoot.gameObject.activeInHierarchy && !FriendBoardVisible && LastSnapshot.phase==ViewPhase.Running && LastSnapshot.pauseReasons==ViewPauseReasons.None); }
-        public void ResetView() { CancelScreenPress();CancelShuffleFeedback(); simulation?.TrySetResult(RewardOutcome.Cancelled);simulation=null;pending.Clear();Array.Clear(serving,0,4); LastEventSequence=0; LastTransactionId=null; feedback.ResetFeedback(); World.Clear(); LastSnapshot=new ViewSnapshot { phase=ViewPhase.Entry }; Render(); }
+        public void ResetView() { CancelWarmupPresentation();CancelScreenPress();CancelShuffleFeedback(); simulation?.TrySetResult(RewardOutcome.Cancelled);simulation=null;pending.Clear();Array.Clear(serving,0,4); LastEventSequence=0; LastTransactionId=null; feedback.ResetFeedback(); World.Clear(); LastSnapshot=new ViewSnapshot { phase=ViewPhase.Entry }; Render(); }
         public void ShowError(string message)
-        { CancelScreenPress();CancelShuffleFeedback(); feedback.ResetFeedback(); LastSnapshot = new ViewSnapshot { sessionId=LastSnapshot?.sessionId, phase=ViewPhase.Aborted, message=message }; World.Clear(); Render(); }
+        { CancelWarmupPresentation();CancelScreenPress();CancelShuffleFeedback(); feedback.ResetFeedback(); LastSnapshot = new ViewSnapshot { sessionId=LastSnapshot?.sessionId, phase=ViewPhase.Aborted, message=message }; World.Clear(); Render(); }
         public void DestroyView() { Destroy(gameObject); }
         public void Apply(ViewUpdate update)
         {
@@ -172,8 +235,9 @@ namespace HotpotSort.Presentation
             var s = update.snapshot;
             if (LastSnapshot != null && LastSnapshot.sessionId == s.sessionId && s.revision < LastSnapshot.revision) return;
             if(LastSnapshot==null||LastSnapshot.sessionId!=s.sessionId||LastSnapshot.sessionGeneration!=s.sessionGeneration||s.phase!=ViewPhase.Running||s.pauseReasons!=ViewPauseReasons.None)CancelInteractionFeedback();
-            if (LastSnapshot == null || LastSnapshot.sessionId != s.sessionId || LastSnapshot.sessionGeneration!=s.sessionGeneration) { CancelScreenPress();simulation?.TrySetResult(RewardOutcome.Cancelled);simulation=null;pending.Clear(); LastEventSequence=0; }
+            if (LastSnapshot == null || LastSnapshot.sessionId != s.sessionId || LastSnapshot.sessionGeneration!=s.sessionGeneration) { CancelWarmupPresentation();CancelScreenPress();simulation?.TrySetResult(RewardOutcome.Cancelled);simulation=null;pending.Clear(); LastEventSequence=0; }
             var previous = LastSnapshot;
+            PrepareSettlement(s);
             if (ShuffleFeedbackActive && (s.sessionId != shuffleSession || s.sessionGeneration != shuffleGeneration ||
                 s.phase == ViewPhase.Entry || s.phase == ViewPhase.Aborted || s.phase == ViewPhase.Overflow || s.phase == ViewPhase.Won)) CancelShuffleFeedback();
             var sourcePositions=new Dictionary<string,Vector2>();
@@ -188,6 +252,7 @@ namespace HotpotSort.Presentation
         }
         private void LateUpdate()
         {
+            TickSettlement(Time.unscaledDeltaTime);
             TickClickabilityCache();
             TickShuffleFeedback(Time.unscaledDeltaTime);
             TickPressAndLanding(Time.unscaledDeltaTime);
@@ -207,6 +272,7 @@ namespace HotpotSort.Presentation
                 pair.Value.localScale=Vector3.one*(.75f+.25f*t);
                 pair.Value.GetComponent<RawImage>().color=new Color(1,1,1,t);
             }
+            TickWarmupPresentation(Time.unscaledDeltaTime);
         }
         private void Update()
         {
@@ -231,6 +297,7 @@ namespace HotpotSort.Presentation
         }
         public bool SubmitScreenTap(Vector2 screen, int pointerId = -1)
         {
+            if(TryConfirmWarmupPrompt())return true;
             Vector2 point;string id;
             if(!TryScreenHit(screen,pointerId,out point,out id))return false;
             RequestHaptic(GameplayHapticKind.Light);
@@ -239,6 +306,7 @@ namespace HotpotSort.Presentation
         }
         public bool BeginScreenPress(Vector2 screen,int pointerId=-1)
         {
+            if(TryConfirmWarmupPrompt())return true;
             if(pressedItem!=null)return false;
             Vector2 point;string id;
             if(!TryScreenHit(screen,pointerId,out point,out id))return false;
@@ -278,11 +346,12 @@ namespace HotpotSort.Presentation
             Vector2 local;if(!board || !RectTransformUtility.ScreenPointToLocalPointInRectangle(board,screen,null,out local))return false;
             point = new Vector2(local.x,-local.y);
             if (!PlateCrop.Contains(point)) return false;
-            id=World.Hit(point,OpaqueHit);return id!=null&&!pending.Contains(id);
+            id=World.Hit(point,OpaqueHit);return id!=null&&!pending.Contains(id)&&TutorialAllowsFood(id);
         }
         private bool DispatchTap(string id,Vector2 point)
         {
-            if(id==null||!pending.Add(id))return false;
+            if(id==null||!TutorialAllowsFood(id)||!pending.Add(id))return false;
+            if(hintItemId==id)ClearFoodPointer();
             try { port.Tap(new ViewTap { itemId=id,inputSeq=++inputSeq,snapshotRevision=LastSnapshot.revision,boardX=point.x,boardY=point.y }); }
             catch { pending.Remove(id); throw; }
             return true;
@@ -400,11 +469,12 @@ namespace HotpotSort.Presentation
         {
             return CaptureClickability()?.clickable;
         }
-        private void Action(ViewAction action) { ActionRequested?.Invoke(action); port?.SessionAction(action); }
+        private void Action(ViewAction action) { if(action==ViewAction.Exit||action==ViewAction.RetrySameDay||action==ViewAction.StartToday)CancelSettlement();ActionRequested?.Invoke(action); port?.SessionAction(action); }
         private void Render()
         {
+            if(!IsSettlement)CancelSettlement();
             Audio?.SetState(LastSnapshot);
-            if(art!=null){RenderV7();return;}
+            if(art!=null){RenderV7();if(warmupOverlay)warmupOverlay.SetAsLastSibling();return;}
             if (!content) return;
             if (viewport.width<=0 || viewport.height<=0) viewport=new Rect(0,0,Screen.width,Screen.height);
             Place(content,new Rect(viewport.x,(viewportScreenHeight>0?viewportScreenHeight:Screen.height)-viewport.yMax,viewport.width,viewport.height));
@@ -444,6 +514,7 @@ namespace HotpotSort.Presentation
                 orderNodes[slot].gameObject.SetActive(!serving[slot]);
                 ViewOrder order=feedback.DisplayOrder(slot,Array.Find(LastSnapshot.orders,o=>o.slot==slot));
                 bool enabled=order!=null && order.enabled;
+                RefreshFireProgress(slot);
                 string signature=enabled+":"+(order==null?"null":order.foodId+":"+order.count);
                 if(orderSignatures[slot]==signature)continue;
                 orderSignatures[slot]=signature;var box=orderNodes[slot];ClearChildren(box);
@@ -455,7 +526,7 @@ namespace HotpotSort.Presentation
                     if(order.foodId>=0){Panel(box,"OrderTag",new Rect(3,0,94,38),Cream);Icon(box,"../ui/order_pointer",new Rect(42,35,16,8));Food(box,order.foodId,new Rect(6,2,34,34));Label(box,order.count+"/3",new Rect(40,0,55,38),22);}
                     else Label(box,"已结清",new Rect(0,0,100,36),16);
                 }
-                else {Panel(box,"OrderTag",new Rect(3,0,94,32),Cream);Label(box,slot==2?"31单开火":"49单开火",new Rect(0,0,100,32),14);Icon(box,"lock",new Rect(37,67,26,26));if(slot==3)Button(box,"提前开锅",new Rect(9,97,83,32),()=>RewardRequested?.Invoke(RewardKind.FourthPot,RewardRoute.SimulatedAd));}
+                else {RewardPlus(box,"PotPlus",new Rect(37,75,26,26));if(slot>=2)LockedPotControls(box,slot);}
             }
             for(int slot=0;slot<5;slot++)
             {
@@ -492,12 +563,14 @@ namespace HotpotSort.Presentation
                 var image=node.gameObject.AddComponent<RawImage>(); image.texture=plate; image.raycastTarget=false;
                 ghostVisuals.Add(ghost,node);
             }
+            RefreshLockedPotDialog();
             feedback.SetBoard(board,plateLayer);
             hud.SetAsLastSibling();
             if(LastSnapshot.phase!=renderedPhase)
             {
-                CloseModal();if(LastSnapshot.phase!=ViewPhase.Running)Overlay();renderedPhase=LastSnapshot.phase;
+                CloseModal();if(LastSnapshot.phase!=ViewPhase.Running&&LastSnapshot.pauseReasons!=ViewPauseReasons.Tutorial)Overlay();renderedPhase=LastSnapshot.phase;
             }
+            if(warmupOverlay)warmupOverlay.SetAsLastSibling();
         }
         private void Entry()
         {
@@ -518,17 +591,21 @@ namespace HotpotSort.Presentation
         }
         private void Overlay()
         {
+            if(IsSettlement){SettlementOverlay();return;}
             if(art!=null){OverlayV7();return;}
             modal=Panel(content,"FlowOverlay",new Rect(0,0,viewport.width,viewport.height),Cream);
-            string title=LastSnapshot.phase==ViewPhase.Paused?"已暂停":LastSnapshot.phase==ViewPhase.Won?"挑战完成":LastSnapshot.phase==ViewPhase.Overflow?(LastSnapshot.message=="Timeout"?"时间到":"暂存已满"):"挑战已中止";
+            string title=LastSnapshot.phase==ViewPhase.Paused?"已暂停":LastSnapshot.phase==ViewPhase.Won?"挑战完成":LastSnapshot.phase==ViewPhase.Overflow?"失败":"挑战已中止";
             Label(modal,title,new Rect(15,viewport.height*.19f,viewport.width-30,48),28);
             float y=viewport.height*.30f;
+            if(IsSettlement){BuildSettlementProgress(modal,new Rect(35,y,viewport.width-70,58));y+=76;}
             foreach(var fact in LastSnapshot.facts) { Label(modal,fact.label+"："+fact.value,new Rect(20,y,viewport.width-40,32),18); y+=34; }
             if(!string.IsNullOrEmpty(LastSnapshot.message)) Label(modal,LastSnapshot.message,new Rect(20,y,viewport.width-40,70),16);
             bool paused=LastSnapshot.phase==ViewPhase.Paused;
+            SettlementButtons(()=>{
             Button(modal,paused?"继续":"重新挑战",new Rect(35,viewport.height-156,viewport.width-70,52),()=>Action(paused?ViewAction.Resume:ViewAction.RetrySameDay));
             Button(modal,"退出",new Rect(35,viewport.height-92,viewport.width-70,48),()=>Action(ViewAction.Exit));
             Button(modal,paused?"设置":"分享主题图",new Rect(35,viewport.height-218,viewport.width-70,46),()=>{if(paused)SettingsRequested?.Invoke();else ShareRequested?.Invoke();});
+            });
         }
         public void ConfigureAssets(string root)
         {
@@ -551,6 +628,7 @@ namespace HotpotSort.Presentation
         void LayoutTopTimer()
         {
             if(!board||!timerPlate||!timerLabel)return;
+            timerPlate.gameObject.SetActive(!LastSnapshot.isWarmup);timerLabel.gameObject.SetActive(!LastSnapshot.isWarmup);
             var timer=new Rect(153,8,114,44);
             float scale=Mathf.Min(viewport.width/420,viewport.height/900);
             if(scale>0&&menuButtonPixels.width>0&&menuButtonPixels.height>0)
@@ -581,8 +659,203 @@ namespace HotpotSort.Presentation
         public void HighlightItem(string id)
         {
             if(!IsItemClickable(id))return;
-            var item=World.Bodies.SelectMany(b=>b.data.items).FirstOrDefault(i=>i.itemId==id);
-            if(item!=null)feedback.Highlight(()=>IsItemClickable(id)?World.ItemPosition(id):Vector2.zero,item.radius*2,item.rotationDegrees);
+            ClearFoodPointer();hintItemId=id;
+        }
+        RectTransform warmupOverlay,guideHand,guideFood,spotlightFood;
+        Vector3 guideFoodScale;
+        string hintItemId,guideItemId,warmupOverlayKey;
+        float guideAge,warmupMessageAge;
+        bool warmupMessageStarted,warmupCompletionSent;
+        IWarmupPresentationPort WarmupPort=>port as IWarmupPresentationPort;
+        bool WarmupControlsLocked=>LastSnapshot!=null&&(LastSnapshot.warmupComplete||LastSnapshot.bufferWarning||LastSnapshot.tutorialStep!=ViewTutorialStep.None);
+        bool TutorialAllowsFood(string id)=>LastSnapshot!=null&&!LastSnapshot.warmupComplete&&!LastSnapshot.bufferWarning&&
+            (LastSnapshot.tutorialStep==ViewTutorialStep.None||(LastSnapshot.tutorialStep==ViewTutorialStep.SelectFood&&LastSnapshot.tutorialItemId==id));
+        void ClearFoodPointer()
+        {
+            if(guideFood&&pressedItem?.item!=guideFood)guideFood.localScale=guideFoodScale;
+            guideFood=null;guideItemId=null;hintItemId=null;
+            if(guideHand){guideHand.gameObject.SetActive(false);Destroy(guideHand.gameObject);guideHand=null;}
+        }
+        void ClearWarmupOverlay()
+        {
+            if(warmupOverlay){warmupOverlay.gameObject.SetActive(false);Destroy(warmupOverlay.gameObject);warmupOverlay=null;}
+            warmupOverlayKey=null;
+            spotlightFood=null;
+        }
+        void CancelWarmupPresentation()
+        {
+            ClearFoodPointer();ClearWarmupOverlay();guideAge=0;warmupMessageAge=0;warmupMessageStarted=false;warmupCompletionSent=false;
+        }
+        // Called only by the real flight-arrival queue; never by an estimated timer.
+        public void NotifyTutorialFoodArrived(string itemId)
+        {
+            var s=LastSnapshot;
+            if(s!=null&&s.tutorialStep==ViewTutorialStep.FoodInFlight&&s.tutorialItemId==itemId)
+                WarmupPort?.TutorialFoodArrived(s.sessionId,s.sessionGeneration,itemId);
+        }
+        RectTransform CreateGuideHand(Transform parent)
+        {
+            var hand=Node(parent,"TutorialHand",new Rect(0,0,46,61));
+            // Rounded UI geometry keeps the pointer legible without a font glyph or new bitmap.
+            HandPart(hand,"PalmOutline",new Rect(12,25,30,28),Ink);
+            HandPart(hand,"FingerOutline",new Rect(13,0,12,38),Ink);
+            HandPart(hand,"ThumbOutline",new Rect(5,31,20,19),Ink);
+            HandPart(hand,"Palm",new Rect(14,27,26,24),Cream);
+            HandPart(hand,"Index",new Rect(15,2,8,36),Cream);
+            HandPart(hand,"Thumb",new Rect(7,33,18,15),Cream);
+            HandPart(hand,"Middle",new Rect(24,21,6,18),Cream);
+            HandPart(hand,"Ring",new Rect(30,24,6,16),Cream);
+            HandPart(hand,"Cuff",new Rect(16,49,23,9),Coral);
+            hand.localRotation=Quaternion.Euler(0,0,18);
+            return hand;
+        }
+        void HandPart(Transform parent,string name,Rect rect,Color color,float angle=0)
+        {
+            var part=Node(parent,name,rect);var image=part.gameObject.AddComponent<Image>();
+            image.sprite=rounded;image.type=Image.Type.Sliced;image.color=color;image.raycastTarget=false;
+            part.localRotation=Quaternion.Euler(0,0,angle);
+        }
+        void EnsureWarmupOverlay(string key,string message,bool confirm,bool block)
+        {
+            if(warmupOverlay&&warmupOverlayKey==key){warmupOverlay.SetAsLastSibling();return;}
+            ClearWarmupOverlay();warmupOverlayKey=key;
+            warmupOverlay=Node(board,"WarmupPresentation_"+key,new Rect(0,0,420,900));
+            if(key=="select")AddTutorialShade(new Rect(-2000,-2000,4420,4900));
+            else if(key=="order"||key=="warning")
+            {
+                Rect hole=key=="order"?new Rect(9+Mathf.Clamp(LastSnapshot.tutorialOrderSlot,0,3)*103,72,94,39):new Rect(40,225,338,68);
+                AddTutorialShade(new Rect(-2000,-2000,4420,hole.yMin+2000));
+                AddTutorialShade(new Rect(-2000,hole.yMax,4420,2900-hole.yMax));
+                AddTutorialShade(new Rect(-2000,hole.yMin,hole.xMin+2000,hole.height));
+                AddTutorialShade(new Rect(hole.xMax,hole.yMin,2420-hole.xMax,hole.height));
+            }
+            if(block)
+            {
+                var shield=Node(warmupOverlay,"TutorialAnyTap",new Rect(-2000,-2000,4420,4900));
+                var image=shield.gameObject.AddComponent<Image>();image.color=Color.clear;image.raycastTarget=true;
+                if(confirm){var button=shield.gameObject.AddComponent<Button>();button.targetGraphic=image;button.transition=Selectable.Transition.None;BindButtonClick(button,()=>TryConfirmWarmupPrompt());}
+            }
+            if(string.IsNullOrEmpty(message))return;
+            float top=key=="last"?382:key=="order"?170:key=="warning"?320:680;
+            var label=Label(warmupOverlay,message,new Rect(25,top,370,70),key=="last"?32:22);
+            label.name="TutorialFloatingText";label.color=Cream;
+            var shadow=label.gameObject.AddComponent<Shadow>();shadow.effectColor=new Color(0,0,0,.85f);shadow.effectDistance=new Vector2(3,-5);
+            if(key=="order")label.text="集满 3 个相同食材，\n即可完成订单。";
+        }
+        void AddTutorialShade(Rect rect)
+        {
+            var node=Node(warmupOverlay,"TutorialShade",rect);var image=node.gameObject.AddComponent<Image>();
+            image.color=new Color(0,0,0,.68f);image.raycastTarget=false;
+        }
+        bool TryConfirmWarmupPrompt()
+        {
+            var s=LastSnapshot;
+            if(!warmupOverlay||!warmupOverlay.gameObject.activeInHierarchy||!PresentationForeground||!settlementAppFocused||settlementAppPaused||s==null||(s.pauseReasons&~ViewPauseReasons.Tutorial)!=0)return false;
+            if(warmupOverlayKey=="warning"&&s.bufferWarning)return WarmupPort?.CompleteBufferWarning(s.sessionId,s.sessionGeneration)==true;
+            if(warmupOverlayKey=="order"&&s.tutorialStep==ViewTutorialStep.OrderExplanation)return WarmupPort?.CompleteOpeningTutorial(s.sessionId,s.sessionGeneration)==true;
+            return false;
+        }
+        void TickWarmupPresentation(float delta)
+        {
+            var s=LastSnapshot;
+            if(s==null||s.phase==ViewPhase.Entry||s.phase==ViewPhase.Aborted||s.phase==ViewPhase.Won||s.phase==ViewPhase.Overflow)
+            {CancelWarmupPresentation();return;}
+            bool visible=PresentationForeground&&settlementAppFocused&&!settlementAppPaused&&(s.pauseReasons&~ViewPauseReasons.Tutorial)==0&&!(modal&&modal.gameObject.activeInHierarchy);
+            if(warmupOverlay)warmupOverlay.gameObject.SetActive(visible);
+            if(guideHand)guideHand.gameObject.SetActive(visible);
+            if(!visible||!board)return;
+            guideAge+=Mathf.Clamp(delta,0,.1f);
+            if(s.warmupComplete)
+            {
+                ClearFoodPointer();
+                if(!warmupMessageStarted)
+                {
+                    EnsureWarmupOverlay("waiting",null,false,true);
+                    if(feedback.WarmupTransitionBusy||World.Bodies.Any()||LastSnapshot.buffer.Any(i=>i!=null))return;
+                    // Empty-plate remnants are presentation-only; the last serve has finished.
+                    foreach(var ghost in ghostVisuals.Values)if(ghost){ghost.gameObject.SetActive(false);Destroy(ghost.gameObject);}
+                    ghostVisuals.Clear();World.Clear();
+                    warmupMessageStarted=true;warmupMessageAge=0;
+                    EnsureWarmupOverlay("last","最后一关！",false,true);
+                    return;
+                }
+                if(warmupCompletionSent)return;
+                warmupMessageAge+=Mathf.Clamp(delta,0,.1f);
+                if(warmupMessageAge<.8f)return;
+                // Hide the text and discard all old visual state before core starts formal supply.
+                warmupCompletionSent=true;ClearWarmupOverlay();CancelInteractionFeedback();CancelShuffleFeedback();
+                feedback.ResetFeedback();World.Clear();CloseModal();Array.Clear(serving,0,serving.Length);
+                if(board){board.gameObject.SetActive(false);Destroy(board.gameObject);board=null;}
+                plateVisuals.Clear();itemVisuals.Clear();plateSignatures.Clear();ghostVisuals.Clear();
+                Array.Clear(orderSignatures,0,4);Array.Clear(bufferSignatures,0,5);Array.Clear(bufferFoodNodes,0,5);
+                WarmupPort?.CompleteWarmup(s.sessionId,s.sessionGeneration);
+                return;
+            }
+            if(s.bufferWarning)
+            {ClearFoodPointer();EnsureWarmupOverlay("warning","暂存区放满会导致挑战失败。",true,true);return;}
+            if(s.tutorialStep==ViewTutorialStep.OrderExplanation)
+            {
+                if(guideFood||hintItemId!=null)ClearFoodPointer();
+                EnsureWarmupOverlay("order","集满 3 个相同食材，即可完成订单。",true,true);
+                if(!guideHand)guideHand=CreateGuideHand(warmupOverlay);
+                int slot=Mathf.Clamp(s.tutorialOrderSlot,0,3);
+                Place(guideHand,new Rect(6+slot*103+36,106+Mathf.Sin(guideAge*5)*3,46,61));return;
+            }
+            if(s.tutorialStep==ViewTutorialStep.FoodInFlight)
+            {ClearFoodPointer();EnsureWarmupOverlay("flight",null,false,true);return;}
+            if(s.tutorialStep==ViewTutorialStep.SelectFood)
+            {
+                if(string.IsNullOrEmpty(s.tutorialItemId)||!IsItemClickable(s.tutorialItemId))
+                {
+                    ClearFoodPointer();ClearWarmupOverlay();
+                    var candidate=FindClickableHint();if(candidate!=null)WarmupPort?.SelectTutorialFood(s.sessionId,s.sessionGeneration,candidate);
+                    return;
+                }
+                EnsureWarmupOverlay("select","点击食材，放入火锅。",false,false);
+                ShowFoodPointer(s.tutorialItemId);
+                // Keep the short caption away from the pointed food.
+                var caption=warmupOverlay.Find("TutorialFloatingText") as RectTransform;
+                if(caption)caption.anchoredPosition=new Vector2(25,World.ItemPosition(s.tutorialItemId).y>590?-330:-680);
+                return;
+            }
+            ClearWarmupOverlay();
+            if(hintItemId!=null)
+            {
+                var item=s.plates.SelectMany(p=>p.items).FirstOrDefault(i=>i.itemId==hintItemId);
+                if(item==null||!IsItemClickable(hintItemId)||!s.orders.Any(o=>o.enabled&&o.foodId==item.foodId&&o.count<o.required))ClearFoodPointer();
+                else ShowFoodPointer(hintItemId);
+            }
+            else if(guideHand)ClearFoodPointer();
+        }
+        void ShowFoodPointer(string id)
+        {
+            if(!itemVisuals.TryGetValue(id,out var item)||!item)return;
+            if(guideFood!=item)
+            {
+                string hint=hintItemId;ClearFoodPointer();hintItemId=hint;
+                guideFood=item;guideFoodScale=item.localScale;guideItemId=id;
+            }
+            if(pressedItem?.item!=item)item.localScale=guideFoodScale*1.22f;
+            bool tutorial=LastSnapshot.tutorialStep==ViewTutorialStep.SelectFood&&warmupOverlay;
+            if(tutorial)
+            {
+                if(!spotlightFood)
+                {
+                    var clip=Node(warmupOverlay,"TutorialFoodClip",PlateCrop);clip.gameObject.AddComponent<RectMask2D>();
+                    spotlightFood=Node(clip,"TutorialBrightFood",new Rect(0,0,1,1));spotlightFood.pivot=new Vector2(.5f,.5f);
+                    var copy=spotlightFood.gameObject.AddComponent<RawImage>();copy.raycastTarget=false;
+                }
+                var source=item.GetComponent<RawImage>();var bright=spotlightFood.GetComponent<RawImage>();
+                bright.texture=source.texture;bright.uvRect=source.uvRect;bright.color=source.color;
+                var center=World.ItemPosition(id);spotlightFood.anchoredPosition=new Vector2(center.x,-center.y+PlateCrop.yMin);
+                spotlightFood.sizeDelta=item.sizeDelta;spotlightFood.localScale=item.localScale;spotlightFood.localRotation=item.localRotation;
+            }
+            if(!guideHand)guideHand=CreateGuideHand(tutorial?warmupOverlay:plateLayer);
+            if(tutorial&&guideHand.parent!=warmupOverlay)guideHand.SetParent(warmupOverlay,false);
+            guideHand.SetAsLastSibling();
+            Vector2 at=World.ItemPosition(id);
+            float x=Mathf.Clamp(at.x-15,4,365),y=Mathf.Clamp(at.y+8+Mathf.Sin(guideAge*5)*3,PlateCrop.yMin+4,PlateCrop.yMax-64);
+            Place(guideHand,new Rect(x,y,46,61));
         }
         public void SetOrderServing(int slot,bool value){serving[slot]=value;if(orderNodes[slot])orderNodes[slot].gameObject.SetActive(!value);}
         private void SetReplacementSettling(int slot,float progress)
@@ -620,7 +893,7 @@ namespace HotpotSort.Presentation
         public Task<RewardOutcome> ShowThemeShareAsync(string address)
         {
             var completion=new TaskCompletionSource<RewardOutcome>();
-            ShowDialog("奖励分享 · 开发模拟","不会发送至外部平台。",new[]{"关闭"},i=>{CloseModal();completion.TrySetResult(RewardOutcome.Cancelled);});
+            ShowDialog("普通分享 · 开发模拟","不会发送至外部平台。",new[]{"关闭"},i=>{CloseModal();if(IsSettlement)Overlay();completion.TrySetResult(RewardOutcome.Cancelled);});
             return completion.Task;
         }
         public void ShowNotice(string title,string message)=>ShowDialog(title,message,new[]{"知道了"},i=>{CloseModal();if(LastSnapshot.phase!=ViewPhase.Running && LastSnapshot.phase!=ViewPhase.Entry)Overlay();});
@@ -645,7 +918,7 @@ namespace HotpotSort.Presentation
             Label(modal,message,new Rect(25,viewport.height*.28f,viewport.width-50,85),17);
             for(int i=0;i<buttons.Length;i++){int index=i;Button(modal,buttons[i],new Rect(35,viewport.height-70-(buttons.Length-i-1)*60,viewport.width-70,46),()=>select(index));}
         }
-        void CloseModal(){Audio?.SetSettingsOpen(false);if(modal){modal.gameObject.SetActive(false);Destroy(modal.gameObject);modal=null;}}
+        void CloseModal(){settlementFill=null;settlementMarker=null;settlementPercent=null;settlementShowButtons=null;lockedPotDialogSlot=-1;lockedPotRemainingLabel=null;Audio?.SetSettingsOpen(false);if(modal){modal.gameObject.SetActive(false);Destroy(modal.gameObject);modal=null;}}
         static void ClearChildren(Transform parent){foreach(Transform child in parent){child.gameObject.SetActive(false);Destroy(child.gameObject);}}
         void Volume(Transform parent,Rect rect,float value,Action<float> changed)
         {
@@ -679,10 +952,16 @@ namespace HotpotSort.Presentation
             var rt=Panel(parent,"Action_"+text,r,Coral);var button=rt.gameObject.AddComponent<Button>();button.targetGraphic=rt.GetComponent<Image>();BindButtonClick(button,action,text=="开始下火锅");
             string icon=text=="暂停"?"pause":text=="提示"?"hint":text=="清空暂存"?"clear":text=="打乱"?"shuffle":text=="设置"?"settings":text=="好友榜"?"leaderboard":text=="退出"?"home":text=="重新挑战"?"retry":text.Contains("分享")?"share":text.Contains("音乐")?"music":text.Contains("音效")?"sound":text=="继续"||text=="开始下火锅"?"play":text=="模拟激励"||text=="提前开锅"?"ad":text=="取消"||text=="关闭"?"close":null;
             bool round=r.width==r.height&&!string.IsNullOrEmpty(assetRoot);
+            bool rewardTool=text=="提示"||text=="清空暂存"||text=="打乱";
             if(!round&&r.width<120)icon=null;
             float side=round?r.width*.65f:Mathf.Min(25,r.height*.55f);
-            if(icon!=null)Icon(rt,icon,new Rect(round?(r.width-side)/2:12,(r.height-side)/2,side,side));
+            if(icon!=null)Icon(rt,icon,rewardTool?new Rect(12,24,30,30):new Rect(round?(r.width-side)/2:12,(r.height-side)/2,side,side));
             if(!round){float inset=icon!=null&&!string.IsNullOrEmpty(assetRoot)?40:0;var label=Label(rt,text,new Rect(inset,0,r.width-inset,r.height),Mathf.Min(22,(int)(r.height*.5f)));label.color=Cream;}
+            if(rewardTool)
+            {
+                RewardPlus(rt,"ToolPlus",new Rect(r.width-18,4,14,14));
+                if(!round){var caption=rt.GetComponentInChildren<Text>();Place(caption.rectTransform,new Rect(0,23,r.width*4,36*4));caption.fontSize=14*4;}
+            }
         }
         private void Icon(Transform parent,string id,Rect rect)
         {if(art!=null){var t=art.Texture(id.StartsWith("../ui/")?"ui."+id.Substring(6):"icon."+id);if(t)Picture(parent,t,rect,"Icon_"+id);return;}if(string.IsNullOrEmpty(assetRoot))return;string path=id.StartsWith("../")?assetRoot+"/"+id.Substring(3):assetRoot+"/icons/"+id;var texture=PresentationAssets.Load<Texture2D>(path);if(texture)Picture(parent,texture,rect,"Icon_"+id);}
@@ -709,7 +988,7 @@ namespace HotpotSort.Presentation
             itemVisuals[item.itemId]=rt;
         }
         private void OnDestroy()
-        { CancelScreenPress();CloseFriendBoardView();ReleaseAssetReferences();simulation?.TrySetResult(RewardOutcome.Cancelled);if(port!=null)port.Updated-=Apply;if(rounded)Destroy(rounded); if(roundedTexture)Destroy(roundedTexture); }
+        { CancelScreenPress();CloseFriendBoardView();ReleaseAssetReferences();simulation?.TrySetResult(RewardOutcome.Cancelled);if(port!=null)port.Updated-=Apply;if(rounded)Destroy(rounded); if(roundedTexture)Destroy(roundedTexture);if(rewardCircle)Destroy(rewardCircle);if(rewardCircleTexture)Destroy(rewardCircleTexture);if(fireGradient)Destroy(fireGradient);if(fireGradientTexture)Destroy(fireGradientTexture); }
         public void ReleaseAssetReferences()
         {
             CancelScreenPress();CancelShuffleFeedback();

@@ -31,7 +31,7 @@ namespace HotpotSort.Platform
             if(disposed||!runtime.Available||active!=null)return RewardOutcome.Unavailable;
             if(request.Route==RewardRoute.WeChatShare)
             {
-                if(request.Kind==RewardKind.FourthPot)return RewardOutcome.Unavailable;
+                if(request.Kind==RewardKind.ThirdPot||request.Kind==RewardKind.FourthPot)return RewardOutcome.Unavailable;
                 var p=new Pending{Id=request.RequestId}; active=p;
                 try{return await share.RequestRewardShareAsync(request.RequestId);}
                 finally{if(active==p)active=null;}

@@ -36,6 +36,8 @@ namespace HotpotSort.Presentation
             var missing=new List<string>();
             foreach(AudioCue cue in Enum.GetValues(typeof(AudioCue)))
             {
+                // Current BGM was removed; retain the settings/source slot for a future replacement.
+                if(cue==AudioCue.Music){Bind(cue,null);continue;}
                 string path=ApprovedResourceRoot+cue;
                 var clip=loader!=null?loader(path):Resources.Load<AudioClip>(path);
                 if(!clip||clip.length<=0||clip.loadState==AudioDataLoadState.Failed)

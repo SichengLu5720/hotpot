@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace HotpotSort.Bootstrap
 {
-    public sealed class LocalDevelopmentServices : IProfileStore, IShareQuotaStore, IRewardService, IFriendBoard, IThemeShare, IAsyncProfileStore, IAppliedRewardStore
+    public sealed class LocalDevelopmentServices : IProfileStore, IShareQuotaStore, IRewardService, IFriendBoard, IResultThemeShare, IAsyncProfileStore, IAppliedRewardStore, ITutorialProfileStore
     {
         [Serializable] sealed class Saved
         {
@@ -27,6 +27,9 @@ namespace HotpotSort.Bootstrap
         void OnProfileChanged()=>ProfileChanged?.Invoke();
         public ProfileTimeSnapshot TimeSnapshot=>syncedProfile.TimeSnapshot;
         public ProfileDocument ReadSnapshot()=>syncedProfile.ReadSnapshot();
+        public bool WarmupTutorialCompleted=>syncedProfile.WarmupTutorialCompleted;
+        public bool BufferWarningCompleted=>syncedProfile.BufferWarningCompleted;
+        public void CompleteTutorial(bool bufferWarning){syncedProfile.CompleteTutorial(bufferWarning);_=SyncAsync();}
         public async Task<ProfileSyncStatus> SyncAsync()
         {
             if(syncing){syncAgain=true;return ProfileSyncStatus.Busy;}
@@ -52,6 +55,7 @@ namespace HotpotSort.Bootstrap
         {bool applied=syncedProfile.TryCommitAppliedReward(request,utc);if(applied)_=SyncAsync();return applied;}
         public Func<RewardRequest,Task<RewardOutcome>> RewardPrompt;
         public Func<string,Task<RewardOutcome>> SharePrompt;
+        public string LastShareTitle {get;private set;}
         public LocalDevelopmentServices(string storageKey="HotpotSort.Task001.v3.DevelopmentProfile",string environment="development",string account="local",IProfileSyncTransport transport=null,bool isDevelopmentSimulation=true)
         {
             key=storageKey;
@@ -122,5 +126,7 @@ namespace HotpotSort.Bootstrap
         public Task<RewardOutcome> RequestAsync(RewardRequest request)=>RewardPrompt?.Invoke(request)??Task.FromResult(RewardOutcome.Failed);
         public Task<IReadOnlyList<FriendRecord>> LoadAsync()=>Task.FromResult<IReadOnlyList<FriendRecord>>(new[]{new FriendRecord{DisplayName="我（本地开发模拟；未连接好友数据）",FirstWins=TotalFirstWins}});
         public Task<RewardOutcome> ShareThemeAsync(string resourceAddress)=>SharePrompt?.Invoke(resourceAddress)??Task.FromResult(RewardOutcome.Failed);
+        public Task<RewardOutcome> ShareThemeAsync(string resourceAddress,string title)
+        {LastShareTitle=title;return ShareThemeAsync(resourceAddress);}
     }
 }

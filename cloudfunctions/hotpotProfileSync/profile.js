@@ -14,20 +14,23 @@ function day(value){if(typeof value!=='string'||!/^\d{8}$/.test(value))fail();co
 function utc(value){if(typeof value!=='string'||!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{7}(\+00:00|Z)$/.test(value))fail();const date=new Date(value);if(!Number.isFinite(date.valueOf())||date.toISOString().slice(0,19)!==value.slice(0,19))fail();return value;}
 function utcNow(now){const date=new Date(now);if(!Number.isFinite(date.valueOf()))fail('ServerFailure');return date.toISOString().replace(/\.(\d{3})Z$/,(_,ms)=>'.'+ms+'0000+00:00');}
 function array(value,name,key,validate){if(!Array.isArray(value)||value.length>LIMITS[name])fail('PayloadTooLarge');const seen=new Set();return value.map(item=>{const result=validate(item),id=key(result);if(seen.has(id))fail();seen.add(id);return result;});}
-function reward(r){keys(r,['requestId','quotaDay','effectiveUtc','rewardKind','route','timeSource']);return{requestId:text(r.requestId),quotaDay:day(r.quotaDay),effectiveUtc:utc(r.effectiveUtc),rewardKind:integer(r.rewardKind,-1,4),route:integer(r.route,0,3),timeSource:integer(r.timeSource,0,1)};}
+function reward(r){keys(r,['requestId','quotaDay','effectiveUtc','rewardKind','route','timeSource']);return{requestId:text(r.requestId),quotaDay:day(r.quotaDay),effectiveUtc:utc(r.effectiveUtc),rewardKind:integer(r.rewardKind,-1,5),route:integer(r.route,0,3),timeSource:integer(r.timeSource,0,1)};}
 function quota(q){keys(q,['day','used','lastEffectiveUtc','committedRequestId','dataVersion']);return{day:day(q.day),used:integer(q.used,0,1000000),lastEffectiveUtc:optional(q.lastEffectiveUtc)?utc(q.lastEffectiveUtc):'',committedRequestId:optional(q.committedRequestId),dataVersion:integer(q.dataVersion,0,2)};}
 function validateDocument(d,environment,account){
-  bounded(d);keys(d,['schemaVersion','localRevision','environment','account','confirmationCursor','firstWinDays','legacyRequestIds','rewards','legacyQuotas','pending']);
+  bounded(d);keys(d,['schemaVersion','localRevision','environment','account','confirmationCursor','firstWinDays','legacyRequestIds','rewards','legacyQuotas','pending','warmupTutorialCompleted','bufferWarningCompleted']);
+  for(const key of ['warmupTutorialCompleted','bufferWarningCompleted'])if(d[key]!==undefined&&typeof d[key]!=='boolean')fail();
   if(d.schemaVersion!==1)fail('UnsupportedSchema');
   if(d.environment!==environment)fail('WrongPartition');
   // Caller-supplied account never selects a database key or identity.
   text(d.account,160);if(d.account!==account)fail('WrongPartition');integer(d.localRevision,0);optional(d.confirmationCursor,160);
   const value={schemaVersion:1,localRevision:d.localRevision,environment,account,confirmationCursor:optional(d.confirmationCursor),
+    warmupTutorialCompleted:d.warmupTutorialCompleted===true,bufferWarningCompleted:d.bufferWarningCompleted===true,
     firstWinDays:array(d.firstWinDays,'firstWinDays',x=>x,day),legacyRequestIds:array(d.legacyRequestIds,'legacyRequestIds',x=>x,x=>text(x)),
     rewards:array(d.rewards,'rewards',x=>x.requestId,reward),legacyQuotas:array(d.legacyQuotas,'legacyQuotas',x=>x.day,quota),pending:[]};
   value.pending=array(d.pending,'pending',x=>x.operationId,p=>{
     keys(p,['operationId','kind','entityId']);text(p.entityId);text(p.operationId,180);
-    if(!['win','reward','migration'].includes(p.kind)||p.operationId!==p.kind+':'+p.entityId)fail();
+    if(!['win','reward','migration','tutorial'].includes(p.kind)||p.operationId!==p.kind+':'+p.entityId)fail();
+    if(p.kind==='tutorial'&&!(p.entityId==='warmup'&&value.warmupTutorialCompleted||p.entityId==='buffer'&&value.bufferWarningCompleted))fail();
     if(p.kind==='win'&&!value.firstWinDays.includes(p.entityId)||p.kind==='reward'&&!value.rewards.some(r=>r.requestId===p.entityId)||p.kind==='migration'&&p.entityId!=='baseline')fail();
     return{operationId:p.operationId,kind:p.kind,entityId:p.entityId};
   });return value;
@@ -41,6 +44,8 @@ function trustedIdentity(context,environment){
 function empty(environment,account){return{schemaVersion:1,localRevision:0,environment,account,confirmationCursor:'',firstWinDays:[],legacyRequestIds:[],rewards:[],legacyQuotas:[],pending:[]};}
 function merge(remote,incoming){
   const result=validateDocument(remote,incoming.environment,incoming.account);validateDocument(incoming,incoming.environment,incoming.account);
+  result.warmupTutorialCompleted=result.warmupTutorialCompleted||incoming.warmupTutorialCompleted===true;
+  result.bufferWarningCompleted=result.bufferWarningCompleted||incoming.bufferWarningCompleted===true;
   result.firstWinDays=[...new Set([...result.firstWinDays,...incoming.firstWinDays])].sort();
   result.legacyRequestIds=[...new Set([...result.legacyRequestIds,...incoming.legacyRequestIds])].sort();
   const rewards=new Map(result.rewards.map(r=>[r.requestId,r]));
@@ -51,11 +56,11 @@ function merge(remote,incoming){
   result.legacyQuotas=[...quotas.values()].sort((a,b)=>a.day.localeCompare(b.day));result.pending=[];result.localRevision=0;result.confirmationCursor='';
   validateDocument(result,incoming.environment,incoming.account);return result;
 }
-function facts(document){const {schemaVersion,environment,account,firstWinDays,legacyRequestIds,rewards,legacyQuotas}=document;return{schemaVersion,environment,account,firstWinDays,legacyRequestIds,rewards,legacyQuotas};}
+function facts(document){const {schemaVersion,environment,account,firstWinDays,legacyRequestIds,rewards,legacyQuotas}=document;return{schemaVersion,environment,account,firstWinDays,legacyRequestIds,rewards,legacyQuotas,warmupTutorialCompleted:document.warmupTutorialCompleted===true,bufferWarningCompleted:document.bufferWarningCompleted===true};}
 function cursor(document){return crypto.createHash('sha256').update(JSON.stringify(facts(document))).digest('hex');}
 function fromStored(record,environment,account){
   if(record===null)return empty(environment,account);
-  keys(record,['_id','schemaVersion','environment','account','firstWinDays','legacyRequestIds','rewards','legacyQuotas','updatedUtc']);utc(record.updatedUtc);
+  keys(record,['_id','schemaVersion','environment','account','firstWinDays','legacyRequestIds','rewards','legacyQuotas','updatedUtc','warmupTutorialCompleted','bufferWarningCompleted']);utc(record.updatedUtc);
   return validateDocument({...facts(record),localRevision:0,confirmationCursor:'',pending:[]},environment,account);
 }
 // transaction(key, mergeCallback) must atomically read, merge and replace ONE document.

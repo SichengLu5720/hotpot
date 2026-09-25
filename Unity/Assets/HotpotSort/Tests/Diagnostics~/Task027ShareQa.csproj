@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+ <PropertyGroup><TargetFramework>net10.0</TargetFramework><OutputType>Exe</OutputType><UseAppHost>false</UseAppHost><EnableDefaultCompileItems>false</EnableDefaultCompileItems><ImplicitUsings>disable</ImplicitUsings><Nullable>disable</Nullable></PropertyGroup>
+ <ItemGroup>
+  <Compile Include="Task027ShareQa.cs"/>
+  <Compile Include="../../Runtime/Presentation/Diagnostics~/WeChatRewardQaUnityShim.cs"/>
+  <Compile Include="../../Contracts/DevelopmentServices.cs"/><Compile Include="../../Contracts/WeChatRewardContracts.cs"/><Compile Include="../../Contracts/RemoteAssetContracts.cs"/>
+  <Compile Include="../../Contracts/SessionContracts.cs"/>
+  <Compile Include="../../Runtime/Platform/WeChat/WeChatShareService.cs"/><Compile Include="../../Runtime/Platform/WeChat/WeChatRuntimeConfig.cs"/><Compile Include="../../Runtime/Platform/WeChat/WeChatCapabilityState.cs"/>
+ </ItemGroup>
+</Project>

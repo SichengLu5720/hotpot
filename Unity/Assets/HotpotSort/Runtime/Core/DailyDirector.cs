@@ -30,7 +30,7 @@ namespace HotpotSort.Core
             if(total==0)return -1;
             return rng.NextBounded((uint)total,draws)<bufferWeight?0:1;
         }
-        internal Decision Choose(int slot, IReadOnlyList<CoreItem> items, CoreOrder[] orders, int?[] buffer, List<int> pending, Pcg32 rng, bool select = true,ISet<int> clickable=null,ISet<int> unknown=null,int completedOrders=15,int policyVersion=2)
+        internal Decision Choose(int slot, IReadOnlyList<CoreItem> items, CoreOrder[] orders, int?[] buffer, List<int> pending, Pcg32 rng, bool select = true,ISet<int> clickable=null,ISet<int> unknown=null,int completedOrders=15,int policyVersion=2,bool strictKinds=false)
         {
             var reserved = new HashSet<int>(); var reservations = new List<object>();
             var external = items.Where(x => x.Location == "Pending" || x.Location == "ActiveAvailable" || x.Location == "Buffer").ToList();
@@ -81,7 +81,7 @@ namespace HotpotSort.Core
             }
             var strict = candidates.Where(c => c.Legal && !c.Duplicate).ToList();
             bool relaxed = strict.Count == 0;
-            var pool = relaxed ? candidates.Where(c => c.Legal).ToList() : strict;
+            var pool = relaxed && !strictKinds ? candidates.Where(c => c.Legal).ToList() : strict;
             var raw = content.Rows[band * 5 + bb].Weights.ToArray();
             var filtered = raw.Select((w, i) => pool.Any(c => c.Category == i) ? w : 0).ToArray();
             var draws = new List<object>(); int category = -1; string fallback; Candidate chosen = null;

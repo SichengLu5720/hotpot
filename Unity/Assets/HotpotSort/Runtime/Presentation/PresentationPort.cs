@@ -7,7 +7,8 @@ namespace HotpotSort.Presentation
     // View-local transport only. K0 adapter must map these values; this is not a shared/core contract.
     public enum ViewPhase { Entry, Running, Paused, Won, Overflow, Aborted }
     public enum ViewAction { StartToday, Pause, Resume, RetrySameDay, Exit }
-    [Flags] public enum ViewPauseReasons { None=0, User=1, Background=2, Reward=4, Revival=8 }
+    [Flags] public enum ViewPauseReasons { None=0, User=1, Background=2, Reward=4, Revival=8, Tutorial=16 }
+    public enum ViewTutorialStep { None, SelectFood, FoodInFlight, OrderExplanation }
     [Serializable] public sealed class ViewItem
     {
         public string itemId,layoutVersion;
@@ -34,6 +35,11 @@ namespace HotpotSort.Presentation
         public string revivalOfferId;
         public RevivalTransferBatch revivalTransfer;
         public long revision, eventSeq;
+        public int completedOrders,totalOrders;
+        public bool isWarmup,warmupComplete,bufferWarning;
+        public ViewTutorialStep tutorialStep;
+        public string tutorialItemId;
+        public int tutorialOrderSlot=-1,thirdPotThreshold=31,fourthPotThreshold=49;
         public ViewPhase phase;
         public ViewOrder[] orders = new ViewOrder[0];
         public ViewItem[] buffer = new ViewItem[5];
@@ -83,5 +89,16 @@ namespace HotpotSort.Presentation
         Task<RewardApplicationResult> RequestRevivalAsync();
         void DeclineRevival();
         bool CompleteRevivalTransfer(RevivalCompletionToken token);
+    }
+    // All callbacks are scoped to the rendered session; duplicate/stale callbacks are ignored.
+    public interface IWarmupPresentationPort
+    {
+        bool SelectTutorialFood(string sessionId,long generation,string itemId);
+        bool TutorialFoodArrived(string sessionId,long generation,string itemId);
+        bool CompleteOpeningTutorial(string sessionId,long generation);
+        bool CompleteBufferWarning(string sessionId,long generation);
+        // Invoke only after final order animations and the 0.8s message have ended,
+        // and after presentation has cleared old objects/animations/input state.
+        bool CompleteWarmup(string sessionId,long generation);
     }
 }

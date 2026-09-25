@@ -17,7 +17,7 @@ namespace HotpotSort.Profile
     {public Task<ProfileSyncResponse> SyncAsync(ProfileDocument upload)=>Task.FromResult(new ProfileSyncResponse{Status=ProfileSyncStatus.NotConfigured});}
 
     // Local-first additive facts. Core/replay never reference this module or await sync.
-    public sealed class ProfileStore:IShareQuotaStore,IAsyncProfileStore,IAppliedRewardStore
+    public sealed class ProfileStore:IShareQuotaStore,IAsyncProfileStore,IAppliedRewardStore,ITutorialProfileStore
     {
         readonly object serial=new object();
         readonly IProfilePersistence persistence;
@@ -53,6 +53,18 @@ namespace HotpotSort.Profile
             Validate(value,environment,account);return value;
         }
         public ProfileDocument ReadSnapshot(){lock(serial)return Copy(state);}
+        public bool WarmupTutorialCompleted { get{lock(serial)return state.warmupTutorialCompleted;} }
+        public bool BufferWarningCompleted { get{lock(serial)return state.bufferWarningCompleted;} }
+        public void CompleteTutorial(bool bufferWarning)
+        {
+            lock(serial)
+            {
+                Flush();if(bufferWarning?state.bufferWarningCompleted:state.warmupTutorialCompleted)return;
+                var next=Copy(state);if(bufferWarning)next.bufferWarningCompleted=true;else next.warmupTutorialCompleted=true;
+                Queue(next,"tutorial",bufferWarning?"buffer":"warmup");Commit(next);
+            }
+            Notify();
+        }
         // Entry-only composition imports immutable local facts into an authenticated
         // partition. The caller retargets a COPY, never the source persisted document.
         // Queue every imported fact so a crash/retry cannot lose its server obligation.
@@ -138,13 +150,15 @@ namespace HotpotSort.Profile
         static bool ContainsOperation(ProfileDocument remote,ProfileSyncOperation op,ProfileDocument sent)
         {
             if(op.kind=="win")return remote.firstWinDays.Contains(op.entityId);
+            if(op.kind=="tutorial")return op.entityId=="warmup"?remote.warmupTutorialCompleted:op.entityId=="buffer"&&remote.bufferWarningCompleted;
             if(op.kind=="reward")return remote.rewards.Any(e=>e.requestId==op.entityId&&Same(e,sent.rewards.Single(x=>x.requestId==op.entityId)));
-            return op.kind=="migration"&&sent.firstWinDays.All(remote.firstWinDays.Contains)&&sent.legacyRequestIds.All(remote.legacyRequestIds.Contains)&&
+            return op.kind=="migration"&&(!sent.warmupTutorialCompleted||remote.warmupTutorialCompleted)&&(!sent.bufferWarningCompleted||remote.bufferWarningCompleted)&&sent.firstWinDays.All(remote.firstWinDays.Contains)&&sent.legacyRequestIds.All(remote.legacyRequestIds.Contains)&&
                 sent.legacyQuotas.All(q=>remote.legacyQuotas.Any(r=>r.day==q.day&&r.used>=q.used&&(string.IsNullOrEmpty(q.lastEffectiveUtc)||Date(r.lastEffectiveUtc)>=Date(q.lastEffectiveUtc))));
         }
         public static ProfileDocument Merge(ProfileDocument local,ProfileDocument remote)
         {
             Validate(local,local.environment,local.account);Validate(remote,local.environment,local.account);var merged=Copy(local);
+            merged.warmupTutorialCompleted|=remote.warmupTutorialCompleted;merged.bufferWarningCompleted|=remote.bufferWarningCompleted;
             foreach(var day in remote.firstWinDays)if(!merged.firstWinDays.Contains(day))merged.firstWinDays.Add(day);
             foreach(var id in remote.legacyRequestIds)if(!merged.legacyRequestIds.Contains(id))merged.legacyRequestIds.Add(id);
             foreach(var reward in remote.rewards)
@@ -176,16 +190,17 @@ namespace HotpotSort.Profile
         static DateTimeOffset Date(string value)=>DateTimeOffset.ParseExact(value,"o",CultureInfo.InvariantCulture,DateTimeStyles.RoundtripKind).ToUniversalTime();
         static string Latest(string a,string b)=>string.IsNullOrEmpty(a)?b:string.IsNullOrEmpty(b)?a:Date(a)>=Date(b)?a:b;
         static void Validate(AppliedRewardRecord e)
-        {if(e==null||string.IsNullOrEmpty(e.requestId)||e.rewardKind< -1||e.rewardKind>(int)RewardKind.Revival||!Enum.IsDefined(typeof(RewardRoute),e.route)||!Enum.IsDefined(typeof(ProfileTimeSource),e.timeSource))throw new ArgumentException("Invalid reward fact");Day(e.quotaDay);Date(e.effectiveUtc);}
+        {if(e==null||string.IsNullOrEmpty(e.requestId)||(e.rewardKind!=-1&&!Enum.IsDefined(typeof(RewardKind),e.rewardKind))||!Enum.IsDefined(typeof(RewardRoute),e.route)||!Enum.IsDefined(typeof(ProfileTimeSource),e.timeSource))throw new ArgumentException("Invalid reward fact");Day(e.quotaDay);Date(e.effectiveUtc);}
         public static void Validate(ProfileDocument value,string environment,string account)
         {
             if(value==null||value.schemaVersion!=1||value.environment!=environment||value.account!=account||value.firstWinDays==null||value.rewards==null||value.legacyQuotas==null||value.legacyRequestIds==null||value.pending==null)throw new ArgumentException("Unsupported/corrupt profile or wrong partition");
             foreach(var day in value.firstWinDays)Day(day);foreach(var e in value.rewards)Validate(e);
             if(value.localRevision<0||value.firstWinDays.Distinct().Count()!=value.firstWinDays.Count||value.legacyRequestIds.Distinct().Count()!=value.legacyRequestIds.Count||value.rewards.Select(e=>e.requestId).Distinct().Count()!=value.rewards.Count||value.legacyQuotas.Select(q=>q.day).Distinct().Count()!=value.legacyQuotas.Count||value.legacyRequestIds.Any(string.IsNullOrEmpty))throw new ArgumentException("Duplicate/corrupt profile facts");
             foreach(var q in value.legacyQuotas){Day(q.day);if(q.used<0)throw new ArgumentException("Negative quota");if(!string.IsNullOrEmpty(q.lastEffectiveUtc))Date(q.lastEffectiveUtc);}
-            foreach(var p in value.pending)if(p==null||p.operationId!=p.kind+":"+p.entityId||(p.kind!="win"&&p.kind!="reward"&&p.kind!="migration"))throw new ArgumentException("Corrupt outbox");
+            foreach(var p in value.pending)if(p==null||p.operationId!=p.kind+":"+p.entityId||(p.kind!="win"&&p.kind!="reward"&&p.kind!="migration"&&p.kind!="tutorial")||(p.kind=="tutorial"&&p.entityId!="warmup"&&p.entityId!="buffer"))throw new ArgumentException("Corrupt outbox");
         }
         public static ProfileDocument Copy(ProfileDocument value)=>new ProfileDocument{schemaVersion=value.schemaVersion,localRevision=value.localRevision,environment=value.environment,account=value.account,confirmationCursor=value.confirmationCursor,
+            warmupTutorialCompleted=value.warmupTutorialCompleted,bufferWarningCompleted=value.bufferWarningCompleted,
             firstWinDays=new List<string>(value.firstWinDays),legacyRequestIds=new List<string>(value.legacyRequestIds),rewards=value.rewards.Select(Clone).ToList(),legacyQuotas=value.legacyQuotas.Select(Clone).ToList(),pending=value.pending.Select(p=>new ProfileSyncOperation{operationId=p.operationId,kind=p.kind,entityId=p.entityId}).ToList()};
         static ShareQuotaRecord Clone(ShareQuotaRecord q)=>new ShareQuotaRecord{day=q.day,used=q.used,lastEffectiveUtc=q.lastEffectiveUtc,committedRequestId=q.committedRequestId,dataVersion=q.dataVersion};
         static AppliedRewardRecord Clone(AppliedRewardRecord e)=>new AppliedRewardRecord{requestId=e.requestId,quotaDay=e.quotaDay,effectiveUtc=e.effectiveUtc,rewardKind=e.rewardKind,route=e.route,timeSource=e.timeSource};
