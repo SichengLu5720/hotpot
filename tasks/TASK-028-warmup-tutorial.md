@@ -40,6 +40,7 @@ Updated At: 2026-09-25
 - 首次引导两步文案为“点击食材，放入火锅。”与“集满 3 个相同食材，即可完成订单。”；暂存 4/5 文案为“暂存区放满会导致挑战失败。”。
 - 引导与暂存警告不使用白色弹窗或确认按钮：首步只保留目标食材正常亮度并限制点击；第二步只保留对应订单牌正常亮度；暂存警告保留整个五格暂存区正常亮度，暂存区以外全部变暗，不得只突出第五码。第二步与暂存警告均点击屏幕任意位置关闭。提示道具不使用全屏压暗。
 - 热身最后一单完整结算并清空后显示约 0.8 秒“最后一关！”，无整屏渐变；文字消失后正式供给才开始。
+- 首次热身的初始盘子必须先全部落下并停止运动；稳定前锁定食材点击与所有道具，稳定后才显示第一步食材教程。非首次热身不增加此等待锁定。
 
 ## Work Packages
 
@@ -48,11 +49,12 @@ Updated At: 2026-09-25
 | WP-028-CODE | `code_agent` | 实现两关状态、确定性热身内容、累计 37/55 解锁、锅位继承、永久档案标记、真实到达/反馈清空接口及定向检查 | `Unity/Assets/HotpotSort/Runtime/Core/`; `Runtime/Bootstrap/`; `Runtime/Session/`; `Runtime/Platform/Profile/`; `Runtime/Replay/`; `Contracts/`; `Runtime/Presentation/PresentationPort.cs`; `Unity/Assets/HotpotSort/Runtime/Presentation/GameplayFeedback.cs`; `Unity/Assets/HotpotSort/Tests/Diagnostics~/Task028*`; `cloudfunctions/hotpotProfileSync/profile.js`; `cloudfunctions/hotpotProfileSync/test.js` | `GameplayView.cs`; `GameplayViewV7.cs`; 正式资产；SPEC；Task；不得覆盖其他 Task 未提交修改 | None | Completed | Yes（最终技术集成） |
 | WP-028-VISUAL | `visual_agent` | 绑定首次两步引导、4/5 警告、提示道具放大手指和“最后一关！”锁定表现 | `Unity/Assets/HotpotSort/Runtime/Presentation/GameplayView.cs`; `GameplayViewV7.cs`; `Runtime/Presentation/Editor/Task028*`; `.harness/previews/TASK-028/` | Core、Bootstrap、Session、Contracts、Profile、Replay、正式图片资产、SPEC 与 Task | WP-028-CODE 稳定接口 | Completed | Yes（仅表现文件） |
 | WP-028-INTEGRATE | `code_agent` | 核对表现绑定不改变规则，修复仅技术问题并执行最低编译/启动/核心路径检查 | WP-028-CODE 与 WP-028-VISUAL 已列路径；本任务专用检查输出 | 其他 Task 与正式资产；不得改变视觉决定 | WP-028-VISUAL | Completed | Yes |
+| WP-028-STABLE-TUTORIAL | `code_agent` | 将首次教程入口延迟到全部初始盘子稳定，等待期间锁定食材和道具，并补充真实启动路径检查 | `Unity/Assets/HotpotSort/Runtime/`; `Unity/Assets/HotpotSort/Tests/Diagnostics~/Task028*`; 本任务专用检查输出 | 正式图片资产；其他 Task；SPEC 与 Task | WP-028-INTEGRATE | Completed | Yes |
 
 ## Acceptance
 
 - User-visible result: 每次开始/重试运行“6 单热身 → 最后一关提示 → 61 单正式挑战”；同日热身一致；首次引导与 4/5 警告分别永久一次；提示道具使用放大食材加手指。
-- Minimum runtime check: 编译；启动到热身；同日复现；热身成功切换；热身失败重开；正式供给延迟到提示消失；累计 37/55 与广告继承；永久标记本地/云兼容；退出/重试/旧回调清理；Git Diff 不越界。
+- Minimum runtime check: 编译；首次热身初始盘全部停止前食材和道具不可操作、教程不出现，稳定后教程出现；启动到热身；同日复现；热身成功切换；热身失败重开；正式供给延迟到提示消失；累计 37/55 与广告继承；永久标记本地/云兼容；退出/重试/旧回调清理；Git Diff 不越界。
 - User review method: 提供可运行本地候选与关键真实运行截图/日志；用户实际体验热身节奏、引导可读性、手指提示和无缝切关后决定是否接受。
 
 ## Result
@@ -64,5 +66,6 @@ Updated At: 2026-09-25
 - Screenshot / Artifact: `.harness/previews/TASK-028/{first-food,order-explanation,buffer-warning,hint-pointer,last-stage}.png`; `unity-visual.log`; `unity-integration.log`。
 - Source Delivery: 游戏源码提交 `25da68c`、字体子集提交 `498201a` 已推送到 `origin/feat/auto-push-skill`；微信包由 `498201a` 构建。
 - Cloud / Upload: `hotpotProfileSync` 已部署到开发云环境并处于 `Active`；线上下载源码的 4 个文件 SHA-256 与本地全部一致。微信开发版本 `0.0.16` 上传成功，包总计 21,754,171 字节（主包 2,445,054；数据分包 14,671,092；WASM 分包 4,638,025），CLI 自动预览成功。
+- Stable Tutorial Follow-up: 首次热身新增 `WaitingForBoard`；初始供给完成且全部真实盘子连续 0.3 秒保持稳定后才显示食材教程。等待期间食材与全部道具锁定；非首次热身不增加等待。Unity 真实 Boot 集成与定向检查通过，日志标记 `TASK028_INTEGRATION_PASS`。
 - Known Issues: 微信真机是否收到并打开自动预览、真机体验和用户最终视觉判断尚未确认；未提审、未发布、未启用体验版。
 - Baseline: Not Saved

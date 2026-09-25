@@ -40,6 +40,11 @@ namespace HotpotSort.UnityPhysics
         private PhysicsScene2D localPhysics;
         private PhysicsMaterial2D material;
         private bool simulating;
+        private float settledSeconds;
+        private int settledBodyCount;
+        // Read-only native-physics observation: tolerate subpixel contact jitter,
+        // but require every body below 1 board unit/s for consecutive physics steps.
+        public bool HasSettledInitialBoard(int expectedCount)=>simulating&&expectedCount>0&&drawOrder.Count==expectedCount&&settledBodyCount==expectedCount&&settledSeconds>=.3f;
         private string sessionId;
         private long sessionGeneration,observationSequence;
         private Vector2[] solverPositions=System.Array.Empty<Vector2>();
@@ -187,7 +192,7 @@ namespace HotpotSort.UnityPhysics
         }
         public void SetSimulating(bool value)
         {
-            if(!value)ResetDiagnosticMotion();
+            if(!value){ResetDiagnosticMotion();settledSeconds=0;}
             simulating=value;
             foreach(var body in plates.Values) body.rigidbody.simulated=value;
         }
@@ -201,6 +206,10 @@ namespace HotpotSort.UnityPhysics
             foreach(var body in plates.Values)
                 body.rigidbody.AddForce(Vector2.up * (960 * Units * body.rigidbody.mass),ForceMode2D.Force);
             localPhysics.Simulate(Time.fixedDeltaTime);
+            bool still=count>0&&count==settledBodyCount;
+            foreach(var body in drawOrder)
+                if(body.rigidbody.linearVelocity.sqrMagnitude>Units*Units||Mathf.Abs(body.rigidbody.angularVelocity)>.1f)still=false;
+            settledSeconds=still?settledSeconds+Time.fixedDeltaTime:0;settledBodyCount=count;
             for(int i=0;i<count;i++)solverPositions[i]=Position(drawOrder[i]);
             var geometry=MeasureGeometry(solverPositions,count);
             if(geometry.x<-.001f || geometry.y<-.001f)
@@ -395,6 +404,7 @@ namespace HotpotSort.UnityPhysics
         }
         public void Clear()
         {
+            settledSeconds=0;settledBodyCount=0;
             foreach(var body in plates.Values) { if(body.node){body.node.SetActive(false); Destroy(body.node);} }
             plates.Clear(); drawOrder.Clear(); remnants.Clear();
             StepGeometry.Clear();ConstraintRollbacks=0;TransientGeometrySteps=0;

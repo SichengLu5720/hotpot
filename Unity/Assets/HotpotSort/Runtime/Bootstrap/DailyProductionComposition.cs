@@ -181,7 +181,7 @@ namespace HotpotSort.Bootstrap
         {
             EnsureFactory(); showingError=false; supplySequence=0; supplySchedule.Reset();lastSupplyObservation=0; ResetSpawnPresentation();
             (profile as IAsyncProfileStore)?.InvalidateSyncCallbacks();revivalRouteOffer=null;
-            tutorialStep=stage==ChallengeStage.Warmup&&(profile as ITutorialProfileStore)?.WarmupTutorialCompleted!=true?ViewTutorialStep.SelectFood:ViewTutorialStep.None;
+            tutorialStep=stage==ChallengeStage.Warmup&&(profile as ITutorialProfileStore)?.WarmupTutorialCompleted!=true?ViewTutorialStep.WaitingForBoard:ViewTutorialStep.None;
             tutorialItemId=null;tutorialOrderSlot=-1;bufferWarning=pendingBufferWarning=false;
             current=factory.CreateStage(context,stage,inheritedPotMask); return current;
         }
@@ -283,6 +283,9 @@ namespace HotpotSort.Bootstrap
         private void Update()
         {
             if(controller==null)return;
+            if(current!=null&&tutorialStep==ViewTutorialStep.WaitingForBoard&&controller.CanAcceptInput&&DailyViewMapper.PendingHead(current.Snapshot)==0&&
+                view.LastSnapshot?.sessionId==current.Snapshot.SessionId&&view.World.HasSettledInitialBoard(shown.plates.Length))
+            {tutorialStep=ViewTutorialStep.SelectFood;Show(current.Snapshot,null);}
             if(current!=null&&pendingBufferWarning&&current.Snapshot.Status==GameStatus.Running)
             {pendingBufferWarning=false;bufferWarning=true;controller.SetTutorialPaused(true);}
             view?.SetRemainingTime(Math.Max(0,600-controller.ChallengeSeconds));

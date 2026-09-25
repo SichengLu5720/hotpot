@@ -8,7 +8,7 @@ namespace HotpotSort.Presentation
     public enum ViewPhase { Entry, Running, Paused, Won, Overflow, Aborted }
     public enum ViewAction { StartToday, Pause, Resume, RetrySameDay, Exit }
     [Flags] public enum ViewPauseReasons { None=0, User=1, Background=2, Reward=4, Revival=8, Tutorial=16 }
-    public enum ViewTutorialStep { None, SelectFood, FoodInFlight, OrderExplanation }
+    public enum ViewTutorialStep { None, SelectFood, FoodInFlight, OrderExplanation, WaitingForBoard }
     [Serializable] public sealed class ViewItem
     {
         public string itemId,layoutVersion;

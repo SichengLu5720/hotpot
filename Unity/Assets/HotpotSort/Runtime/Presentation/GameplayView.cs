@@ -765,6 +765,8 @@ namespace HotpotSort.Presentation
             if(guideHand)guideHand.gameObject.SetActive(visible);
             if(!visible||!board)return;
             guideAge+=Mathf.Clamp(delta,0,.1f);
+            if(s.tutorialStep==ViewTutorialStep.WaitingForBoard)
+            {ClearFoodPointer();ClearWarmupOverlay();return;}
             if(s.warmupComplete)
             {
                 ClearFoodPointer();

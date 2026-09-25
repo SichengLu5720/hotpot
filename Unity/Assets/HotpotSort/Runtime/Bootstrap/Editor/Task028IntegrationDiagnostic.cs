@@ -39,7 +39,21 @@ namespace HotpotSort.Bootstrap
                 composition.ConfigureServices(local,local,local,local);view.SetForeground(true);
                 composition.SessionAction(ViewAction.StartToday);await Until(()=>composition.ActiveCore!=null,"asset-gated start");
                 Check(c.Stage==ChallengeStage.Warmup&&!c.ChallengeTimerStarted,"real start enters untimed warmup");
-                await Until(()=>!string.IsNullOrEmpty(view.LastSnapshot.tutorialItemId),"real clickable tutorial target");
+                Check(view.LastSnapshot.tutorialStep==ViewTutorialStep.WaitingForBoard&&!Text(view,"点击食材，放入火锅。"),"first warmup starts hidden and waiting for physics");
+                string waitingId=c.Snapshot.SessionId;long waitingGeneration=c.Generation;
+                await c.RetryAsync();Check(view.LastSnapshot.tutorialStep==ViewTutorialStep.WaitingForBoard&&!composition.SelectTutorialFood(waitingId,waitingGeneration,"1"),"retry discards old stability/tutorial lease");
+                c.Exit();Check(!composition.SelectTutorialFood(waitingId,waitingGeneration,"1"),"exit discards old tutorial target");await c.StartTodayAsync();
+                await Until(()=>view.World.Bodies.Any(),"initial falling plates");
+                Check(view.LastSnapshot.tutorialStep==ViewTutorialStep.WaitingForBoard&&!view.World.HasSettledInitialBoard(view.LastSnapshot.plates.Length)&&!Text(view,"点击食材，放入火锅。"),"moving initial board has no tutorial");
+                string waitingHash=composition.ActiveCore.StateHash;
+                composition.Tap(new ViewTap{itemId=view.LastSnapshot.plates[0].items[0].itemId,inputSeq=1,snapshotRevision=view.LastSnapshot.revision});
+                Check(waitingHash==composition.ActiveCore.StateHash,"food input locked during initial motion");
+                foreach(RewardKind kind in new[]{RewardKind.Hint,RewardKind.ClearBuffer,RewardKind.Shuffle,RewardKind.ThirdPot,RewardKind.FourthPot})
+                    Check(!(bool)typeof(DailyProductionComposition).GetMethod("HasTarget",BindingFlags.NonPublic|BindingFlags.Instance).Invoke(composition,new object[]{kind}),"reward locked while waiting "+kind);
+                for(int i=0;i<2400&&view.LastSnapshot.tutorialStep==ViewTutorialStep.WaitingForBoard;i++)
+                {Check(!Text(view,"点击食材，放入火锅。"),"no premature tutorial");await Task.Delay(25);}
+                await Until(()=>!string.IsNullOrEmpty(view.LastSnapshot.tutorialItemId),"real clickable tutorial target after settled board");
+                Check(DailyViewMapper.PendingHead(composition.ActiveCore.Snapshot)==0&&view.World.HasSettledInitialBoard(view.LastSnapshot.plates.Length)&&view.IsItemClickable(view.LastSnapshot.tutorialItemId),"all initial plates settled before clickable tutorial target");
                 var initial=view.LastSnapshot;string first=initial.tutorialItemId;string oldId=initial.sessionId;long oldGeneration=initial.sessionGeneration;
                 string hash=composition.ActiveCore.StateHash;
                 composition.Tap(new ViewTap{itemId="999",inputSeq=1,snapshotRevision=initial.revision});Check(hash==composition.ActiveCore.StateHash,"first step rejects unrelated input");
@@ -57,6 +71,7 @@ namespace HotpotSort.Bootstrap
                 for(int i=4;i<6;i++)composition.ActiveCore.Tap(new TapCommand(third[i],++taps,0,true));
                 Check(composition.ActiveCore.RevivalPending,"warmup retains revival");composition.DeclineRevival();Check(c.Snapshot.Status==GameStatus.Failed,"warmup decline fails");
                 await c.RetryAsync();Check(c.Stage==ChallengeStage.Warmup&&view.LastSnapshot.tutorialStep==ViewTutorialStep.None&&!view.LastSnapshot.bufferWarning,"failed retry resets warmup and keeps permanent flags");
+                Check(DailyViewMapper.PendingHead(composition.ActiveCore.Snapshot)!=0&&(bool)typeof(DailyProductionComposition).GetMethod("HasTarget",BindingFlags.NonPublic|BindingFlags.Instance).Invoke(composition,new object[]{RewardKind.ThirdPot}),"returning player has no stability reward lock");
                 local.RewardPrompt=r=>Task.FromResult(RewardOutcome.Success);Invoke(composition,"RequestReward",RewardKind.ThirdPot,RewardRoute.SimulatedAd);
                 await Until(()=>composition.ActiveCore.UnlockedExtraPotMask==1,"ad unlock");Check(local.ReadSnapshot().rewards.Any(r=>r.rewardKind==(int)RewardKind.ThirdPot),"simulated completed ad unlock persisted");
                 await c.RetryAsync();Check(composition.ActiveCore.UnlockedExtraPotMask==1,"same warmup retry inherits advertised pot");
