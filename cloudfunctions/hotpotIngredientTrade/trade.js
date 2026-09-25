@@ -92,7 +92,10 @@ function createHandler({environment,transaction,verifyFriend=null,now=Date.now,r
     }else fail('UnknownAction');
     await save(key,p);await tx.set(opKey,{fingerprint,trade:trade||null});return {snapshot:p,trade};
    });return {...response,...result,status:'Synced'};
-  }catch(error){return {...response,error:error.code||'ServerFailure'};}
+  }catch(error){
+   if(!error||!error.code)console.error('hotpotIngredientTrade internal failure',error&&error.name,error&&error.message);
+   return {...response,error:error.code||'ServerFailure'};
+  }
  };
 }
 module.exports={createHandler,account,empty,rewardDay};
