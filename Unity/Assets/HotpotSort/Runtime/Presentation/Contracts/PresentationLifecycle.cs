@@ -60,16 +60,20 @@ namespace HotpotSort.Presentation
         public string Resolve(string key)
         {
             foreach(var asset in assets)if(asset.key==key)return asset.resourceAddress;
+            if(resourceRoot==PresentationAssets.CandidateRoot){for(int i=0;i<AssetKey.BrothKeys.Length;i++)if(key==AssetKey.BrothKeys[i])return AssetKey.BrothResources[i];}
             return null;
         }
     }
     public static class AssetKey
     {
+        // Additive local activity assets; existing frozen theme JSON stays unchanged.
+        public static readonly string[] BrothKeys={"pot.broth.clear","pot.broth.tomato","pot.broth.mushroom","entry.broth"};
+        public static readonly string[] BrothResources={"Hotpot/TASK031/Broths/clear","Hotpot/TASK031/Broths/tomato","Hotpot/TASK031/Broths/mushroom","Hotpot/TASK031/UI/broth_activity_entry"};
         public const string Table="background.table",EdgeCloth="background.edge_cloth",Plate="plate.main",BufferDish="dish.buffer";
         public const string PotBody="pot.body",PotBroth="pot.broth",PotRim="pot.rim",PotUnlit="pot.unlit";
         public const string Panel="ui.panel",Button="ui.button",Order="ui.order",Progress="ui.progress",Timer="ui.timer",BottomBar="ui.bottom_bar";
         public const string Entry="hero.entry",Win="hero.win",Share="hero.share";
-        public static string Food(int id){if(id<0||id>15)throw new ArgumentOutOfRangeException(nameof(id));return "food."+id.ToString("00",System.Globalization.CultureInfo.InvariantCulture);}
+        public static string Food(int id){if(id<0||id>31)throw new ArgumentOutOfRangeException(nameof(id));return "food."+id.ToString("00",System.Globalization.CultureInfo.InvariantCulture);}
     }
     // The owner resets this for each session generation. Old callbacks cannot restart it.
     public sealed class VisualClock

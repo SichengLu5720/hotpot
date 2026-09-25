@@ -317,6 +317,12 @@ namespace HotpotSort.UnityPhysics
             }
             Physics2D.SyncTransforms();
         }
+        public PlateBody TopPlateAt(Vector2 board)
+        {
+            var point=Physical(board);
+            for(int p=drawOrder.Count-1;p>=0;p--)if(drawOrder[p].rim.OverlapPoint(point))return drawOrder[p];
+            return null;
+        }
         public string Hit(Vector2 board,System.Func<ViewItem,Vector2,bool> opaqueHit=null)
         {
             var point=Physical(board);

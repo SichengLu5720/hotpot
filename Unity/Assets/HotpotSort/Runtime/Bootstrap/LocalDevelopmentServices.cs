@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using HotpotSort.Contracts;
 using HotpotSort.Session;
 using HotpotSort.Profile;
+using HotpotSort.Collection;
 using UnityEngine;
 
 namespace HotpotSort.Bootstrap
@@ -19,6 +20,18 @@ namespace HotpotSort.Bootstrap
         readonly string key;
         readonly Saved state;
         ProfileStore syncedProfile;
+        public ICollectionStore Collection { get; private set; }
+        public IBrothActivityService BrothActivity {get;private set;}
+        public DevelopmentBrothAuthority DevelopmentBroths {get;private set;}
+        void ConfigureDevelopmentBroths()
+        {
+            BrothActivity=null;
+            if(!developmentSimulation||environment!="development"||Collection.ReadCollection().account.StartsWith("wx_",StringComparison.Ordinal))return;
+            DevelopmentBroths=new DevelopmentBrothAuthority();
+            BrothActivity=new BrothActivityStore(DevelopmentBroths,Collection);
+            var store=Collection;var authority=DevelopmentBroths;
+            store.CollectionChanged+=()=>authority.Seed(store.ReadCollection());
+        }
         readonly string environment;
         bool syncing,syncAgain,accountTransportBound;
         readonly bool developmentSimulation;
@@ -74,6 +87,15 @@ namespace HotpotSort.Bootstrap
             if(state.wins==null)state.wins=new List<string>();
             syncedProfile=CreateProfile(account,transport,ProfileStore.Migrate(environment,account,state.wins,state.quotas,state.claims));
             syncedProfile.ProfileChanged+=OnProfileChanged;
+            Collection=CreateCollection(account);
+            ((CollectionStore)Collection).ImportCompletedWinHistory(TotalFirstWins>0);
+            ConfigureDevelopmentBroths();
+        }
+        ICollectionStore CreateCollection(string account)
+        {
+            string collectionKey=key+".collection-v1."+RecoverableProfileStorage.Hash(environment+"\n"+account);
+            return new CollectionStore(environment,account,new CollectionPersistence(collectionKey,environment,account,k=>PlayerPrefs.GetString(k,""),
+                (k,json)=>{PlayerPrefs.SetString(k,json);PlayerPrefs.Save();},d=>JsonUtility.ToJson(d),json=>JsonUtility.FromJson<CollectionDocument>(json)));
         }
         ProfileStore CreateProfile(string account,IProfileSyncTransport transport,ProfileDocument legacy=null)
         {
@@ -96,11 +118,16 @@ namespace HotpotSort.Bootstrap
             PlayerPrefs.SetString(claimKey,account);PlayerPrefs.Save();
             syncedProfile.Flush();
             var next=CreateProfile(account,transport);
+            var nextCollection=CreateCollection(account);
+            if(local.account=="local")((CollectionStore)nextCollection).ImportPendingWins(Collection.ReadCollection());
             var imported=ProfileStore.Copy(local);imported.account=account;
             next.ImportFacts(imported);
             PlayerPrefs.SetString(key+".active-account."+environment,account);PlayerPrefs.Save();
             syncedProfile.InvalidateSyncCallbacks();syncedProfile.ProfileChanged-=OnProfileChanged;
             syncedProfile=next;syncedProfile.ProfileChanged+=OnProfileChanged;
+            Collection=nextCollection;
+            ((CollectionStore)Collection).ImportCompletedWinHistory(TotalFirstWins>0);
+            ConfigureDevelopmentBroths();
             accountTransportBound=true;
             LastSyncStatus=ProfileSyncStatus.NotConfigured;OnProfileChanged();
             return true;

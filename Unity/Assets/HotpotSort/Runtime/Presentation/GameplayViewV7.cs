@@ -11,6 +11,15 @@ namespace HotpotSort.Presentation
 {
     public sealed partial class GameplayView
     {
+        public bool CollectionSettlementPending { get; set; }
+        public int CollectionToolCount(RewardKind kind){int i=(int)kind;var d=collectionStore?.ReadCollection();return i>=0&&i<3&&d!=null?d.tools[i]:0;}
+        public void CompleteCollectionSettlement(){CollectionSettlementPending=false;}
+        public void RefreshCollectionToolStock()
+        {
+            if(!board)return;
+            foreach(var kind in new[]{RewardKind.Hint,RewardKind.ClearBuffer,RewardKind.Shuffle})
+            {var tool=board.Find("Tool_"+kind);if(!tool)continue;int stock=CollectionToolCount(kind);var label=tool.Find("ToolStock")?.GetComponent<Text>();if(label){label.text="×"+stock;label.gameObject.SetActive(stock>0);}var plus=tool.Find("ToolPlus");if(plus)plus.gameObject.SetActive(stock==0);}
+        }
         V7Art art;
         RawImage edgeImage;
         RectTransform dialogCard;
@@ -45,7 +54,7 @@ namespace HotpotSort.Presentation
             var nextArt=new V7Art(root);art?.Dispose();art=nextArt;assetRoot=root;
             if(PresentationAssets.Provider.Snapshot.State==AssetReadiness.Ready)
             {
-                for(int i=0;i<16;i++)foods[i]=art.Texture(AssetKey.Food(i));
+                for(int i=0;i<(root==PresentationAssets.CandidateRoot?foods.Length:16);i++)foods[i]=art.Texture(AssetKey.Food(i));
                 plate=art.Texture(AssetKey.Plate);dish=art.Texture(AssetKey.BufferDish);
                 potBody=art.Texture(AssetKey.PotBody);potUnlit=art.Texture(AssetKey.PotUnlit);potBroth=art.Texture(AssetKey.PotBroth);potRim=art.Texture(AssetKey.PotRim);
             }
@@ -84,7 +93,7 @@ namespace HotpotSort.Presentation
                 var entryFrame=content.Find("Entry") as RectTransform;
                 if(flowSignature!="entry"||!entryFrame){ClearChildren(content);board=null;plateVisuals.Clear();plateSignatures.Clear();ghostVisuals.Clear();EntryV7();flowSignature="entry";}
                 else{float factor=Mathf.Min(viewport.width/420,viewport.height/900);entryFrame.localScale=Vector3.one*factor;entryFrame.anchoredPosition=new Vector2((viewport.width-420*factor)/2,-(viewport.height-900*factor)/2);}
-                ResizeModal();return;
+                LayoutCollectionSidebar();ResizeModal();return;
             }
             if(!board)
             {
@@ -124,7 +133,7 @@ namespace HotpotSort.Presentation
                 Picture(box,enabled?potBody:potUnlit,new Rect(-14,30,128,128),"PotBody",true);
                 if(enabled)
                 {
-                    Picture(box,potBroth,new Rect(-14,30,128,128),"Broth");
+                    Picture(box,CurrentBrothSurface(),new Rect(-14,30,128,128),"Broth");
                     Picture(box,potRim,new Rect(-14,30,128,128),"PotRim");
                     if(order.foodId>=0){Skin(box,"OrderTag",new Rect(3,0,94,38),"ui.order_card");Food(box,order.foodId,new Rect(4,0,38,38));Label(box,order.count+"/"+order.required,new Rect(40,0,51,38),20);}
                     else Label(box,"已结清",new Rect(0,0,100,38),16).color=V7Art.Ivory;
@@ -287,7 +296,9 @@ namespace HotpotSort.Presentation
             var hit=n.gameObject.AddComponent<Image>();hit.color=Color.clear;
             var b=n.gameObject.AddComponent<Button>();b.targetGraphic=hit;BindButtonClick(b,()=>ChooseReward(kind));StyleButton(b);
             ModernIcon(n,"ToolIcon",icon,UnifiedTheme?new Rect(44,3,32,32):new Rect(42,5,36,36),ModernPalette.Tea);var caption=Label(n,title,new Rect(0,UnifiedTheme?36:42,120,24),18);if(UnifiedTheme)caption.color=ThemeIvory;
-            RewardPlus(n,"ToolPlus",new Rect(83,10,18,18));
+            int stock=CollectionToolCount(kind);
+            var stockLabel=Label(n,"×"+stock,new Rect(83,10,35,18),12);stockLabel.name="ToolStock";stockLabel.gameObject.SetActive(stock>0);
+            RewardPlus(n,"ToolPlus",new Rect(83,10,18,18));n.Find("ToolPlus").gameObject.SetActive(stock==0);
         }
         void EntryV7()
         {
@@ -315,6 +326,7 @@ namespace HotpotSort.Presentation
             EntryIconButton(frame,"排行榜","friends",new Rect(217,759,133,70),()=>FriendsRequested?.Invoke());
             if(!UnifiedTheme)Label(frame,"北京时间 06:00 更新",new Rect(30,837,360,26),18).color=V7Art.Ivory;
             entryStatus=Label(frame,"",new Rect(20,866,380,26),17);entryStatus.color=ModernPalette.Paper;RefreshAssetControls();
+            if(assetRoot==PresentationAssets.CandidateRoot){AttachCollectionEntry(frame);AttachBrothEntry(frame);}
         }
         RectTransform ModalV7(string name,float height=490)
         {
@@ -416,6 +428,7 @@ namespace HotpotSort.Presentation
         }
         void ChooseRewardV7(RewardKind kind)
         {
+            if(CollectionToolCount(kind)>0){RewardRequested?.Invoke(kind,RewardRoute.SimulatedAd);return;}
             var offer=RevivalPort?.ReadRevivalOffer();
             var availability=offer?.shareAvailability;
             var route=availability!=null&&availability.Available?RewardRoute.SimulatedShare:RewardRoute.SimulatedAd;

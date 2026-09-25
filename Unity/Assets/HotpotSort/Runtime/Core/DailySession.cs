@@ -504,6 +504,7 @@ namespace HotpotSort.Core
                     "records", records.Select(CanonicalJson.Parse).ToArray(), "diagnostics", diagnostics.Select(CanonicalJson.Parse).ToArray(), "finalHash", Hash(),
                     "coreEventsHash", CanonicalJson.Hash("[" + string.Join(",", allEvents) + "]"));
                 if(Stage!=ChallengeStage.Legacy){var fields=CanonicalJson.Map(payload);fields["challengeStage"]=(int)Stage;fields["inheritedPotMask"]=inheritedPotMask;}
+                CanonicalJson.Map(payload)["ingredientSelection"]=factory.Catalog.Select(x=>x.IngredientId).ToArray();
                 var json=CanonicalJson.Write(payload);
                 return new ReplayPackage(sessionId, CurrentReplaySchema, json);
             }

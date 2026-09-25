@@ -13,6 +13,7 @@ namespace HotpotSort.Presentation
             if(theme==null){errors.Add("Missing presentation theme");return errors.ToArray();}
             if(!PresentationAssets.IsThemeRoot(root)||theme.resourceRoot!=root)errors.Add("Theme/root mismatch");
             if(theme.schemaVersion!="presentation_theme_v7"&&theme.schemaVersion!="presentation_theme_v10")errors.Add("Unsupported theme schema");
+            if(root==PresentationAssets.CandidateRoot)for(int i=0;i<AssetKey.BrothKeys.Length;i++)if(theme.Resolve(AssetKey.BrothKeys[i])!=AssetKey.BrothResources[i])errors.Add("Invalid local broth asset: "+AssetKey.BrothKeys[i]);
             var keys=new HashSet<string>();
             foreach(var a in theme.assets??Array.Empty<ThemeAsset>())
             {
@@ -21,11 +22,12 @@ namespace HotpotSort.Presentation
             }
             foreach(string key in new[]{AssetKey.Table,AssetKey.EdgeCloth,AssetKey.Plate,AssetKey.BufferDish,AssetKey.PotBody,AssetKey.PotUnlit,AssetKey.PotBroth,AssetKey.PotRim})
                 if(!keys.Contains(key))errors.Add("Missing theme key: "+key);
-            for(int i=0;i<16;i++)if(!keys.Contains(AssetKey.Food(i)))errors.Add("Missing theme food: "+i);
+            int foodCount=root==PresentationAssets.CandidateRoot?32:16;
+            for(int i=0;i<foodCount;i++)if(!keys.Contains(AssetKey.Food(i)))errors.Add("Missing theme food: "+i);
             var ids=new HashSet<int>();
             foreach(var uv in theme.foodUvs??Array.Empty<ThemeFoodUv>())
-                if(uv==null||uv.id<0||uv.id>15||!ids.Add(uv.id)||!Unit(uv.x)||!Unit(uv.y)||!Unit(uv.width)||!Unit(uv.height)||uv.width<=0||uv.height<=0||uv.x+uv.width>1.00001f||uv.y+uv.height>1.00001f)errors.Add("Invalid/duplicate food UV");
-            if(root!=V7Art.Root&&ids.Count!=16)errors.Add("Versioned theme requires all 16 food UVs");
+                if(uv==null||uv.id<0||uv.id>=foodCount||!ids.Add(uv.id)||!Unit(uv.x)||!Unit(uv.y)||!Unit(uv.width)||!Unit(uv.height)||uv.width<=0||uv.height<=0||uv.x+uv.width>1.00001f||uv.y+uv.height>1.00001f)errors.Add("Invalid/duplicate food UV");
+            if(root!=V7Art.Root&&ids.Count!=foodCount)errors.Add("Versioned theme requires all food UVs");
             var sliceKeys=new HashSet<string>();
             foreach(var s in theme.slices??Array.Empty<ThemeSlice>())
             {

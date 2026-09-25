@@ -44,6 +44,21 @@ namespace HotpotSort.Build
             catch(Exception ex){exit=1;Debug.LogError("TASK002_PACKAGE_DEPENDENCIES_FAILED "+ex.Message);}
             finally{if(Application.isBatchMode)EditorApplication.Exit(exit);}
         }
+        public static void RunNative()
+        {
+            int exit=0;
+            try{
+                var rows=Task002V10BundleTool.ValidateNativeResources();
+                var scenes=EditorBuildSettings.scenes.Where(s=>s.enabled).Select(s=>s.path).ToArray();
+                Require(scenes.SequenceEqual(new[]{"Assets/HotpotSort/Scenes/Boot.unity"}),"Native scene contract changed");
+                var dependencies=AssetDatabase.GetDependencies(scenes,true);Require(!dependencies.Any(Excludable),"Native scene reaches historical excluded resources");
+                string output=Environment.GetEnvironmentVariable("HOTPOT_PACKAGE_PROOF");Require(!string.IsNullOrEmpty(output),"HOTPOT_PACKAGE_PROOF required");
+                Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(output)));
+                File.WriteAllText(output,JsonUtility.ToJson(new Proof{status="PASS",sourceProject=Path.GetFullPath("."),staged=false,mustKeep=rows.Select(r=>MakeEntry(r.path,"Complete native Resources whitelist")).ToArray(),scenes=scenes,dependencies=dependencies,textureProbes=rows.Length,alphaProbes=32,cases=new[]{"Complete native theme inventory","Exactly four TASK031 assets","32 readable foods","No historical bundle marker","Enabled scene dependency closure"}},true));
+                Debug.Log("TASK031_NATIVE_PACKAGE_PASS textures="+rows.Length+" activity=4");
+            }catch(Exception ex){exit=1;Debug.LogError("TASK031_NATIVE_PACKAGE_FAILED "+ex);}
+            finally{if(Application.isBatchMode)EditorApplication.Exit(exit);}
+        }
         public static Proof Validate(bool staged)
         {
             var cases=new List<string>();

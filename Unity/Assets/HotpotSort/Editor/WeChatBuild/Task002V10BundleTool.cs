@@ -39,7 +39,36 @@ namespace HotpotSort.Build
         static void Require(bool ok,string why){if(!ok)throw new InvalidOperationException(why);}
         static string Slash(string s)=>s.Replace('\\','/');
         public static bool IsRemote(string relative)=>relative.StartsWith("food/",StringComparison.Ordinal)||relative.StartsWith("containers/",StringComparison.Ordinal)||relative.StartsWith("pots/",StringComparison.Ordinal)||relative.StartsWith("fx/",StringComparison.Ordinal)||relative=="hero/win";
-        static string[] ExpectedRemote()=>Enumerable.Range(0,16).Select(i=>"food/food_"+i.ToString("00")).Concat(new[]{"containers/plate_main","containers/dish_buffer","pots/body","pots/broth","pots/rim","pots/unlit","hero/win"}).ToArray();
+        static int FoodCount=>LogicalRoot=="Hotpot/TASK001/v10/r001/"?32:16;
+        public static readonly string[] BrothResources={"Hotpot/TASK031/Broths/clear","Hotpot/TASK031/Broths/tomato","Hotpot/TASK031/Broths/mushroom","Hotpot/TASK031/UI/broth_activity_entry"};
+        // Current delivery uses complete native Resources, never the historical split.
+        public static FileEntry[] ValidateNativeResources()
+        {
+            Require(LogicalRoot=="Hotpot/TASK001/v10/r001/","Unexpected native theme");
+            Require(!File.Exists(Marker),"Historical split marker cannot enter native delivery");
+            var theme=JsonUtility.FromJson<Theme>(File.ReadAllText(Root+"presentation-theme.json"));
+            Require(theme.resourceRoot==LogicalRoot.TrimEnd('/'),"Native theme root mismatch");
+            var addresses=theme.assets.Select(a=>a.resourceAddress).Distinct().ToArray();
+            var pngs=Directory.GetFiles(Root,"*.png",SearchOption.AllDirectories).Select(p=>Slash(p).Substring("Assets/HotpotSort/Resources/".Length)).Select(p=>p.Substring(0,p.Length-4)).ToArray();
+            Require(addresses.OrderBy(p=>p).SequenceEqual(pngs.OrderBy(p=>p)),"Native theme texture inventory mismatch");
+            var extras=Directory.GetFiles("Assets/HotpotSort/Resources/Hotpot/TASK031","*.png",SearchOption.AllDirectories).Select(p=>Slash(p).Substring("Assets/HotpotSort/Resources/".Length)).Select(p=>p.Substring(0,p.Length-4));
+            Require(extras.OrderBy(p=>p).SequenceEqual(BrothResources.OrderBy(p=>p)),"Activity whitelist must contain exactly four formal assets");
+            var rows=new List<FileEntry>();
+            foreach(string address in addresses.Concat(BrothResources)){
+                string path="Assets/HotpotSort/Resources/"+address+".png";var texture=Resources.Load<Texture2D>(address);
+                Require(texture&&AssetDatabase.GetAssetPath(texture)==path&&File.Exists(path+".meta"),"Native resource missing: "+address);
+                Require(AssetDatabase.GetDependencies(path,true).All(p=>p==path),"Unexpected native texture dependency: "+address);
+                rows.Add(new FileEntry{path=path,destination=path,logicalPath=address,guid=AssetDatabase.AssetPathToGUID(path),sha256=Digest(path),metaSha256=Digest(path+".meta"),bytes=new FileInfo(path).Length,remote=false});
+            }
+            for(int i=0;i<32;i++){var texture=Resources.Load<Texture2D>(LogicalRoot+"food/food_"+i.ToString("00"));Require(texture&&texture.isReadable,"Native food alpha missing");}
+            return rows.ToArray();
+        }
+        public sealed class NativeResourceBuildGuard:UnityEditor.Build.IPreprocessBuildWithReport
+        {
+            public int callbackOrder=>0;
+            public void OnPreprocessBuild(UnityEditor.Build.Reporting.BuildReport report){if(LogicalRoot=="Hotpot/TASK001/v10/r001/")ValidateNativeResources();}
+        }
+        static string[] ExpectedRemote()=>Enumerable.Range(0,FoodCount).Select(i=>"food/food_"+i.ToString("00")).Concat(new[]{"containers/plate_main","containers/dish_buffer","pots/body","pots/broth","pots/rim","pots/unlit","hero/win"}).ToArray();
         static string Output(){var p=Environment.GetEnvironmentVariable("HOTPOT_V10_OUTPUT");Require(!string.IsNullOrWhiteSpace(p),"HOTPOT_V10_OUTPUT required");Directory.CreateDirectory(p);return Path.GetFullPath(p);}
         static void Write(string p,object value)=>File.WriteAllText(p,JsonUtility.ToJson(value,true),new UTF8Encoding(false));
         static void Execute(Action action){int exit=0;try{action();}catch(Exception e){exit=1;Debug.LogError("TASK002_V10_FAILED "+e);}finally{if(Application.isBatchMode)EditorApplication.Exit(exit);}}
@@ -48,7 +77,7 @@ namespace HotpotSort.Build
             Require(assets.Length>0,"No theme PNGs");var theme=JsonUtility.FromJson<Theme>(File.ReadAllText(Root+"presentation-theme.json"));Require(theme.resourceRoot==LogicalRoot.TrimEnd('/'),"Theme root mismatch");
             var rows=assets.Select(p=>{string relative=p.Substring(Root.Length,p.Length-Root.Length-4);return new FileEntry{path=p,guid=AssetDatabase.AssetPathToGUID(p),sha256=Digest(p),metaSha256=Digest(p+".meta"),bytes=new FileInfo(p).Length,logicalPath=LogicalRoot+relative,remote=IsRemote(relative),destination=IsRemote(relative)?MovedRoot+relative+".png":p};}).ToArray();
             Require(rows.Any(x=>x.remote)&&rows.Any(x=>!x.remote),"Theme must have local and remote assets");
-            foreach(string key in Enumerable.Range(0,16).Select(i=>"food."+i.ToString("00")).Concat(new[]{"plate.main","dish.buffer","pot.body","pot.broth","pot.rim","pot.unlit","hero.win"}))
+            foreach(string key in Enumerable.Range(0,FoodCount).Select(i=>"food."+i.ToString("00")).Concat(new[]{"plate.main","dish.buffer","pot.body","pot.broth","pot.rim","pot.unlit","hero.win"}))
                 Require(theme.assets.Any(a=>a.key==key&&rows.Any(x=>x.remote&&x.logicalPath==a.resourceAddress)),"Required remote key absent: "+key);
             Require(theme.assets.Select(x=>x.resourceAddress).Distinct().OrderBy(x=>x,StringComparer.Ordinal).SequenceEqual(rows.Select(x=>x.logicalPath).OrderBy(x=>x,StringComparer.Ordinal)),"Theme paths/aliases do not cover exact inventory");
             var scenes=EditorBuildSettings.scenes.Where(s=>s.enabled).Select(s=>s.path).ToArray();Require(scenes.SequenceEqual(new[]{"Assets/HotpotSort/Scenes/Boot.unity"}),"Build scene changed");
@@ -85,8 +114,8 @@ namespace HotpotSort.Build
             string release=Hash(Encoding.UTF8.GetBytes("1|"+fingerprint+"|"+full+"|"+local+"|"+plan.themeSha256));
             var manifest=new Release{releaseId=release,unityVersion=Application.unityVersion,buildTarget="WebGL",compatibilityFingerprint=fingerprint,bundle=new BundleEntry{relativePath=release+"/"+bundleName,byteLength=new FileInfo(bundleFile).Length,sha256=hashes[0],crc32=crc},assets=remote.Select(x=>new AssetEntry{logicalPath=x.logicalPath,bundleAssetName=x.logicalPath.ToLowerInvariant(),type="Texture2D"}).ToArray(),localAssetSetHash=local,themeSha256=plan.themeSha256,fullAssetSetHash=full};
             string deployment=Path.Combine(output,"deployment",release);Directory.CreateDirectory(deployment);File.Copy(bundleFile,Path.Combine(deployment,bundleName),false);Write(Path.Combine(deployment,"manifest.json"),manifest);
-            Write(Path.Combine(output,"equivalence.json"),new Equivalence{status="PASS",firstHash=hashes[0],secondHash=hashes[1],deterministic=true,remoteCount=remote.Length,localCount=plan.assets.Length-remote.Length,alphaProbes=16,source=baseline,bundle=actual,cases=new[]{"Exact theme inventory split","Remote absent from Resources","PNG/meta/GUID preserved","Two deterministic WebGL bundles","Texture and Sprite metadata equivalence","16 complete Alpha planes match","No unexpected bundle assets"}});
-            Debug.Log("TASK002_V10_BUNDLE_PASS remote=31 local=33 deterministic=true bytes="+manifest.bundle.byteLength);
+            Write(Path.Combine(output,"equivalence.json"),new Equivalence{status="PASS",firstHash=hashes[0],secondHash=hashes[1],deterministic=true,remoteCount=remote.Length,localCount=plan.assets.Length-remote.Length,alphaProbes=FoodCount,source=baseline,bundle=actual,cases=new[]{"Exact theme inventory split","Remote absent from Resources","PNG/meta/GUID preserved","Two deterministic WebGL bundles","Texture and Sprite metadata equivalence",FoodCount+" complete Alpha planes match","No unexpected bundle assets"}});
+            Debug.Log("TASK002_V10_BUNDLE_PASS remote="+remote.Length+" local="+(plan.assets.Length-remote.Length)+" deterministic=true bytes="+manifest.bundle.byteLength);
         });
         [Serializable] sealed class SizeResult {public string status,output,dataSha256,wasmSha256;public long dataBytes,wasmBytes,combinedBytes,limitBytes=30408704;public bool belowLimit,realSdkConversion=false,playerFlowIntegrated=false;}
         public static void BuildBootstrapSize()=>Execute(()=>{

@@ -29,6 +29,15 @@ namespace HotpotSort.Core
             ConfigurationDigest = CanonicalJson.Hash(CanonicalJson.Write(CanonicalJson.Object("contentDigest", content.Digest, "catalogDigest", CatalogDigest)));
         }
         public IGameSession CreateSession(ChallengeContext context) => CreateDailySession(context);
+        // One selected factory is shared by warmup and formal stages of the same run.
+        // CatalogDigest already records the actual subset in snapshots and replay metadata.
+        public DailySessionFactory WithIngredientSelection(IEnumerable<string> ingredientIds)
+        {
+            if(ingredientIds==null)throw new ArgumentNullException(nameof(ingredientIds));
+            var ids=ingredientIds.ToArray();
+            if(ids.Length!=16||ids.Distinct(StringComparer.Ordinal).Count()!=16||ids.Any(x=>CollectionCatalog.Index(x)<0))throw new ArgumentException("Exactly 16 known ingredients required");
+            return new DailySessionFactory(Content,ids.Select(id=>new IngredientEntry(id,"food/"+id,id,"alpha-hit-radius-16-board-units","standard",Content.ContentVersion)));
+        }
         public DailySession CreateStage(ChallengeContext context, ChallengeStage stage, int inheritedPotMask=0)
             => new DailySession(this,context,null,DailyRulesVersion.RevivalV3,stage,inheritedPotMask);
         public DailySessionFactory ForReplayContent(string digest)
@@ -36,7 +45,7 @@ namespace HotpotSort.Core
             if(Content.Digest==digest)return this;
             var historical=KnownDailyProfiles.Resolve(Content,digest);
             // Catalog embeds contentVersion; never reuse the current catalog hash.
-            return FromProductionJson(historical.CanonicalJsonText);
+            return new DailySessionFactory(historical,Catalog.Select(x=>new IngredientEntry(x.IngredientId,x.ResourceAddress,x.DisplayNameKey,x.ColliderSpec,x.SizeClass,historical.ContentVersion)));
         }
         public DailySession CreateDailySession(ChallengeContext context, DailyRulesVersion rules = DailyRulesVersion.RevivalV3) => new DailySession(this, context, null, rules);
         public DailySession CreateFixtureSession(ChallengeContext context, DailyFixture fixture, DailyRulesVersion rules = DailyRulesVersion.RevivalV3) => new DailySession(this, context, fixture ?? throw new ArgumentNullException(nameof(fixture)), rules);

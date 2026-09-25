@@ -46,6 +46,203 @@ namespace HotpotSort.Bootstrap
         private Viewport appliedViewport;
         private ViewSnapshot shown=new ViewSnapshot { phase=ViewPhase.Entry };
         private IProfileStore profile;
+        private ICollectionStore collection;
+        public IBrothActivityService BrothActivity {get;private set;}
+        private HotpotSort.Platform.WeChatActivityLinkService brothLinks;
+        private string developmentBrothInvitation;
+        private bool brothBusy,brothInspecting,brothAddedPause;
+        private long brothGeneration;
+        private string brothShownInvitation,brothObservedInvitation;
+        private double brothNextInspect;
+        public CollectionDocument BrothCollection=>collection?.ReadCollection();
+        public string PendingBrothInvitationId=>BrothActivity?.IsDevelopmentSimulation==true?developmentBrothInvitation:brothLinks?.PendingInvitationId;
+        public void ReceiveDevelopmentBrothInvitation(string invitationId)
+        {if(BrothActivity?.IsDevelopmentSimulation!=true)return;developmentBrothInvitation=invitationId;OnBrothActivityChanged();}
+        public event Action BrothActivityChanged;
+        public void ConfigureBrothActivity(IBrothActivityService service,HotpotSort.Platform.WeChatActivityLinkService links)
+        {
+            if(!ReferenceEquals(BrothActivity,service)){brothGeneration++;brothBusy=false;brothInspecting=false;brothShownInvitation=null;if(view)view.SetBrothOperationState(false);}
+            if(brothLinks!=null)brothLinks.PendingInvitationChanged-=OnBrothActivityChanged;
+            if(!ReferenceEquals(BrothActivity,service))(BrothActivity as IDisposable)?.Dispose();
+            BrothActivity=service;brothLinks=links;
+            if(brothLinks!=null)brothLinks.PendingInvitationChanged+=OnBrothActivityChanged;
+            OnBrothActivityChanged();if(service!=null)_=RefreshBrothAsync();
+        }
+        void OnBrothActivityChanged()
+        {
+            if(view)view.UpdateBrothPresentation(BrothCollection,BrothActivity?.IsDevelopmentSimulation==true);
+            if(brothObservedInvitation!=PendingBrothInvitationId){brothObservedInvitation=PendingBrothInvitationId;brothShownInvitation=null;brothNextInspect=0;}
+            BrothActivityChanged?.Invoke();
+        }
+        void BindBrothPresentation(bool bind)
+        {
+            if(!view)return;
+            view.BrothActivityOpened-=OnBrothOpened;view.BrothActivityClosed-=OnBrothClosed;
+            view.BrothRefreshRequested-=OnBrothRefresh;view.BrothInvitationShareRequested-=OnBrothShare;
+            view.BrothAssistConfirmRequested-=OnBrothConfirm;view.BrothInvitationDismissRequested-=OnBrothDismiss;
+            view.BrothClaimRequested-=OnBrothClaim;view.BrothSelectRequested-=OnBrothSelect;
+            if(!bind)return;
+            view.BrothActivityOpened+=OnBrothOpened;view.BrothActivityClosed+=OnBrothClosed;
+            view.BrothRefreshRequested+=OnBrothRefresh;view.BrothInvitationShareRequested+=OnBrothShare;
+            view.BrothAssistConfirmRequested+=OnBrothConfirm;view.BrothInvitationDismissRequested+=OnBrothDismiss;
+            view.BrothClaimRequested+=OnBrothClaim;view.BrothSelectRequested+=OnBrothSelect;
+            OnBrothActivityChanged();
+        }
+        void OnBrothOpened(){BrothPause();}
+        void BrothPause(){if(current!=null&&controller!=null&&(controller.Pauses&PauseReasons.User)==0){brothAddedPause=true;actions?.Request(Contracts.SessionAction.Pause);}}
+        void OnBrothClosed(){brothGeneration++;brothBusy=false;brothInspecting=false;if(brothAddedPause){brothAddedPause=false;actions?.Request(Contracts.SessionAction.Resume);}}
+        void OnBrothDismiss(string id){if(id==PendingBrothInvitationId)DismissBrothInvitation();}
+        void OnBrothRefresh()=>RunBrothOperation("read",null);
+        void OnBrothShare()=>RunBrothOperation("share",null);
+        void OnBrothConfirm(string id){if(id==PendingBrothInvitationId&&id==brothShownInvitation)RunBrothOperation("assist",id);}
+        void OnBrothClaim(string id)=>RunBrothOperation("claim",id);
+        void OnBrothSelect(string id)=>RunBrothOperation("select",id);
+        static string BrothError(BrothFailure failure)
+        {
+            switch(failure){
+                case BrothFailure.Offline:return "网络未连接或请求超时，请重试";
+                case BrothFailure.SelfAssist:return "不能为自己助力";
+                case BrothFailure.AlreadyAssisted:return "你已帮助过这位玩家，不会重复发奖";
+                case BrothFailure.ActivityComplete:return "对方已获得助力，无需再次帮助";
+                case BrothFailure.DailyLimit:return "今日已帮助 3 人，明天再来吧";
+                case BrothFailure.NotQualified:return "暂未获得选择资格，请先完成活动条件";
+                case BrothFailure.AlreadyChosen:return "本活动已选择锅底，不能改选";
+                case BrothFailure.NotOwned:return "尚未拥有这个锅底";
+                case BrothFailure.Stale:return "状态已更新，请确认后重试";
+                case BrothFailure.NotFound:return "邀请不存在，请重新获取邀请";
+                case BrothFailure.Unauthenticated:return "账号尚未登录，请稍后重试";
+                case BrothFailure.Unavailable:return "活动服务暂不可用，请稍后重试";
+                default:return "操作未完成，请重试";
+            }
+        }
+        async void RunBrothOperation(string action,string argument)
+        {
+            if(brothBusy||!view)return;
+            var service=BrothActivity;var doc=BrothCollection;
+            if(service==null||doc==null){view.SetBrothOperationState(false,BrothError(BrothFailure.Unavailable));return;}
+            long generation=brothGeneration;string account=doc.account,invitation=PendingBrothInvitationId;
+            bool Current()=>this&&view&&(action=="select"?view.CollectionVisible:view.BrothVisible)&&generation==brothGeneration&&ReferenceEquals(service,BrothActivity)&&BrothCollection?.account==account&&(action!="assist"||invitation==PendingBrothInvitationId);
+            string key="Hotpot.BrothIntent."+doc.environment+"."+account+"."+action+"."+(argument??"");
+            brothBusy=true;view.SetBrothOperationState(true,"正在处理…");
+            try{
+                string operation=PlayerPrefs.GetString(key,"");if(operation.Length==0){operation=Guid.NewGuid().ToString("N");PlayerPrefs.SetString(key,operation);PlayerPrefs.Save();}
+                BrothResult result;
+                if(action=="read")result=await service.ReadAsync(Guid.NewGuid().ToString("N"));
+                else if(action=="share")result=await ShareBrothInvitationAsync(operation);
+                else if(action=="assist")result=await service.ConfirmAssistAsync(Guid.NewGuid().ToString("N"),argument,operation);
+                else if(action=="claim")result=await service.ClaimAsync(Guid.NewGuid().ToString("N"),argument,operation);
+                else result=await service.SelectAsync(Guid.NewGuid().ToString("N"),argument,operation);
+                if(!Current())return;
+                // Service has already validated and applied the authoritative snapshot.
+                OnBrothActivityChanged();
+                if(result.Succeeded){
+                    PlayerPrefs.DeleteKey(key);PlayerPrefs.Save();
+                    view.SetBrothOperationState(false,action=="share"?(service.IsDevelopmentSimulation?"Development 模拟：邀请已创建":"已打开分享，请等待对方确认助力"):"");
+                    if(action=="assist")view.ShowBrothAssistSuccess(argument);
+                }else{
+                    if(result.failure==BrothFailure.Stale||result.failure==BrothFailure.OperationConflict){PlayerPrefs.DeleteKey(key);PlayerPrefs.Save();await service.ReadAsync(Guid.NewGuid().ToString("N"));}
+                    if(Current())view.SetBrothOperationState(false,BrothError(result.failure));
+                }
+            }catch(Exception ex){Debug.LogWarning("Broth operation unavailable: "+ex.GetType().Name);if(Current())view.SetBrothOperationState(false,"操作未完成，请重试");}
+            finally{if(generation==brothGeneration){brothBusy=false;if(!Current()&&view)view.SetBrothOperationState(false);}}
+        }
+        // Defer landing until entry, preserving current gameplay/modal ownership.
+        // A blocked ingredient draft retains its pending link and is retried later.
+        async void TryPresentBrothInvitation()
+        {
+            if(!view||BrothActivity==null||PendingBrothInvitationId==null||brothBusy||brothInspecting||brothShownInvitation==PendingBrothInvitationId||Time.realtimeSinceStartupAsDouble<brothNextInspect)return;
+            if(shown.phase!=ViewPhase.Entry||friendSurfaceOpen||view.CollectionRewardVisible)return;
+            var service=BrothActivity;string invitation=PendingBrothInvitationId,account=BrothCollection?.account;long generation=brothGeneration;
+            brothInspecting=true;brothNextInspect=Time.realtimeSinceStartupAsDouble+3;
+            try{
+                var result=await service.InspectInvitationAsync(Guid.NewGuid().ToString("N"),invitation);
+                if(!this||!view||generation!=brothGeneration||!ReferenceEquals(service,BrothActivity)||PendingBrothInvitationId!=invitation||BrothCollection?.account!=account||shown.phase!=ViewPhase.Entry)return;
+                if(result.Succeeded&&result.invitation!=null){view.OpenBrothAssistConfirmation(result.invitation,service.IsDevelopmentSimulation);if(view.BrothVisible){brothShownInvitation=invitation;BrothPause();}}
+                else{view.OpenBrothAssistConfirmation(new BrothInvitation{invitationId=invitation},service.IsDevelopmentSimulation);if(view.BrothVisible)view.SetBrothOperationState(false,BrothError(result.failure));}
+            }catch(Exception ex){Debug.LogWarning("Broth invitation unavailable: "+ex.GetType().Name);}
+            finally{if(generation==brothGeneration)brothInspecting=false;}
+        }
+        public async Task<BrothResult> RefreshBrothAsync()
+        {
+            var service=BrothActivity;if(service==null)return new BrothResult{failure=BrothFailure.Unavailable};
+            var result=await service.ReadAsync(Guid.NewGuid().ToString("N"));
+            if(ReferenceEquals(service,BrothActivity))OnBrothActivityChanged();return result;
+        }
+        public Task<BrothResult> InspectPendingBrothInvitationAsync()
+            =>BrothActivity==null||PendingBrothInvitationId==null?Task.FromResult(new BrothResult{failure=BrothFailure.Unavailable}):BrothActivity.InspectInvitationAsync(Guid.NewGuid().ToString("N"),PendingBrothInvitationId);
+        public Task<BrothResult> ConfirmPendingBrothInvitationAsync(string operationId)
+            =>BrothActivity==null||PendingBrothInvitationId==null?Task.FromResult(new BrothResult{failure=BrothFailure.Unavailable}):BrothActivity.ConfirmAssistAsync(Guid.NewGuid().ToString("N"),PendingBrothInvitationId,operationId);
+        public void DismissBrothInvitation(){if(BrothActivity?.IsDevelopmentSimulation==true){developmentBrothInvitation=null;OnBrothActivityChanged();}else brothLinks?.Dismiss(PendingBrothInvitationId);}
+        public async Task<BrothResult> ShareBrothInvitationAsync(string operationId)
+        {
+            var service=BrothActivity;if(service==null)return new BrothResult{failure=BrothFailure.Unavailable};
+            var result=await service.CreateInvitationAsync(Guid.NewGuid().ToString("N"),operationId);
+            if(!ReferenceEquals(service,BrothActivity))return new BrothResult{failure=BrothFailure.Stale};
+            // Development returns its explicitly marked invite for a simulator to
+            // consume. Native share availability is never treated as assistance.
+            if(result.Succeeded&&!service.IsDevelopmentSimulation&&(brothLinks==null||!brothLinks.RequestShare(result.invitation?.invitationId)))result.failure=BrothFailure.Unavailable;
+            return result;
+        }
+        private HotpotSort.Platform.WeChatIngredientTradeService collectionAuthority;
+        private bool collectionToolBusy;
+        private string collectionSelectionSignature;
+        private bool applyingCollectionAuthority;
+        string CollectionPendingKey=>"Hotpot.CollectionSelection."+collection.ReadCollection().environment+"."+collection.ReadCollection().account;
+        [Serializable] sealed class PendingCollectionSelection {public List<string> selected;public string operation;public long revision;}
+        public void ConfigureCollectionAuthority(HotpotSort.Platform.WeChatIngredientTradeService authority)
+        {collectionAuthority=authority;BindCollection();_=SyncCollectionAsync();}
+        void BindCollection()
+        {
+            if(collection!=null)collection.CollectionChanged-=OnCollectionChanged;
+            collection=(profile as LocalDevelopmentServices)?.Collection;
+            collectionSelectionSignature=collection==null?null:string.Join(",",collection.ReadCollection().selected);
+            if(collection!=null)collection.CollectionChanged+=OnCollectionChanged;
+            // No trusted friend selector exists yet. Keep trade UI fail-closed.
+            if(view)view.ConfigureCollection(collection,null);
+            OnBrothActivityChanged();
+            if((profile as LocalDevelopmentServices)?.IsDevelopmentSimulation==true)
+                ConfigureBrothActivity((profile as LocalDevelopmentServices).BrothActivity,null);
+        }
+        async void OnCollectionChanged()
+        {
+            OnBrothActivityChanged();
+            view?.RefreshCollectionToolStock();
+            if(collection==null)return;
+            var doc=collection.ReadCollection();string signature=string.Join(",",doc.selected);
+            if(signature==collectionSelectionSignature)return;collectionSelectionSignature=signature;
+            if(applyingCollectionAuthority||rewardService?.IsDevelopmentSimulation!=false)return;
+            PlayerPrefs.SetString(CollectionPendingKey,JsonUtility.ToJson(new PendingCollectionSelection{selected=doc.selected,operation=Guid.NewGuid().ToString("N"),revision=doc.serverRevision}));PlayerPrefs.Save();
+            await SavePendingCollectionSelection();
+        }
+        async Task SavePendingCollectionSelection()
+        {
+            if(collectionAuthority==null||collection==null)return;
+            string key=CollectionPendingKey,json=PlayerPrefs.GetString(key,"");if(json.Length==0)return;
+            var pending=JsonUtility.FromJson<PendingCollectionSelection>(json);
+            var result=await collectionAuthority.SaveSelectionAsync(pending.selected,pending.revision,pending.operation);
+            if(result.Succeeded&&PlayerPrefs.GetString(key,"")==json){PlayerPrefs.DeleteKey(key);PlayerPrefs.Save();}
+            else if(result.failure==IngredientTradeFailure.Stale&&PlayerPrefs.GetString(key,"")==json)
+            {pending.revision=collection.ReadCollection().serverRevision;pending.operation=Guid.NewGuid().ToString("N");PlayerPrefs.SetString(key,JsonUtility.ToJson(pending));PlayerPrefs.Save();}
+        }
+        public async Task<IngredientTradeResult> SyncCollectionAsync()
+        {
+            if(collectionAuthority==null||collection==null)return null;
+            var result=await collectionAuthority.SyncAsync(collection.ReadCollection().pendingWins,Guid.NewGuid().ToString("N"));
+            await SavePendingCollectionSelection();return result;
+        }
+        public void ApplyCollectionAuthority(CollectionDocument snapshot)
+        {
+            applyingCollectionAuthority=true;
+            try
+            {
+                collection?.ApplyAuthoritativeSnapshot(snapshot);
+                string json=collection==null?"":PlayerPrefs.GetString(CollectionPendingKey,"");
+                if(json.Length>0)collection.TrySaveSelection(JsonUtility.FromJson<PendingCollectionSelection>(json).selected);
+            }
+            finally{applyingCollectionAuthority=false;}
+        }
+        public void PrepareCollectionSession()
+        {EnsureFactory();if(collection!=null)factory=factory.WithIngredientSelection(collection.CreateSessionSelection());}
         private IRewardService rewardService;
         private IFriendBoard friends;
         private IThemeShare sharing;
@@ -108,6 +305,7 @@ namespace HotpotSort.Bootstrap
             rewards?.InvalidateSession();
             if(profile is IAsyncProfileStore previous){previous.ProfileChanged-=OnProfileChanged;previous.InvalidateSyncCallbacks();}
             profile=store;rewardService=reward;friends=board;sharing=share;rewards=new RewardCoordinator(reward,store,utcNow);
+            BindCollection();
             if(store is IAsyncProfileStore sync){sync.ProfileChanged+=OnProfileChanged;_=SyncProfileAsync();}
         }
         public void ConfigureFriendSurface(IWeChatFriendBoardSurface surface,string ownerMarker)
@@ -151,6 +349,8 @@ namespace HotpotSort.Bootstrap
                 ConfigureServices(local,local,local,local);
             }
             view.RewardRequested+=RequestReward;
+            BindCollection();
+            BindBrothPresentation(true);
             view.SettingsRequested+=ShowSettings;
             view.FriendsRequested+=ShowFriends;
             view.ShareRequested+=ShareTheme;
@@ -165,16 +365,17 @@ namespace HotpotSort.Bootstrap
         }
         private void OnSessionObservation()
         {
+            TryPresentBrothInvitation();
             if(controller.CurrentViewport!=null && !ReferenceEquals(appliedViewport,controller.CurrentViewport))SetViewport(controller.CurrentViewport);
             if(!string.IsNullOrEmpty(controller.Error))ShowError("session-error",controller.Error);
             var pauses=(ViewPauseReasons)(int)controller.Pauses;
             if((observedPauses&ViewPauseReasons.Background)!=0&&(pauses&ViewPauseReasons.Background)==0)
-            {_=SyncProfileAsync();PublishFriendScore();RefreshFriendSurface();}
+            {_=SyncProfileAsync();_=SyncCollectionAsync();PublishFriendScore();RefreshFriendSurface();}
             observedPauses=pauses;
             ValidatePendingReward();
         }
-        private void OnDestroy() { rewards?.InvalidateSession();CloseFriendSurface();FriendSurfaceChanged-=OnFriendPresentationChanged;if(profile is IAsyncProfileStore sync){sync.ProfileChanged-=OnProfileChanged;sync.InvalidateSyncCallbacks();}if(controller!=null)controller.ObservationChanged-=OnSessionObservation; }
-        private void OnApplicationFocus(bool focused){if(focused){_=SyncProfileAsync();PublishFriendScore();RefreshFriendSurface();}}
+        private void OnDestroy() { BindBrothPresentation(false);ConfigureBrothActivity(null,null);if(collection!=null)collection.CollectionChanged-=OnCollectionChanged;rewards?.InvalidateSession();CloseFriendSurface();FriendSurfaceChanged-=OnFriendPresentationChanged;if(profile is IAsyncProfileStore sync){sync.ProfileChanged-=OnProfileChanged;sync.InvalidateSyncCallbacks();}if(controller!=null)controller.ObservationChanged-=OnSessionObservation; }
+        private void OnApplicationFocus(bool focused){if(focused){_=SyncProfileAsync();_=SyncCollectionAsync();PublishFriendScore();RefreshFriendSurface();}}
         public IGameSession CreateSession(ChallengeContext context)
             =>CreateStage(context,ChallengeStage.Warmup,0);
         public IGameSession CreateStage(ChallengeContext context,ChallengeStage stage,int inheritedPotMask)
@@ -183,7 +384,8 @@ namespace HotpotSort.Bootstrap
             (profile as IAsyncProfileStore)?.InvalidateSyncCallbacks();revivalRouteOffer=null;
             tutorialStep=stage==ChallengeStage.Warmup&&(profile as ITutorialProfileStore)?.WarmupTutorialCompleted!=true?ViewTutorialStep.WaitingForBoard:ViewTutorialStep.None;
             tutorialItemId=null;tutorialOrderSlot=-1;bufferWarning=pendingBufferWarning=false;
-            current=factory.CreateStage(context,stage,inheritedPotMask); return current;
+            var selectedContext=new ChallengeContext(context.ChallengeId,context.ContentVersion,factory.ConfigurationDigest,context.TimeSource,context.RetryIndex);
+            current=factory.CreateStage(selectedContext,stage,inheritedPotMask); return current;
         }
         public IGameView CreateView() { return this; }
         void IGameView.Bind(ISessionActions value) { actions=value; }
@@ -210,14 +412,30 @@ namespace HotpotSort.Bootstrap
             if(!bufferWarning&&tutorialStep==ViewTutorialStep.None&&snapshot.Status==GameStatus.Running&&update.snapshot.buffer.Count(i=>i!=null)==4&&profile is ITutorialProfileStore tutorialProfile&&!tutorialProfile.BufferWarningCompleted)pendingBufferWarning=true;
             update.snapshot.tutorialStep=tutorialStep;update.snapshot.tutorialItemId=tutorialItemId;update.snapshot.tutorialOrderSlot=tutorialOrderSlot;update.snapshot.bufferWarning=bufferWarning;
             if(snapshot.Status==GameStatus.Won && current.Stage!=ChallengeStage.Warmup && winRecordedSession!=snapshot.SessionId)
-            {profile.RecordFirstWin(snapshot.Challenge.ChallengeId);winRecordedSession=snapshot.SessionId;}
+            {profile.RecordFirstWin(snapshot.Challenge.ChallengeId);winRecordedSession=snapshot.SessionId;view.CollectionSettlementPending=true;}
             shown=update.snapshot; Updated?.Invoke(update);
+            if(view.CollectionSettlementPending&&snapshot.Status==GameStatus.Won&&collectionRewardSession!=snapshot.SessionId)
+            {collectionRewardSession=snapshot.SessionId;PresentCollectionWin(snapshot.SessionId,controller.Generation);}
             ValidatePendingReward();
+        }
+        string collectionRewardSession;
+        async void PresentCollectionWin(string sessionId,long generation)
+        {
+            try
+            {
+                var reward=collection?.RecordWin(sessionId,rewards.UtcNow,rewardService.IsDevelopmentSimulation);
+                if(!rewardService.IsDevelopmentSimulation)
+                {var result=await SyncCollectionAsync();reward=result?.collection?.rewards.FirstOrDefault(r=>r.sessionId==sessionId);}
+                if(!this||!view||current?.Snapshot.SessionId!=sessionId||controller.Generation!=generation)return;
+                if(reward==null||!view.ShowCollectionReward(reward,view.CompleteCollectionSettlement))view.CompleteCollectionSettlement();
+            }
+            catch(Exception ex){Debug.LogWarning("Collection reward pending: "+ex.GetType().Name);if(this&&view&&current?.Snapshot.SessionId==sessionId)view.CompleteCollectionSettlement();}
         }
         public void ShowLoading() { showingError=false; }
         public void ShowError(string code,string message) { showingError=true; view.ShowError(message); }
         public void ResetSession()
         {
+            view?.ResetCollectionTransientPresentation();if(view)view.CompleteCollectionSettlement();collectionRewardSession=null;
             rewards?.InvalidateSession();pendingRevivalRequest=null;
             CloseFriendSurface();revivalRouteOffer=null;
             (profile as IAsyncProfileStore)?.InvalidateSyncCallbacks();
@@ -229,6 +447,8 @@ namespace HotpotSort.Bootstrap
         public ViewSnapshot Read() { return shown; }
         public void SessionAction(ViewAction action)
         {
+            if(collectionToolBusy)return;
+            if(action==ViewAction.Exit&&view.HandleCollectionBack())return;
             if(action==ViewAction.Exit||action==ViewAction.RetrySameDay||action==ViewAction.Resume)CloseFriendSurface();
             switch(action)
             {
@@ -282,6 +502,7 @@ namespace HotpotSort.Bootstrap
         }
         private void Update()
         {
+            TryPresentBrothInvitation();
             if(controller==null)return;
             if(current!=null&&tutorialStep==ViewTutorialStep.WaitingForBoard&&controller.CanAcceptInput&&DailyViewMapper.PendingHead(current.Snapshot)==0&&
                 view.LastSnapshot?.sessionId==current.Snapshot.SessionId&&view.World.HasSettledInitialBoard(shown.plates.Length))
@@ -346,8 +567,27 @@ namespace HotpotSort.Bootstrap
         }
         async void RequestReward(RewardKind kind,RewardRoute route)
         {
+            if(collectionToolBusy)return;
             if(kind==RewardKind.Revival){await RequestRevivalAsync();return;}
             if(!HasTarget(kind)){view.ShowNotice("暂无有效目标","当前没有可使用该道具的目标，不会领取奖励或扣除次数。");return;}
+            if(view.CollectionToolCount(kind)>0)
+            {
+                collectionToolBusy=true;var expected=current;long generation=controller.Generation;
+                controller.SetRewardPaused(true);
+                try
+                {
+                    string toolKey=CollectionPendingKey+".tool."+(int)kind;
+                    string operation=PlayerPrefs.GetString(toolKey,"");if(operation.Length==0){operation=Guid.NewGuid().ToString("N");PlayerPrefs.SetString(toolKey,operation);PlayerPrefs.Save();}
+                    bool consumed=rewardService.IsDevelopmentSimulation?collection.TryConsumeTool(kind,operation):collectionAuthority!=null&&(await collectionAuthority.ConsumeAsync(kind,operation)).Succeeded;
+                    if(consumed){PlayerPrefs.DeleteKey(toolKey);PlayerPrefs.Save();}
+                    if(ReferenceEquals(expected,current)&&generation==controller.Generation)controller.SetRewardPaused(false);
+                    if(consumed&&ReferenceEquals(expected,current)&&generation==controller.Generation)ApplyReward(kind);
+                    else if(!consumed)view.ShowNotice("道具暂不可用","请联网后重试，免费库存尚未确认。");
+                }
+                catch(Exception ex){Debug.LogWarning("Collection tool unavailable: "+ex.GetType().Name);}
+                finally{if(ReferenceEquals(expected,current)&&generation==controller.Generation)controller.SetRewardPaused(false);collectionToolBusy=false;}
+                return;
+            }
             route=RewardRoutes.ForService(route,rewardService.IsDevelopmentSimulation);
             if(route==RewardRoute.WeChatRewardedVideo&&rewardService is IRewardChannelAvailability channels&&!channels.IsRewardedVideoAvailable)
             {view.ShowNotice("广告暂不可用","当前版本未配置或未启用激励视频。没有发放奖励，也不会扣除分享次数。");return;}
@@ -458,5 +698,69 @@ namespace HotpotSort.Bootstrap
             }
             catch(Exception ex){Debug.LogWarning("Settlement share unavailable: "+ex.GetType().Name);}
         }
+#if UNITY_EDITOR
+        const string BrothSmokeKey="Task031.IntegrationSmoke";
+        [UnityEditor.InitializeOnLoadMethod] static void RegisterBrothSmoke()
+        {
+            UnityEditor.EditorApplication.playModeStateChanged+=state=>{if(state==UnityEditor.PlayModeStateChange.EnteredPlayMode&&UnityEditor.SessionState.GetBool(BrothSmokeKey,false))RunBrothSmokeBody();};
+        }
+        public static void RunBrothIntegrationDiagnostic()
+        {
+            UnityEditor.SessionState.SetBool(BrothSmokeKey,true);
+            UnityEditor.SceneManagement.EditorSceneManager.OpenScene("Assets/HotpotSort/Scenes/Boot.unity");
+            UnityEditor.EditorApplication.EnterPlaymode();
+        }
+        sealed class BrothSmokePersistence:ICollectionPersistence
+        {
+            CollectionDocument document;
+            public CollectionDocument Load()=>document;
+            public void Save(CollectionDocument value){document=HotpotSort.Collection.CollectionStore.Copy(value);}
+        }
+        static async void RunBrothSmokeBody()
+        {
+            string output=Environment.GetEnvironmentVariable("HOTPOT_BROTH_EVIDENCE");
+            var checks=new List<string>();var errors=new List<string>();DailyProductionComposition daily=null;
+            Application.LogCallback capture=(message,stack,type)=>{if(type==LogType.Error||type==LogType.Exception||type==LogType.Assert)errors.Add(message);};Application.logMessageReceived+=capture;
+            try{
+                if(string.IsNullOrEmpty(output))throw new InvalidOperationException("HOTPOT_BROTH_EVIDENCE required");System.IO.Directory.CreateDirectory(output);
+                double deadline=UnityEditor.EditorApplication.timeSinceStartup+60;
+                while(daily==null||!daily.PlayerView){daily=UnityEngine.Object.FindFirstObjectByType<DailyProductionComposition>();if(UnityEditor.EditorApplication.timeSinceStartup>deadline)throw new TimeoutException("Boot entry unavailable");await Task.Yield();}
+                var boot=UnityEngine.Object.FindFirstObjectByType<Bootstrap>();while(!boot.IsConfigured){if(UnityEditor.EditorApplication.timeSinceStartup>deadline)throw new TimeoutException(boot.Status);await Task.Yield();}
+                void Check(bool pass,string message){if(!pass)throw new Exception(message);checks.Add(message);Debug.Log("TASK031_INTEGRATION_PASS "+message);}
+                async Task Frames(){for(int i=0;i<4;i++)await Task.Yield();}
+                async Task Shot(string name){await Frames();var captureType=Type.GetType("HotpotSort.Task001V7.VisualCapture, HotpotSort.Task001V7.Editor",true);captureType.GetMethod("Capture",new[]{typeof(GameplayView),typeof(int),typeof(int),typeof(string)}).Invoke(null,new object[]{daily.view,1080,1920,System.IO.Path.Combine(output,name+".png")});await Frames();}
+                void Event(string name,string argument){var field=typeof(GameplayView).GetField(name,System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic);var action=field?.GetValue(daily.view) as Action<string>;Check(action!=null,name+" wired");action(argument);}
+                bool TextContains(string text)=>daily.view.GetComponentsInChildren<Component>().Any(c=>c.GetType().Name=="Text"&&((string)c.GetType().GetProperty("text").GetValue(c)).Contains(text));
+                var local=new LocalDevelopmentServices("Hotpot.Task031.Smoke."+Guid.NewGuid().ToString("N"));daily.ConfigureServices(local,local,local,local);
+                Check(daily.BrothActivity.IsDevelopmentSimulation,"real Boot configured development broth service");
+                Check(!daily.view.GetComponentsInChildren<Transform>().Any(t=>t.name=="BrothActivityEntry"),"first-time activity entrance hidden");
+                await Shot("boot-first-time");
+                var hostStore=new HotpotSort.Collection.CollectionStore("development","smoke-host",new BrothSmokePersistence());((HotpotSort.Collection.CollectionStore)hostStore).ImportCompletedWinHistory(true);
+                var host=new HotpotSort.Collection.BrothActivityStore(local.DevelopmentBroths,hostStore);var invitation=await host.CreateInvitationAsync("smoke-create","host-create");
+                daily.ReceiveDevelopmentBrothInvitation(invitation.invitation.invitationId);await Frames();
+                Check(daily.view.BrothVisible&&!daily.BrothCollection.entryUnlocked,"pending invite opens before first win");
+                Check(TextContains("Development 模拟"),"simulation label visible");Check(local.Collection.ReadCollection().tools.All(n=>n==0),"opening confirmation grants no reward");await Shot("friend-confirm");
+                Event("BrothAssistConfirmRequested",invitation.invitation.invitationId);await Frames();
+                Check(local.Collection.ReadCollection().tools.SequenceEqual(new[]{1,1,1}),"explicit confirmation grants three tools once");
+                Check(TextContains("奖励已到账"),"confirmed success rendered");await Shot("friend-success");daily.view.CloseBrothActivity();
+                ((HotpotSort.Collection.CollectionStore)local.Collection).ImportCompletedWinHistory(true);
+                var own=await daily.BrothActivity.CreateInvitationAsync("own-create","own-invite");
+                var helperStore=new HotpotSort.Collection.CollectionStore("development","smoke-helper",new BrothSmokePersistence());var helper=new HotpotSort.Collection.BrothActivityStore(local.DevelopmentBroths,helperStore);
+                await helper.ConfirmAssistAsync("helper-request",own.invitation.invitationId,"helper-assist");await daily.RefreshBrothAsync();
+                daily.view.OpenBrothActivity();await Frames();Check(BrothCatalog.HasClaimReminder(daily.BrothCollection),"qualified activity reminder visible");await Shot("activity-qualified");
+                daily.view.ShowBrothClaimConfirmation(BrothCatalog.Tomato);await Shot("claim-confirm");Event("BrothClaimRequested",BrothCatalog.Tomato);await Frames();
+                Check(daily.BrothCollection.brothActivityChoice==BrothCatalog.Tomato&&daily.view.PresentedBrothId==BrothCatalog.Tomato,"claim event updates authority and presented soup");
+                Check(!BrothCatalog.HasClaimReminder(daily.BrothCollection),"claim clears reminder");daily.view.CloseBrothActivity();daily.view.OpenBrothCollection();await Shot("collection-owned");
+                Event("BrothSelectRequested",BrothCatalog.Red);await Frames();Check(daily.BrothCollection.currentBroth==BrothCatalog.Red&&daily.BrothCollection.brothActivityChoice==BrothCatalog.Tomato,"collection switch preserves immutable choice");
+                Check(TaskAssetValidation.Validate(PresentationAssets.CandidateRoot,true).Length==0,"complete formal asset validation");
+                Check(daily.view.GetComponentsInChildren<Component>().Where(c=>c.GetType().Name=="RawImage").All(c=>c.GetType().GetProperty("texture").GetValue(c)!=null),"no missing page textures");
+                Check(errors.Count==0,"no Unity error or exception during Boot and activity flow");
+                System.IO.File.WriteAllLines(System.IO.Path.Combine(output,"checks.txt"),checks);
+                System.IO.File.WriteAllText(System.IO.Path.Combine(output,"scope.txt"),"Real Unity Boot PlayMode, production composition event wiring with explicit Development authority. No live cloud, deployment, or device claims.");
+                daily.view.Bind(null);daily.view.World.Clear();daily.view.gameObject.SetActive(false);Debug.Log("TASK031_INTEGRATION_SMOKE_OK");
+                Application.logMessageReceived-=capture;UnityEditor.SessionState.SetBool(BrothSmokeKey,false);UnityEditor.EditorApplication.Exit(0);
+            }catch(Exception ex){Application.logMessageReceived-=capture;Debug.LogError("TASK031_INTEGRATION_SMOKE_FAILED "+ex);if(!string.IsNullOrEmpty(output))System.IO.File.WriteAllText(System.IO.Path.Combine(output,"failure.txt"),ex.ToString()+"\n"+string.Join("\n",errors));UnityEditor.SessionState.SetBool(BrothSmokeKey,false);UnityEditor.EditorApplication.Exit(1);}
+        }
+#endif
     }
 }

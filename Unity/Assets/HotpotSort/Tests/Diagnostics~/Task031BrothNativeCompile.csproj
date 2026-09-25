@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+ <PropertyGroup><TargetFramework>net10.0</TargetFramework><EnableDefaultCompileItems>false</EnableDefaultCompileItems><ImplicitUsings>disable</ImplicitUsings><Nullable>disable</Nullable><DefineConstants>UNITY_WEBGL</DefineConstants><UnityManaged>D:/GameDev/Tools/Unity/6000.0.26f1/Editor/Data/Managed/UnityEngine</UnityManaged></PropertyGroup>
+ <ItemGroup>
+  <Compile Include="../../Contracts/*.cs"/>
+  <Compile Include="../../Runtime/**/*.cs" Exclude="../../Runtime/**/Editor/**/*.cs;../../Runtime/**/Diagnostics~/**/*.cs;../../Runtime/**/obj/**/*.cs;../../Runtime/**/bin/**/*.cs"/>
+  <Reference Include="$(UnityManaged)/*.dll"/>
+  <Reference Include="../../../../Library/ScriptAssemblies/Wx.dll"/>
+  <Reference Include="../../../../Library/ScriptAssemblies/UnityEngine.UI.dll"/>
+  <Reference Include="../../../../Packages/com.qq.weixin.minigame/Runtime/Plugins/wx-runtime-editor.dll"/>
+ </ItemGroup>
+</Project>

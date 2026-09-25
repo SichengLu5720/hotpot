@@ -9,6 +9,7 @@ namespace HotpotSort.Platform
         public WeChatRuntimeConfig Config { get; }
         public IWeChatRewardRuntime Runtime { get; }
         public WeChatShareService Share { get; }
+        public WeChatActivityLinkService ActivityLinks { get; }
         public WeChatRewardService Rewards { get; }
         public IWeChatFriendBoardSurface Friends { get; }
         public bool MenuRegistered { get; }
@@ -19,6 +20,7 @@ namespace HotpotSort.Platform
             try
             {
                 Share=new WeChatShareService(Config,Runtime);Rewards=new WeChatRewardService(Config,Runtime,Share);
+                ActivityLinks=new WeChatActivityLinkService(Config);
                 MenuRegistered=Share.RegisterMenu();
                 if(Runtime.Available&&Config.FriendBoardState==WeChatCapabilityState.Ready)Friends=friendFactory!=null?friendFactory():new WeChatFriendBoardSurface();
             }
@@ -27,6 +29,7 @@ namespace HotpotSort.Platform
         public void Dispose()
         {
             if(disposed)return;disposed=true;
+            ActivityLinks?.Dispose();
             try{Friends?.Dispose();}
             finally{try{Rewards?.Dispose();}finally{try{Share?.Dispose();}finally{(Runtime as IDisposable)?.Dispose();}}}
         }

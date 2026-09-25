@@ -84,7 +84,7 @@ namespace HotpotSort.Presentation
         private string assetRoot;
         private readonly Dictionary<string,Sprite> uiSprites=new Dictionary<string,Sprite>();
         private TaskCompletionSource<RewardOutcome> simulation;
-        private readonly Texture2D[] foods = new Texture2D[16];
+        private readonly Texture2D[] foods = new Texture2D[32];
         private Texture2D plate;
         private Sprite rounded;
         private Texture2D roundedTexture;
@@ -170,10 +170,10 @@ namespace HotpotSort.Presentation
             }
         }
         private void SettlementButtons(System.Action create)
-        {if(!IsSettlement||settlementElapsed>=1.5f)create();else settlementShowButtons=create;}
+        {if(!CollectionSettlementPending&&(!IsSettlement||settlementElapsed>=1.5f))create();else settlementShowButtons=create;}
         private void TickSettlement(float delta)
         {
-            if(!settlementStarted||!IsSettlement||settlementElapsed>=1.5f||!foreground||!settlementAppFocused||settlementAppPaused||!canvasRoot.gameObject.activeInHierarchy)return;
+            if(!settlementStarted||!IsSettlement||CollectionSettlementPending||!foreground||!settlementAppFocused||settlementAppPaused||!canvasRoot.gameObject.activeInHierarchy)return;
             settlementElapsed=Mathf.Min(1.5f,settlementElapsed+Mathf.Max(0,delta));PaintSettlement();
             if(settlementElapsed>=1.5f){var create=settlementShowButtons;settlementShowButtons=null;create?.Invoke();}
         }
@@ -221,11 +221,11 @@ namespace HotpotSort.Presentation
         public void SetViewport(Rect screenPixelSafeArea,float pixelScreenHeight=0)
         { SetViewport(screenPixelSafeArea,pixelScreenHeight,new Rect()); }
         public void SetViewport(Rect screenPixelSafeArea,float pixelScreenHeight,Rect screenPixelMenuButton)
-        { externalViewport = true; viewport = screenPixelSafeArea;viewportScreenHeight=pixelScreenHeight;menuButtonPixels=screenPixelMenuButton;viewportAppliedAt=new Vector2Int(Screen.width,Screen.height);Render();UpdateFriendBoardPresentation(); }
+        { externalViewport = true; viewport = screenPixelSafeArea;viewportScreenHeight=pixelScreenHeight;menuButtonPixels=screenPixelMenuButton;viewportAppliedAt=new Vector2Int(Screen.width,Screen.height);Render();UpdateFriendBoardPresentation();ResizeCollectionPresentation(); }
         public void SetForeground(bool value) { if(!value)CancelInteractionFeedback();foreground = value;Audio?.SetForeground(value); UpdateSimulation(); }
         public void Hide(bool hidden) { if(hidden)CancelInteractionFeedback();canvasRoot.gameObject.SetActive(!hidden); UpdateSimulation(); }
         private void UpdateSimulation() { World.SetSimulating(foreground && canvasRoot.gameObject.activeInHierarchy && !FriendBoardVisible && LastSnapshot.phase==ViewPhase.Running && LastSnapshot.pauseReasons==ViewPauseReasons.None); }
-        public void ResetView() { CancelWarmupPresentation();CancelScreenPress();CancelShuffleFeedback(); simulation?.TrySetResult(RewardOutcome.Cancelled);simulation=null;pending.Clear();Array.Clear(serving,0,4); LastEventSequence=0; LastTransactionId=null; feedback.ResetFeedback(); World.Clear(); LastSnapshot=new ViewSnapshot { phase=ViewPhase.Entry }; Render(); }
+        public void ResetView() { ResetCollectionTransientPresentation();CollectionSettlementPending=false;CancelWarmupPresentation();CancelScreenPress();CancelShuffleFeedback(); simulation?.TrySetResult(RewardOutcome.Cancelled);simulation=null;pending.Clear();Array.Clear(serving,0,4); LastEventSequence=0; LastTransactionId=null; feedback.ResetFeedback(); World.Clear(); LastSnapshot=new ViewSnapshot { phase=ViewPhase.Entry }; Render(); }
         public void ShowError(string message)
         { CancelWarmupPresentation();CancelScreenPress();CancelShuffleFeedback(); feedback.ResetFeedback(); LastSnapshot = new ViewSnapshot { sessionId=LastSnapshot?.sessionId, phase=ViewPhase.Aborted, message=message }; World.Clear(); Render(); }
         public void DestroyView() { Destroy(gameObject); }
@@ -276,6 +276,7 @@ namespace HotpotSort.Presentation
         }
         private void Update()
         {
+            if(Input.GetKeyDown(KeyCode.Escape)&&HandleCollectionBack())return;
             if(art!=null&&Application.platform==RuntimePlatform.WindowsPlayer&&viewportScreenHeight<=0&&viewportAppliedAt!=new Vector2Int(Screen.width,Screen.height))
             {viewportAppliedAt=new Vector2Int(Screen.width,Screen.height);viewport=Screen.safeArea;Render();}
             if (!externalViewport && viewport != Screen.safeArea) { viewport=Screen.safeArea; Render(); }
@@ -346,7 +347,9 @@ namespace HotpotSort.Presentation
             Vector2 local;if(!board || !RectTransformUtility.ScreenPointToLocalPointInRectangle(board,screen,null,out local))return false;
             point = new Vector2(local.x,-local.y);
             if (!PlateCrop.Contains(point)) return false;
-            id=World.Hit(point,OpaqueHit);return id!=null&&!pending.Contains(id)&&TutorialAllowsFood(id);
+            id=World.Hit(point,OpaqueHit);
+            if(id==null)id=TolerantFoodHit(point,pointerId);
+            return id!=null&&!pending.Contains(id)&&TutorialAllowsFood(id);
         }
         private bool DispatchTap(string id,Vector2 point)
         {
@@ -614,7 +617,7 @@ namespace HotpotSort.Presentation
             feedback.ConfigureAssets(root,foods);
             if(string.IsNullOrEmpty(root))return;
             var missing=TaskAssetValidation.Validate(root);if(missing.Length>0)throw new InvalidOperationException(string.Join("; ",missing));
-            for(int i=0;i<16;i++)foods[i]=PresentationAssets.Load<Texture2D>(root+"/food/food_"+i.ToString("00"));
+            for(int i=0;i<(root==PresentationAssets.CandidateRoot?foods.Length:16);i++)foods[i]=PresentationAssets.Load<Texture2D>(root+"/food/food_"+i.ToString("00"));
             plate=PresentationAssets.Load<Texture2D>(root+"/containers/plate_main");dish=PresentationAssets.Load<Texture2D>(root+"/containers/dish_buffer");
             table=PresentationAssets.Load<Texture2D>(root+"/background/table");potBody=PresentationAssets.Load<Texture2D>(root+"/pots/pot_body");potUnlit=PresentationAssets.Load<Texture2D>(root+"/pots/pot_unlit");potBroth=PresentationAssets.Load<Texture2D>(root+"/pots/pot_broth");potRim=PresentationAssets.Load<Texture2D>(root+"/pots/pot_rim");
             playerFont=displayFont=TaskAssetValidation.LoadModernFont();uiSprites.Clear();
@@ -990,7 +993,7 @@ namespace HotpotSort.Presentation
             itemVisuals[item.itemId]=rt;
         }
         private void OnDestroy()
-        { CancelScreenPress();CloseFriendBoardView();ReleaseAssetReferences();simulation?.TrySetResult(RewardOutcome.Cancelled);if(port!=null)port.Updated-=Apply;if(rounded)Destroy(rounded); if(roundedTexture)Destroy(roundedTexture);if(rewardCircle)Destroy(rewardCircle);if(rewardCircleTexture)Destroy(rewardCircleTexture);if(fireGradient)Destroy(fireGradient);if(fireGradientTexture)Destroy(fireGradientTexture); }
+        { DisposeCollectionPresentation();CancelScreenPress();CloseFriendBoardView();ReleaseAssetReferences();simulation?.TrySetResult(RewardOutcome.Cancelled);if(port!=null)port.Updated-=Apply;if(rounded)Destroy(rounded); if(roundedTexture)Destroy(roundedTexture);if(rewardCircle)Destroy(rewardCircle);if(rewardCircleTexture)Destroy(rewardCircleTexture);if(fireGradient)Destroy(fireGradient);if(fireGradientTexture)Destroy(fireGradientTexture); }
         public void ReleaseAssetReferences()
         {
             CancelScreenPress();CancelShuffleFeedback();

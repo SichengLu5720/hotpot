@@ -83,6 +83,7 @@ namespace HotpotSort.Bootstrap
                     string marker=PlayerPrefs.GetString(markerKey,"");
                     if(string.IsNullOrEmpty(marker)){marker=Guid.NewGuid().ToString("N");PlayerPrefs.SetString(markerKey,marker);PlayerPrefs.Save();}
                     daily.ConfigureServices(localProfile,weChatServices.Rewards,null,weChatServices.Share);
+                    daily.ConfigureBrothActivity(null,weChatServices.ActivityLinks);
                     daily.ConfigureFriendSurface(weChatServices.Friends,marker);
                 }
                 var root = WX.env.USER_DATA_PATH + "/" + composition.RuntimeNamespace;
@@ -159,7 +160,16 @@ namespace HotpotSort.Bootstrap
         void AdoptProfileAtEntry()
         {
             if(!AtProfileEntry||localProfile==null||silentLogin?.Identity==null)return;
-            try{if(localProfile.TryAdoptAccountAtEntry(silentLogin.Identity.AccountId,entryProfileTransport,true))_=localProfile.SyncAsync();}
+            try{if(localProfile.TryAdoptAccountAtEntry(silentLogin.Identity.AccountId,entryProfileTransport,true))
+            {
+                _=localProfile.SyncAsync();
+                if(composition is DailyProductionComposition daily)
+                {
+                    var config=WeChatRuntimeConfig.LoadPackaged();var account=silentLogin.Identity.AccountId;
+                    daily.ConfigureCollectionAuthority(new WeChatIngredientTradeService(config,account,daily.ApplyCollectionAuthority,new WeChatIngredientTradeBridge()));
+                    daily.ConfigureBrothActivity(new WeChatBrothActivityService(config,account,()=>daily.BrothCollection,daily.ApplyCollectionAuthority,new WeChatIngredientTradeBridge()),weChatServices?.ActivityLinks);
+                }
+            }}
             catch{Debug.LogWarning("Profile adoption unavailable; local facts preserved");}
         }
         public void CancelEntryStart(){startIntent=false;entryIntent++;assets?.Cancel();}
@@ -194,7 +204,7 @@ namespace HotpotSort.Bootstrap
             starting=true;startIntent=false;
             try
             {
-                if(composition is DailyProductionComposition daily)daily.ActivateCompleteAssets();
+                if(composition is DailyProductionComposition daily){daily.ActivateCompleteAssets();daily.PrepareCollectionSession();}
                 activationFailed=false;
                 // The existing time resolver runs only here, after the full release is active.
                 await Controller.StartTodayAsync();

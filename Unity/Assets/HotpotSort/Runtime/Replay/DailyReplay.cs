@@ -27,6 +27,7 @@ namespace HotpotSort.Replay
                 var root = CanonicalJson.Map(CanonicalJson.Parse(package.CanonicalJson));
                 if ((string)root["schemaVersion"] != package.SchemaVersion) throw new FormatException("Unknown replay schema");
                 factory=factory.ForReplayContent((string)CanonicalJson.Map(root["identities"])["contentDigest"]);
+                if(root.TryGetValue("ingredientSelection",out var selected))factory=factory.WithIngredientSelection(CanonicalJson.Array(selected).Select(x=>(string)x));
                 var rules=package.SchemaVersion==DailySession.LegacyReplaySchema?DailyRulesVersion.LegacyV2:DailyRulesVersion.RevivalV3;
                 var expected = CanonicalJson.Object("contentDigest", factory.Content.Digest, "catalogDigest", factory.CatalogDigest,
                     "configurationDigest", factory.ConfigurationDigest, "rng", Pcg32.Version, "seed", Pcg32.SeedVersion,

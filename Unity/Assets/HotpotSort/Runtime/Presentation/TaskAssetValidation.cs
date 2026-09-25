@@ -35,6 +35,7 @@ namespace HotpotSort.Presentation
                 if(!themeFile){errors.Add("Missing v7 theme");return errors.ToArray();}
                 var theme=JsonUtility.FromJson<PresentationTheme>(themeFile.text);
                 errors.AddRange(PresentationThemeValidation.Validate(theme,root));
+                if(root==PresentationAssets.CandidateRoot)foreach(string address in AssetKey.BrothResources)if(!PresentationAssets.Load<Texture2D>(address))errors.Add("Missing local broth resource: "+address);
                 if(errors.Count>0)return errors.ToArray();
                 foreach(var asset in theme.assets)
                 {
