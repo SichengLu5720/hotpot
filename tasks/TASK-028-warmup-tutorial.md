@@ -31,7 +31,7 @@ Updated At: 2026-09-25
 
 ## Non-goals
 
-- 关卡选择、章节地图、完整教学系统、正式挑战内容重做、新美术资产、上传、提审、发布、Commit、Push、Merge 或 Tag。
+- 关卡选择、章节地图、完整教学系统、正式挑战内容重做、新美术资产、提审、发布、体验版启用、Merge 或 Tag。
 
 ## Current Change
 
@@ -45,9 +45,9 @@ Updated At: 2026-09-25
 
 | ID | Agent | Goal | Allowed Write Paths | Forbidden / Shared Paths | Depends On | Status | Integrator |
 |---|---|---|---|---|---|---|---|
-| WP-028-CODE | `code_agent` | 实现两关状态、确定性热身内容、累计 37/55 解锁、锅位继承、永久档案标记、真实到达/反馈清空接口及定向检查 | `Unity/Assets/HotpotSort/Runtime/Core/`; `Runtime/Bootstrap/`; `Runtime/Session/`; `Runtime/Platform/Profile/`; `Runtime/Replay/`; `Contracts/`; `Runtime/Presentation/PresentationPort.cs`; `Unity/Assets/HotpotSort/Runtime/Presentation/GameplayFeedback.cs`; `Unity/Assets/HotpotSort/Tests/Diagnostics~/Task028*`; `cloudfunctions/hotpotProfileSync/profile.js`; `cloudfunctions/hotpotProfileSync/test.js` | `GameplayView.cs`; `GameplayViewV7.cs`; 正式资产；SPEC；Task；不得覆盖其他 Task 未提交修改 | None | Working | Yes（最终技术集成） |
-| WP-028-VISUAL | `visual_agent` | 绑定首次两步引导、4/5 警告、提示道具放大手指和“最后一关！”锁定表现 | `Unity/Assets/HotpotSort/Runtime/Presentation/GameplayView.cs`; `GameplayViewV7.cs`; `Runtime/Presentation/Editor/Task028*`; `.harness/previews/TASK-028/` | Core、Bootstrap、Session、Contracts、Profile、Replay、正式图片资产、SPEC 与 Task | WP-028-CODE 稳定接口 | Draft | Yes（仅表现文件） |
-| WP-028-INTEGRATE | `code_agent` | 核对表现绑定不改变规则，修复仅技术问题并执行最低编译/启动/核心路径检查 | WP-028-CODE 与 WP-028-VISUAL 已列路径；本任务专用检查输出 | 其他 Task 与正式资产；不得改变视觉决定 | WP-028-VISUAL | Draft | Yes |
+| WP-028-CODE | `code_agent` | 实现两关状态、确定性热身内容、累计 37/55 解锁、锅位继承、永久档案标记、真实到达/反馈清空接口及定向检查 | `Unity/Assets/HotpotSort/Runtime/Core/`; `Runtime/Bootstrap/`; `Runtime/Session/`; `Runtime/Platform/Profile/`; `Runtime/Replay/`; `Contracts/`; `Runtime/Presentation/PresentationPort.cs`; `Unity/Assets/HotpotSort/Runtime/Presentation/GameplayFeedback.cs`; `Unity/Assets/HotpotSort/Tests/Diagnostics~/Task028*`; `cloudfunctions/hotpotProfileSync/profile.js`; `cloudfunctions/hotpotProfileSync/test.js` | `GameplayView.cs`; `GameplayViewV7.cs`; 正式资产；SPEC；Task；不得覆盖其他 Task 未提交修改 | None | Completed | Yes（最终技术集成） |
+| WP-028-VISUAL | `visual_agent` | 绑定首次两步引导、4/5 警告、提示道具放大手指和“最后一关！”锁定表现 | `Unity/Assets/HotpotSort/Runtime/Presentation/GameplayView.cs`; `GameplayViewV7.cs`; `Runtime/Presentation/Editor/Task028*`; `.harness/previews/TASK-028/` | Core、Bootstrap、Session、Contracts、Profile、Replay、正式图片资产、SPEC 与 Task | WP-028-CODE 稳定接口 | Completed | Yes（仅表现文件） |
+| WP-028-INTEGRATE | `code_agent` | 核对表现绑定不改变规则，修复仅技术问题并执行最低编译/启动/核心路径检查 | WP-028-CODE 与 WP-028-VISUAL 已列路径；本任务专用检查输出 | 其他 Task 与正式资产；不得改变视觉决定 | WP-028-VISUAL | Completed | Yes |
 
 ## Acceptance
 
@@ -62,5 +62,7 @@ Updated At: 2026-09-25
 - Build / Launch: Unity 真实 Boot→Composition→Core→Mapper→GameplayView 集成通过，日志标记 `TASK028_INTEGRATION_PASS`；独立表现检查 22 项通过，日志标记 `TASK028_VISUAL_CAPTURE_PASS`。
 - Current Change Check: 热身 18 份/3 类/6 单、4–8 盘同日复现、无计时、失败重试、广告开锅继承、累计 37/55、首次真实到锅引导、整排五格警告、任意点击关闭、提示道具放大手指、最后提示消失后正式供给、正式首点计时与旧回调拒绝均通过定向检查。
 - Screenshot / Artifact: `.harness/previews/TASK-028/{first-food,order-explanation,buffer-warning,hint-pointer,last-stage}.png`; `unity-visual.log`; `unity-integration.log`。
-- Known Issues: 微信真机体验与用户最终视觉判断未完成；云函数源码已实现但未获授权部署，线上旧函数会拒绝新增永久标记字段；开发版上传前必须明确该部署边界。
+- Source Delivery: 游戏源码提交 `25da68c`、字体子集提交 `498201a` 已推送到 `origin/feat/auto-push-skill`；微信包由 `498201a` 构建。
+- Cloud / Upload: `hotpotProfileSync` 已部署到开发云环境并处于 `Active`；线上下载源码的 4 个文件 SHA-256 与本地全部一致。微信开发版本 `0.0.16` 上传成功，包总计 21,754,171 字节（主包 2,445,054；数据分包 14,671,092；WASM 分包 4,638,025），CLI 自动预览成功。
+- Known Issues: 微信真机是否收到并打开自动预览、真机体验和用户最终视觉判断尚未确认；未提审、未发布、未启用体验版。
 - Baseline: Not Saved
