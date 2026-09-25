@@ -129,7 +129,7 @@ namespace HotpotSort.Bootstrap
                         try
                         {
                             var local=new LocalDevelopmentServices(key);composition.ConfigureServices(local,local,local,local);Assert(local.RecordFirstWin("20260921")&&!local.RecordFirstWin("20260921"),"first-win not idempotent");var quotaUtc=DateTimeOffset.Parse("2026-09-21T00:00:00Z");for(int i=0;i<3;i++){var now=quotaUtc.AddMinutes(i*20);Assert(local.TryReserveShare("20260921","r"+i,now)&&local.TryCommitShare("20260921","r"+i,now),"quota consume");}Assert(!local.TryReserveShare("20260921","r3",quotaUtc.AddHours(2)),"quota >3");local.SaveSettings(new PlayerSettings{MusicEnabled=false,EffectsEnabled=true,MusicVolume=.25f,EffectsVolume=.7f});var reload=new LocalDevelopmentServices(key);Assert(reload.TotalFirstWins==1&&reload.SharesUsed("20260921")==3&&!reload.LoadSettings().MusicEnabled&&Math.Abs(reload.LoadSettings().EffectsVolume-.7f)<.001,"profile reload");
-                            foreach(var outcome in new[]{"模拟成功","取消","模拟失败"}){var request=new RewardRequest(controller.Generation,RewardKind.Hint,RewardRoute.SimulatedAd,"20260921");var pending=view.ShowRewardSimulationAsync(request);Click(outcome);Assert(await pending==(outcome=="模拟成功"?RewardOutcome.Success:outcome=="取消"?RewardOutcome.Cancelled:RewardOutcome.Failed),"simulation result");}
+                            foreach(var outcome in new[]{"模拟成功","取消","模拟失败"}){var request=new RewardRequest(controller.Generation,RewardKind.SwapOrder,RewardRoute.SimulatedAd,"20260921");var pending=view.ShowRewardSimulationAsync(request);Click(outcome);Assert(await pending==(outcome=="模拟成功"?RewardOutcome.Success:outcome=="取消"?RewardOutcome.Cancelled:RewardOutcome.Failed),"simulation result");}
                             Click("暂停");Click("设置");Click("音乐开关");Click("完成");Assert(Node("Flow_Paused")!=null,"settings did not restore pause");Click("继续");return "Simulation outcomes and isolated persistent store passed";
                         }
                         finally{composition.ConfigureServices(oldProfile,oldRewards,oldFriends,oldShare);view.SetAudioSettings(oldProfile.LoadSettings());PlayerPrefs.DeleteKey(key);PlayerPrefs.Save();}
@@ -158,7 +158,7 @@ namespace HotpotSort.Bootstrap
                         var sprite=AssetDatabase.LoadAssetAtPath<Sprite>(path);Assert(sprite&&Vector2.Distance(sprite.pivot,new Vector2(texture.width*.5f,texture.height*.5f))<.01,"pivot "+id);
                     }
                     Assert(count==65,"manifest count");
-                    const string required="火锅消消每日挑战北京时间更新本地开发模拟开始设置好友榜暂停继续重新退出提示清空暂存打乱提前单开领取激励视频分享取消成功失败音乐音效关闭完成时间到已满暂无有效目标0123456789/：";
+                    const string required="来《一锅又一锅》，一起开锅！每日挑战北京时间更新本地开发模拟开始设置好友榜暂停继续重新退出提示清空暂存打乱提前单开领取激励视频分享取消成功失败音乐音效关闭完成时间到已满暂无有效目标0123456789/：";
                     view.playerFont.RequestCharactersInTexture(required,24);Assert(required.All(c=>view.playerFont.HasCharacter(c)),"Chinese/numeric glyph missing");
                     foreach(var texture in view.GetComponentsInChildren<RawImage>(true).Where(i=>i.texture).Select(i=>i.texture))Assert(AssetDatabase.GetAssetPath(texture).StartsWith("Assets/HotpotSort/Resources/"+view.AssetRoot),"legacy visual texture "+texture.name);
                     Assert(Node("Tool_Hint")&&Node("Tool_ClearBuffer")&&Node("Tool_Shuffle")&&Node("Timer"),"formal UI not consumed");
@@ -543,7 +543,7 @@ namespace HotpotSort.Bootstrap
                 var bodies=view.World.Bodies.ToArray();var service=new ControlledReward();var coordinator=new RewardCoordinator(service,service);long generation=10;int effects=0;
                 Func<bool> has=()=>view.FindClickableHint()!=null;
                 Func<bool> apply=()=>{var id=view.FindClickableHint();if(id==null)return false;view.HighlightItem(id);effects++;return true;};
-                Func<RewardRequest> request=()=>new RewardRequest(generation,RewardKind.Hint,RewardRoute.SimulatedShare,"20260921");
+                Func<RewardRequest> request=()=>new RewardRequest(generation,RewardKind.SwapOrder,RewardRoute.SimulatedShare,"20260921");
                 Assert(!await coordinator.RequestAsync(request(),()=>generation,has,apply,_=>{})&&service.Calls==0,"hidden invokes service");
                 foreach(var outcome in new[]{RewardOutcome.Cancelled,RewardOutcome.Failed})
                 {

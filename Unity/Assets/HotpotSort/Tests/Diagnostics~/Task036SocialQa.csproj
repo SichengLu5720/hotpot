@@ -1,0 +1,4 @@
+<Project Sdk="Microsoft.NET.Sdk">
+ <PropertyGroup><TargetFramework>net10.0</TargetFramework><OutputType>Exe</OutputType><StartupObject>Task036SocialQa</StartupObject><UseAppHost>false</UseAppHost><EnableDefaultCompileItems>false</EnableDefaultCompileItems><ImplicitUsings>disable</ImplicitUsings><Nullable>disable</Nullable></PropertyGroup>
+ <ItemGroup><Compile Include="Task036SocialQa.cs"/><Compile Include="Task031BrothPlatformQa.cs"/><Compile Include="../../Contracts/*.cs"/><Compile Include="../../Runtime/Collection/*.cs"/><Compile Include="../../Runtime/Platform/WeChat/WeChatBrothActivityService.cs"/><Compile Include="../../Runtime/Platform/WeChat/WeChatActivityLinkService.cs"/></ItemGroup>
+</Project>

@@ -12,6 +12,8 @@ namespace HotpotSort.Platform
     public sealed class WeChatActivityLinkService:IDisposable
     {
         public const string QueryKey="brothInvitation";
+        public const string TradeQueryKey="ingredientTrade";
+        public string PendingTradeId {get;private set;}
         public string PendingInvitationId {get;private set;}
         public event Action PendingInvitationChanged;
         bool disposed;
@@ -32,16 +34,23 @@ namespace HotpotSort.Platform
         public static string BuildQuery(string id){if(!ValidInvitation(id))throw new ArgumentException("Invalid invitation");return QueryKey+"="+id;}
         public void ReceiveQuery(IDictionary<string,string> query)
         {
-            if(disposed||query==null||!query.TryGetValue(QueryKey,out var id)||!ValidInvitation(id))return;
-            PendingInvitationId=id;PendingInvitationChanged?.Invoke();
+            if(disposed||query==null)return;
+            bool changed=false;
+            if(query.TryGetValue(TradeQueryKey,out var trade)&&ValidInvitation(trade)){PendingTradeId=trade;changed=true;}
+            if(query.TryGetValue(QueryKey,out var id)&&ValidInvitation(id)){PendingInvitationId=id;changed=true;}
+            if(changed)PendingInvitationChanged?.Invoke();
         }
+        public void DismissTrade(string id){if(PendingTradeId!=id)return;PendingTradeId=null;PendingInvitationChanged?.Invoke();}
         public void Dismiss(string invitationId){if(PendingInvitationId!=invitationId)return;PendingInvitationId=null;PendingInvitationChanged?.Invoke();}
         // True means share UI requested, never assistance or reward success.
         public bool RequestShare(string invitationId)
+            =>RequestShareQuery(invitationId,QueryKey);
+        public bool RequestTradeShare(string tradeId)=>RequestShareQuery(tradeId,TradeQueryKey);
+        bool RequestShareQuery(string invitationId,string key)
         {
             if(disposed||config==null||config.ShareState!=WeChatCapabilityState.Ready||!ValidInvitation(invitationId))return false;
             try{
-                string query=BuildQuery(invitationId);
+                string query=key+"="+invitationId;
                 if(shareOverride!=null){shareOverride(query);return true;}
 #if UNITY_WEBGL && !UNITY_EDITOR
                 WX.ShareAppMessage(new ShareAppMessageOption{title=config.shareTitle,query=query});return true;

@@ -9,7 +9,7 @@ namespace HotpotSort.Core
     {
         readonly DailyContent content;
         internal DailyDirector(DailyContent content) { this.content = content; }
-        internal sealed class Decision { internal string Kind; internal object Diagnostic; internal string Fallback; }
+        internal sealed class Decision { internal string Kind; internal object Diagnostic; internal string Fallback; internal bool HasCandidates; }
         internal static int ProgressBand(int numerator) { return numerator * 100 <= 183 * 40 ? 0 : numerator * 100 <= 183 * 65 ? 1 : numerator * 100 <= 183 * 85 ? 2 : 3; }
         sealed class Candidate
         {
@@ -30,7 +30,7 @@ namespace HotpotSort.Core
             if(total==0)return -1;
             return rng.NextBounded((uint)total,draws)<bufferWeight?0:1;
         }
-        internal Decision Choose(int slot, IReadOnlyList<CoreItem> items, CoreOrder[] orders, int?[] buffer, List<int> pending, Pcg32 rng, bool select = true,ISet<int> clickable=null,ISet<int> unknown=null,int completedOrders=15,int policyVersion=2,bool strictKinds=false)
+        internal Decision Choose(int slot, IReadOnlyList<CoreItem> items, CoreOrder[] orders, int?[] buffer, List<int> pending, Pcg32 rng, bool select = true,ISet<int> clickable=null,ISet<int> unknown=null,int completedOrders=15,int policyVersion=2,bool strictKinds=false,ISet<int> nextLayer=null,int normalPotCount=2,string swapFromKind=null)
         {
             var reserved = new HashSet<int>(); var reservations = new List<object>();
             var external = items.Where(x => x.Location == "Pending" || x.Location == "ActiveAvailable" || x.Location == "Buffer").ToList();
@@ -82,16 +82,46 @@ namespace HotpotSort.Core
             var strict = candidates.Where(c => c.Legal && !c.Duplicate).ToList();
             bool relaxed = strict.Count == 0;
             var pool = relaxed && !strictKinds ? candidates.Where(c => c.Legal).ToList() : strict;
+            var draws = new List<object>();
+            int dangerCount=0,threshold=Math.Max(0,normalPotCount-1),supportRoll=-1;string supportBranch=null;
+            Func<CoreItem,bool> supported=x=>x.Location=="Buffer"||x.Location=="ActiveAvailable"&&((clickable?.Contains(x.Id)??false)||(nextLayer?.Contains(x.Id)??false));
+            Func<Candidate,int> support=c=>external.Count(x=>x.Kind==c.Kind&&!reserved.Contains(x.Id)&&supported(x));
+            if(policyVersion==6)
+            {
+                // Allocate certified support once in stable slot order, including advertised extra pots.
+                var available=external.Where(supported).GroupBy(x=>x.Kind).ToDictionary(g=>g.Key,g=>g.Count());
+                for(int i=0;i<orders.Length;i++)
+                {
+                    var o=orders[i];if(i==slot||!o.Enabled||o.Kind==null||o.Items.Count>=3)continue;
+                    int count=available.TryGetValue(o.Kind,out var value)?value:0,need=3-o.Items.Count;
+                    if(count<need)dangerCount++;
+                    available[o.Kind]=Math.Max(0,count-need);
+                }
+                if(swapFromKind!=null)
+                {pool=strict.Where(c=>c.Kind!=swapFromKind&&support(c)>=3).ToList();supportBranch="SwapComplete";}
+                else if(dangerCount>=threshold&&select&&(supportRoll=(int)rng.NextBounded(5,draws))==0)
+                {
+                    var complete=strict.Where(c=>support(c)>=3).ToList();
+                    if(complete.Count>0){pool=complete;supportBranch="Complete";}
+                    else
+                    {
+                        int best=strict.Count==0?0:strict.Max(support);
+                        if(best>0){pool=strict.Where(c=>support(c)==best).ToList();supportBranch="MostSupported";}
+                        else supportBranch="AllZeroBase";
+                    }
+                }
+                else supportBranch=dangerCount<threshold?"BelowThresholdBase":select?"ProbabilityBase":"QueryBase";
+            }
             var raw = content.Rows[band * 5 + bb].Weights.ToArray();
             var filtered = raw.Select((w, i) => pool.Any(c => c.Category == i) ? w : 0).ToArray();
-            var draws = new List<object>(); int category = -1; string fallback; Candidate chosen = null;
-            bool early=completedOrders<15;
+            int category = -1; string fallback; Candidate chosen = null;
+            bool early=completedOrders<(policyVersion==5?30:15);
             bool actionable=clickable!=null&&orders.Where((o,i)=>i!=slot&&o.Enabled&&o.Kind!=null&&o.Items.Count<3)
                 .Any(o=>external.Count(x=>x.Kind==o.Kind&&(x.Location=="Buffer"||x.Location=="ActiveAvailable"&&clickable.Contains(x.Id)))>=(early?3-o.Items.Count:1));
-            var protectedPool=clickable==null||actionable?new List<Candidate>():strict.Where(c=>external.Count(x=>x.Kind==c.Kind&&!reserved.Contains(x.Id)&&(x.Location=="Buffer"||x.Location=="ActiveAvailable"&&clickable.Contains(x.Id)))>=3).OrderBy(c=>c.Kind,StringComparer.Ordinal).ToList();
+            var protectedPool=policyVersion==6||clickable==null||actionable?new List<Candidate>():strict.Where(c=>external.Count(x=>x.Kind==c.Kind&&!reserved.Contains(x.Id)&&(x.Location=="Buffer"||x.Location=="ActiveAvailable"&&clickable.Contains(x.Id)))>=3).OrderBy(c=>c.Kind,StringComparer.Ordinal).ToList();
             // Unknown is never a negative observation. Use relief only when every
             // possible completion of the observation yields the exact same pool.
-            if(clickable!=null&&unknown!=null&&unknown.Count>0&&!actionable)
+            if(policyVersion!=6&&clickable!=null&&unknown!=null&&unknown.Count>0&&!actionable)
             {
                 bool ambiguous=orders.Where((o,i)=>i!=slot&&o.Enabled&&o.Kind!=null&&o.Items.Count<3)
                     .Any(o=>external.Count(x=>x.Kind==o.Kind&&(x.Location=="Buffer"||x.Location=="ActiveAvailable"&&(clickable.Contains(x.Id)||unknown.Contains(x.Id))))>=(early?3-o.Items.Count:1));
@@ -104,7 +134,7 @@ namespace HotpotSort.Core
                 if(ambiguous)protectedPool.Clear();
             }
             int reliefRoll=-1,reliefGroup=-2;
-            if(select&&protectedPool.Count>0&&(policyVersion<4||early))
+            if(policyVersion!=6&&select&&protectedPool.Count>0&&(policyVersion<4||early))
             {
                 reliefRoll=early?0:(int)rng.NextBounded(5,draws);
                 if(reliefRoll<4)
@@ -119,7 +149,7 @@ namespace HotpotSort.Core
                 }
             }
             long total = filtered.Sum(w => (long)w);
-            if(chosen!=null){fallback=early?"VisibleReliefFirst15":"VisibleRelief80";category=chosen.Category;}
+            if(chosen!=null){fallback=early?(policyVersion==5?"VisibleReliefFirst30":"VisibleReliefFirst15"):"VisibleRelief80";category=chosen.Category;}
             else if (pool.Count == 0) fallback = "EmptyTailSlot";
             else if (total > 0)
             {
@@ -149,9 +179,10 @@ namespace HotpotSort.Core
                 "rawWeights", raw, "filteredWeights", filtered, "strictPoolCount", strict.Count, "relaxed", relaxed, "draws", draws,
                 "selectedCategory", chosen == null || chosen.Category < 0 ? null : (object)(chosen.Category + 1), "selectedKind", chosen?.Kind,
                 "fallback", fallback, "algorithm", DailyContent.DirectorVersion);
-            if(reliefRoll>=0)diagnostic.Add("clickableRelief",CanonicalJson.Object("version",1,"roll",early?(object)null:reliefRoll,"branch",early?"First15Guaranteed":reliefRoll<4?"Protected80":"Original20","candidateKinds",protectedPool.Select(c=>c.Kind).ToArray()));
+            if(reliefRoll>=0)diagnostic.Add("clickableRelief",CanonicalJson.Object("version",1,"roll",early?(object)null:reliefRoll,"branch",early?(policyVersion==5?"First30Guaranteed":"First15Guaranteed"):reliefRoll<4?"Protected80":"Original20","candidateKinds",protectedPool.Select(c=>c.Kind).ToArray()));
             if(reliefGroup!=-2)CanonicalJson.Map(diagnostic["clickableRelief"]).Add("groupSelection",CanonicalJson.Object("policyVersion",3,"bufferWeight",raw[0],"plainWeight",raw[1],"selectedGroup",reliefGroup==0?"Buffered":reliefGroup==1?"Plain":"WholePoolZeroWeight"));
-            return new Decision { Kind=chosen?.Kind,Fallback=fallback,Diagnostic=diagnostic };
+            if(policyVersion==6)diagnostic.Add("recentSupport",CanonicalJson.Object("policyVersion",6,"probabilityVersion","Threshold20Percent_v1","takeoverPercent",20,"roll",supportRoll<0?null:(object)supportRoll,"normalPotCount",normalPotCount,"dangerCount",dangerCount,"threshold",threshold,"branch",supportBranch,"candidateKinds",pool.Select(c=>c.Kind).ToArray(),"support",strict.Select(c=>CanonicalJson.Object("kind",c.Kind,"count",support(c))).ToArray()));
+            return new Decision { Kind=chosen?.Kind,Fallback=fallback,Diagnostic=diagnostic,HasCandidates=pool.Count>0 };
         }
     }
 }

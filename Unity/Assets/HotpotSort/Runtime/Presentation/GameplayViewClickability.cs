@@ -9,7 +9,7 @@ namespace HotpotSort.Presentation
 {
     public sealed class ViewClickabilityObservation
     {
-        public string[] clickable,unknown;
+        public string[] clickable,unknown,nextLayer;
     }
     public sealed partial class GameplayView
     {
@@ -131,10 +131,14 @@ namespace HotpotSort.Presentation
             public readonly List<Vector2> witnesses=new List<Vector2>(3);
             public int stamp;
             public bool initialized,negative;
+            public bool next;
             public float left,right,top,bottom,x,y,dx,dy;
         }
         readonly Dictionary<string,ClickCache> clickCache=new Dictionary<string,ClickCache>();
         readonly List<ClickCache> clickWork=new List<ClickCache>();
+        readonly Dictionary<string,ClickCache> nextCache=new Dictionary<string,ClickCache>();
+        readonly List<ClickCache> nextWork=new List<ClickCache>();
+        readonly HashSet<string> nextRemoved=new HashSet<string>();
         string clickSession;
         long clickGeneration;
         int clickCursor;
@@ -145,7 +149,7 @@ namespace HotpotSort.Presentation
         bool ClickObservationAvailable=>LastSnapshot!=null&&!ShuffleFeedbackActive&&!FriendBoardVisible&&foreground&&canvasRoot&&canvasRoot.gameObject.activeInHierarchy&&LastSnapshot.phase==ViewPhase.Running&&LastSnapshot.pauseReasons==ViewPauseReasons.None&&!(modal&&modal.gameObject.activeInHierarchy);
         void RefreshClickWork()
         {
-            if(clickSession!=LastSnapshot.sessionId||clickGeneration!=LastSnapshot.sessionGeneration){clickCache.Clear();clickSession=LastSnapshot.sessionId;clickGeneration=LastSnapshot.sessionGeneration;clickCursor=0;}
+            if(clickSession!=LastSnapshot.sessionId||clickGeneration!=LastSnapshot.sessionGeneration){clickCache.Clear();nextCache.Clear();nextRemoved.Clear();clickSession=LastSnapshot.sessionId;clickGeneration=LastSnapshot.sessionGeneration;clickCursor=0;}
             clickWork.Clear();
             foreach(var body in World.Bodies)foreach(var item in body.data.items)
             {
@@ -162,6 +166,7 @@ namespace HotpotSort.Presentation
             unchecked
             {
                 int h=17;void add(float v){h=h*31+v.GetHashCode();}
+                if(e.next)foreach(var id in nextRemoved.OrderBy(x=>x,StringComparer.Ordinal))h=h*31+id.GetHashCode();
                 var ext=PlateItemTransform.HalfExtents(e.item);
                 add(Mathf.Max(-ext.x,PlateCrop.xMin-center.x));add(Mathf.Min(ext.x,PlateCrop.xMax-center.x));
                 add(Mathf.Max(-ext.y,PlateCrop.yMin-center.y));add(Mathf.Min(ext.y,PlateCrop.yMax-center.y));
@@ -191,13 +196,36 @@ namespace HotpotSort.Presentation
             foreach(var other in e.body.data.items)
             {
                 if(other.itemId==e.item.itemId){after=true;continue;}
-                if(after&&other.foodId==e.item.foodId&&other.x==e.item.x&&other.y==e.item.y&&other.radius==e.item.radius&&other.rotationDegrees==e.item.rotationDegrees&&ItemUV(other)==ItemUV(e.item))e.negative=true;
+                if(after&&(!e.next||!nextRemoved.Contains(other.itemId))&&other.foodId==e.item.foodId&&other.x==e.item.x&&other.y==e.item.y&&other.radius==e.item.radius&&other.rotationDegrees==e.item.rotationDegrees&&ItemUV(other)==ItemUV(e.item))e.negative=true;
             }
         }
         bool CachedWitness(ClickCache e,Vector2 center)
         {
-            for(int i=0;i<e.witnesses.Count;i++)if(ClickablePoint(e.item.itemId,center+e.witnesses[i]))return true;
+            for(int i=0;i<e.witnesses.Count;i++)if(ObservationPoint(e,center+e.witnesses[i]))return true;
             return false;
+        }
+        bool ObservationPoint(ClickCache e,Vector2 point)
+        {
+            if(!e.next)return ClickablePoint(e.item.itemId,point);
+            if(!board||!PlateCrop.Contains(point)||World.TopPlateAt(point)!=e.body)return false;
+            var screen=RectTransformUtility.WorldToScreenPoint(null,board.TransformPoint(new Vector3(point.x,-point.y,0)));
+            return viewport.Contains(screen)&&World.Hit(point,(item,offset)=>!nextRemoved.Contains(item.itemId)&&OpaqueHit(item,offset))==e.item.itemId;
+        }
+        void RefreshNextWork()
+        {
+            nextRemoved.Clear();nextWork.Clear();
+            foreach(var e in clickWork)
+            {
+                var center=World.Position(e.body)+new Vector2(e.item.x,e.item.y);
+                if(CachedWitness(e,center))nextRemoved.Add(e.item.itemId);
+            }
+            foreach(var e in clickWork)
+            {
+                if(nextRemoved.Contains(e.item.itemId)||!e.body.data.items.Any(item=>nextRemoved.Contains(item.itemId)))continue;
+                if(!nextCache.TryGetValue(e.item.itemId,out var n)){n=new ClickCache{next=true};nextCache.Add(e.item.itemId,n);}
+                n.item=e.item;n.body=e.body;nextWork.Add(n);
+            }
+            if(nextCache.Count>256){var live=new HashSet<string>(clickWork.Select(e=>e.item.itemId));foreach(var id in nextCache.Keys.ToArray())if(!live.Contains(id))nextCache.Remove(id);}
         }
         void RememberClickWitness(ClickCache e,Vector2 relative)
         {
@@ -208,22 +236,23 @@ namespace HotpotSort.Presentation
         {
             ClickCacheLastSamples=0;ClickCacheLastMilliseconds=0;
             if(!ClickObservationAvailable)return;
-            var watch=System.Diagnostics.Stopwatch.StartNew();RefreshClickWork();
+            var watch=System.Diagnostics.Stopwatch.StartNew();RefreshClickWork();RefreshNextWork();
+            var work=new List<ClickCache>(clickWork);work.AddRange(nextWork);
             int visits=0;
-            while(clickWork.Count>0&&visits<clickWork.Count*8&&ClickCacheLastSamples+6<=128&&watch.Elapsed.TotalMilliseconds<1.5)
+            while(work.Count>0&&visits<work.Count*8&&ClickCacheLastSamples+6<=128&&watch.Elapsed.TotalMilliseconds<1.5)
             {
-                clickCursor%=clickWork.Count;var e=clickWork[clickCursor];clickCursor=(clickCursor+1)%clickWork.Count;visits++;
+                clickCursor%=work.Count;var e=work[clickCursor];clickCursor=(clickCursor+1)%work.Count;visits++;
                 var center=World.Position(e.body)+new Vector2(e.item.x,e.item.y);PrepareClickScan(e,center);
                 if(e.negative)continue;
                 // Conservative bound: three witnesses, middle, cell, geometry.
                 ClickCacheLastSamples+=6;
                 if(CachedWitness(e,center))continue;
                 var middle=new Vector2((e.left+e.right)*.5f,(e.top+e.bottom)*.5f);
-                if(ClickablePoint(e.item.itemId,center+middle)){RememberClickWitness(e,middle);continue;}
+                if(ObservationPoint(e,center+middle)){RememberClickWitness(e,middle);continue;}
                 var point=new Vector2((e.x+Mathf.Min(e.right,e.x+e.dx))*.5f,(e.y+Mathf.Min(e.bottom,e.y+e.dy))*.5f);
-                if(ClickablePoint(e.item.itemId,center+point)){RememberClickWitness(e,point);continue;}
+                if(ObservationPoint(e,center+point)){RememberClickWitness(e,point);continue;}
                 // UI occlusion is transient; never certify a geometric negative from it.
-                if(World.Hit(center+point,OpaqueHit)==e.item.itemId)continue;
+                if(!e.next&&World.Hit(center+point,OpaqueHit)==e.item.itemId)continue;
                 e.x+=e.dx;if(e.x>=e.right){e.x=e.left;e.y+=e.dy;}
                 if(e.y>=e.bottom)e.negative=true;
             }
@@ -242,7 +271,14 @@ namespace HotpotSort.Presentation
                 if(!e.negative&&ClickablePoint(e.item.itemId,center+middle)){RememberClickWitness(e,middle);yes.Add(e.item.itemId);}
                 else if(!e.negative)unknown.Add(e.item.itemId);
             }
-            return new ViewClickabilityObservation{clickable=yes.ToArray(),unknown=unknown.ToArray()};
+            RefreshNextWork();var next=new List<string>();
+            foreach(var e in nextWork)
+            {
+                var center=World.Position(e.body)+new Vector2(e.item.x,e.item.y);PrepareClickScan(e,center);
+                var middle=new Vector2((e.left+e.right)*.5f,(e.top+e.bottom)*.5f);
+                if(CachedWitness(e,center)||!e.negative&&ObservationPoint(e,center+middle)){RememberClickWitness(e,middle);next.Add(e.item.itemId);}
+            }
+            return new ViewClickabilityObservation{clickable=yes.ToArray(),unknown=unknown.Except(next).ToArray(),nextLayer=next.ToArray()};
         }
         bool ValidateReleasedFood(PressedItem press)
         {

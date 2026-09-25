@@ -20,7 +20,7 @@ namespace HotpotSort.Platform
         public string cloudFunctionName = "hotpotProfileSync";
         public string rewardedAdUnitId = "";
         public string shareImagePath = "hotpot/share-theme.png";
-        public string shareTitle = "来火锅消消，一起开锅！";
+        public string shareTitle = "来《一锅又一锅》，一起开锅！";
         public bool enableLogin = true;
         public bool enableCloud = true;
         public bool enableRewardedVideo = true;

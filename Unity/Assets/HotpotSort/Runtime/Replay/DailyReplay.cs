@@ -61,11 +61,13 @@ namespace HotpotSort.Replay
                         var observation=CanonicalJson.Map(observed);
                         if(CanonicalJson.Int(observation["version"])!=1)throw new FormatException("Unknown clickability observation version");
                         int policy=observation.TryGetValue("policyVersion",out var policyValue)?CanonicalJson.Int(policyValue):1;
-                        if(policy<1||policy>4)throw new FormatException("Unknown clickability policy version");
-                        clickability=new ClickableObservation(session.Snapshot.SessionId,(string)observation["snapshotRevision"],CanonicalJson.Array(observation["itemIds"]).Select(CanonicalJson.Int),observation.TryGetValue("unknownItemIds",out var unknown)?CanonicalJson.Array(unknown).Select(CanonicalJson.Int):null,policy);
+                        if(policy<1||policy>6)throw new FormatException("Unknown clickability policy version");
+                        clickability=new ClickableObservation(session.Snapshot.SessionId,(string)observation["snapshotRevision"],CanonicalJson.Array(observation["itemIds"]).Select(CanonicalJson.Int),observation.TryGetValue("unknownItemIds",out var unknown)?CanonicalJson.Array(unknown).Select(CanonicalJson.Int):null,policy,observation.TryGetValue("nextLayerItemIds",out var nextLayer)?CanonicalJson.Array(nextLayer).Select(CanonicalJson.Int):null);
                     }
                     switch ((string)record["type"])
                     {
+                        case "BeginSwapOrder": result=session.BeginSwapOrder(CanonicalJson.Int(data["slotId"]),CanonicalJson.Int(data["orderIdentity"]),boundary,clickability);break;
+                        case "CompleteSwapOrder": result=session.CompleteSwapOrder((string)data["token"],boundary,clickability);break;
                         case "Tap":
                             if (!(bool)data["hitAccepted"]) throw new FormatException("Rejected tap in accepted replay");
                             result = session.Tap(new TapCommand(CanonicalJson.Int(data["itemId"]), CanonicalJson.ReadU64(data["inputSeq"]), boundary, true,clickability)); break;

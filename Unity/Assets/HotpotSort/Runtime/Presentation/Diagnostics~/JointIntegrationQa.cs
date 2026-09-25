@@ -16,7 +16,7 @@ static class JointIntegrationQa
     static readonly List<object> results=new List<object>();static int failures;
     static void Assert(bool value,string label){if(!value)throw new Exception(label);}
     static async Task Check(string name,Func<Task> body){try{await body();results.Add(new{name,status="PASS"});Console.WriteLine(name+" PASS");}catch(Exception ex){failures++;results.Add(new{name,status="FAIL",error=ex.ToString()});Console.WriteLine(name+" FAIL "+ex);}}
-    static RewardRequest Request(RewardRoute route,RewardKind kind=RewardKind.Hint,long generation=1)=>new RewardRequest(generation,kind,route,Day,"session");
+    static RewardRequest Request(RewardRoute route,RewardKind kind=RewardKind.SwapOrder,long generation=1)=>new RewardRequest(generation,kind,route,Day,"session");
     static async Task<int> Main(string[] args)
     {
         await Check("J01-four-route-shared-pool",async()=>

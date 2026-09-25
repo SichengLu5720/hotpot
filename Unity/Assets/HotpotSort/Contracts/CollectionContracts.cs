@@ -29,6 +29,9 @@ namespace HotpotSort.Contracts
         public List<string> ownedBroths=new List<string>{BrothCatalog.Red};
         public string currentBroth=BrothCatalog.Red,brothActivityChoice;
         public bool brothActivityQualified;
+        public string brothAssistantAccount;
+        public long brothAssistStartedAt,brothAssistExpiresAt;
+        public List<BrothHelping> brothHelping=new List<BrothHelping>();
         public List<string> unlocked=new List<string>(),selected=new List<string>(),appliedOperations=new List<string>();
         public int[] duplicates=new int[32],tools=new int[3];
         public List<CollectionWin> pendingWins=new List<CollectionWin>();
@@ -67,6 +70,7 @@ namespace HotpotSort.Contracts
     }
     public sealed class IngredientTradeResult
     {
+        public string toolReservationStatus;
         // Success always includes the authenticated caller's authoritative collection.
         // Failure is explicit; collection/request may additionally contain fresh state.
         public IngredientTradeFailure failure;

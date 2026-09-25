@@ -48,7 +48,7 @@ namespace HotpotSort.Bootstrap
                 string waitingHash=composition.ActiveCore.StateHash;
                 composition.Tap(new ViewTap{itemId=view.LastSnapshot.plates[0].items[0].itemId,inputSeq=1,snapshotRevision=view.LastSnapshot.revision});
                 Check(waitingHash==composition.ActiveCore.StateHash,"food input locked during initial motion");
-                foreach(RewardKind kind in new[]{RewardKind.Hint,RewardKind.ClearBuffer,RewardKind.Shuffle,RewardKind.ThirdPot,RewardKind.FourthPot})
+                foreach(RewardKind kind in new[]{RewardKind.SwapOrder,RewardKind.ClearBuffer,RewardKind.Shuffle,RewardKind.ThirdPot,RewardKind.FourthPot})
                     Check(!(bool)typeof(DailyProductionComposition).GetMethod("HasTarget",BindingFlags.NonPublic|BindingFlags.Instance).Invoke(composition,new object[]{kind}),"reward locked while waiting "+kind);
                 for(int i=0;i<2400&&view.LastSnapshot.tutorialStep==ViewTutorialStep.WaitingForBoard;i++)
                 {Check(!Text(view,"点击食材，放入火锅。"),"no premature tutorial");await Task.Delay(25);}

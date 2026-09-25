@@ -163,11 +163,11 @@ static class RevivalRuleQa
         await Check("R07_FourRewardsShareOneQuotaAndActualEffect",async()=>
         {
             var now=DateTimeOffset.Parse("2026-09-22T00:00:00Z");var profile=new Profile();var service=new Rewards();var coordinator=new RewardCoordinator(service,profile,()=>now);
-            foreach(var kind in new[]{RewardKind.Hint,RewardKind.ClearBuffer,RewardKind.Shuffle})
+            foreach(var kind in new[]{RewardKind.SwapOrder,RewardKind.ClearBuffer,RewardKind.Shuffle})
             {
                 var r=new RewardRequest(1,kind,RewardRoute.SimulatedShare,"20260922");
                 Assert(await coordinator.RequestDetailedAsync(r,()=>1,()=>true,()=>true,p=>{})==RewardApplicationResult.Applied,"cross-tool quota");
-                now=now.AddMinutes(kind==RewardKind.Hint?5:15);
+                now=now.AddMinutes(kind==RewardKind.SwapOrder?5:15);
             }
             Assert(profile.SharesUsed("20260922")==3&&!coordinator.ReadShareAvailability("20260922").Available,"shared cap");
             Assert(await coordinator.RequestDetailedAsync(new RewardRequest(1,RewardKind.Revival,RewardRoute.SimulatedAd,"20260922"),()=>1,()=>true,()=>true,p=>{})==RewardApplicationResult.Applied&&profile.SharesUsed("20260922")==3,"ad spent quota");

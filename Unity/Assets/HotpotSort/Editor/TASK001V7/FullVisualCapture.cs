@@ -50,7 +50,7 @@ namespace HotpotSort.Task001V7
             Check(view.AssetRoot==V7Art.Root,"Boot consumes the complete v7 root");
             Check(TaskAssetValidation.Validate(V7Art.Root).Length==0,"All theme addresses and 16 readable food textures load");
             var font=Resources.Load<Font>(V7Art.Root+"/fonts/readable");
-            foreach(char c in "火锅消消每日挑战暂存已满复活重新开始分享激励视频设置音乐音效时间到好友榜")Check(font.HasCharacter(c),"Body glyph "+c);
+            foreach(char c in "来《一锅又一锅》，一起开锅！每日挑战暂存已满复活重新开始分享激励视频设置音乐音效时间到好友榜")Check(font.HasCharacter(c),"Body glyph "+c);
             AllSizes(view,"entry");
             view.ShowSettings(new PlayerSettings(),_=>{});AllSizes(view,"settings-entry");Click(view,"完成");
             view.ShowNotice("好友榜 · 开发模拟","");AllSizes(view,"friends-empty");Click(view,"知道了");

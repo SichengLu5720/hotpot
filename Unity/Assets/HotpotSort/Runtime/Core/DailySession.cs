@@ -6,7 +6,7 @@ using HotpotSort.Determinism;
 
 namespace HotpotSort.Core
 {
-    public sealed class DailySession : IGameSession, IRevivalSessionState, IChallengeStageState
+    public sealed partial class DailySession : IGameSession, IRevivalSessionState, IChallengeStageState
     {
         public const string StateSchema = "daily_state_v3", EventSchema = "daily_event_v3", ReplaySchema = "daily_replay_v3";
         public const string LegacyStateSchema = "daily_state_v2", LegacyEventSchema = "daily_event_v2", LegacyReplaySchema = "daily_replay_v2";
@@ -34,6 +34,7 @@ namespace HotpotSort.Core
         int TotalItems => Stage==ChallengeStage.Warmup?18:183;
         public int UnlockedExtraPotMask => (orders[2].Enabled?1:0)|(orders[3].Enabled?2:0);
         public int CumulativeCompletedOrders => completedOrders+(Stage==ChallengeStage.Formal?6:0);
+        public int NormalPotCount => CumulativeCompletedOrders>=(Stage==ChallengeStage.Legacy?49:55)?4:CumulativeCompletedOrders>=(Stage==ChallengeStage.Legacy?31:37)?3:2;
         GameStatus status = GameStatus.Ready;
         GameSnapshot snapshot;
         ulong eventSeq, transactionId, boundary, inputSeq, observationSeq, elapsed;
@@ -47,7 +48,8 @@ namespace HotpotSort.Core
         object revivalTransfer;
         HashSet<int> commandClickability;
         HashSet<int> commandUnknownClickability;
-        int commandClickabilityPolicy;
+        int commandClickabilityPolicy=6;
+        HashSet<int> commandNextLayer;
         public bool RevivalPending { get { lock(gate) return revivalPending; } }
         public bool RevivalUsed { get { lock(gate) return revivalUsed; } }
         public string RevivalOfferId { get { lock(gate) return revivalOfferId; } }
@@ -212,17 +214,21 @@ namespace HotpotSort.Core
         HashSet<int> ValidateClickability(ClickableObservation observation,Dictionary<string,object> record)
         {
             commandUnknownClickability=null;
-            commandClickabilityPolicy=1;
+            commandNextLayer=null;
+            commandClickabilityPolicy=6;
             if(observation==null||observation.SessionId!=sessionId||observation.SnapshotRevision!=snapshot.TransactionId)return null;
-            if(observation.PolicyVersion<1||observation.PolicyVersion>4)return null;
+            if(observation.PolicyVersion<1||observation.PolicyVersion>6)return null;
             if(observation.ItemIds.Concat(observation.UnknownItemIds).Any(id=>id<1||id>items.Count||items[id-1].Location!="ActiveAvailable"))return null;
             var valid=new HashSet<int>(observation.ItemIds);
             if(observation.UnknownItemIds.Any(valid.Contains))return null;
+            if(observation.NextLayerItemIds.Any(id=>id<1||id>items.Count||items[id-1].Location!="ActiveAvailable"||valid.Contains(id)||observation.UnknownItemIds.Contains(id)||!valid.Any(top=>items[top-1].PlateId==items[id-1].PlateId)))return null;
+            commandNextLayer=new HashSet<int>(observation.NextLayerItemIds);
             commandUnknownClickability=new HashSet<int>(observation.UnknownItemIds);
             commandClickabilityPolicy=observation.PolicyVersion;
             var data=CanonicalJson.Object("version",1,"snapshotRevision",observation.SnapshotRevision,"itemIds",valid.OrderBy(id=>id).ToArray());
             if(commandClickabilityPolicy>=2)data.Add("policyVersion",commandClickabilityPolicy);
             if(commandUnknownClickability.Count>0)data.Add("unknownItemIds",commandUnknownClickability.OrderBy(id=>id).ToArray());
+            if(commandNextLayer.Count>0)data.Add("nextLayerItemIds",commandNextLayer.OrderBy(id=>id).ToArray());
             record.Add("clickability",data);
             return valid;
         }
@@ -238,6 +244,7 @@ namespace HotpotSort.Core
                 var detail = CanonicalJson.Object("itemId", command.ItemId, "inputSeq", CanonicalJson.U64(command.InputSeq), "logicalBoundary", CanonicalJson.U64(command.LogicalBoundary), "hitAccepted", command.HitAccepted);
                 string reason = Guard(command.LogicalBoundary);
                 if (reason == null && status != GameStatus.Running) reason = "NotRunning";
+                if (reason == null && SwapOrderPending) reason = "SwapOrderPending";
                 if (reason == null && hasInputSeq && command.InputSeq <= inputSeq) reason = "NonIncreasingInputSequence";
                 if (reason == null && !command.HitAccepted) reason = "HitRejected";
                 if (reason == null && (command.ItemId < 1 || command.ItemId > items.Count || items[command.ItemId - 1].Location != "ActiveAvailable")) reason = "ItemUnavailable";
@@ -290,8 +297,8 @@ namespace HotpotSort.Core
         {
             while (status == GameStatus.Running)
             {
-                if (CumulativeCompletedOrders >= (Stage==ChallengeStage.Legacy?31:37) && !orders[2].Enabled) UnlockOrder(2);
-                if (CumulativeCompletedOrders >= (Stage==ChallengeStage.Legacy?49:55) && !orders[3].Enabled) UnlockOrder(3);
+                if (NormalPotCount >= 3 && !orders[2].Enabled) UnlockOrder(2);
+                if (NormalPotCount >= 4 && !orders[3].Enabled) UnlockOrder(3);
                 int slot = System.Array.FindIndex(orders, o => o.Items.Count == 3);
                 if (slot < 0) break;
                 var order = orders[slot]; string kind = order.Kind;
@@ -313,11 +320,17 @@ namespace HotpotSort.Core
         void FillOrder(int slot)
         {
                 var order=orders[slot];
-                var choice = director.Choose(slot, items, orders, buffer, pending, directorRng,clickable:commandClickability,unknown:commandUnknownClickability,completedOrders:commandClickabilityPolicy>=2?completedOrders:15,policyVersion:commandClickabilityPolicy,strictKinds:Stage==ChallengeStage.Warmup);
+                // Policy 5 counts the six warmup orders; archived policies retain stage-local ordinals.
+                var choice = director.Choose(slot, items, orders, buffer, pending, directorRng,clickable:commandClickability,unknown:commandUnknownClickability,completedOrders:commandClickabilityPolicy>=5?CumulativeCompletedOrders:commandClickabilityPolicy>=2?completedOrders:15,policyVersion:commandClickabilityPolicy,strictKinds:Stage==ChallengeStage.Warmup,nextLayer:commandNextLayer,normalPotCount:NormalPotCount);
                 Emit("DirectorEvaluated", choice.Diagnostic);
                 order.Kind = choice.Kind; order.Identity = ++nextOrderIdentity;
                 if (order.Kind == null) return;
                 Emit("OrderCreated", CanonicalJson.Object("slotId", slot, "kind", order.Kind, "filledBefore", 0, "filledAfter", 0, "selectionReason", choice.Fallback));
+                AbsorbBuffer(slot);
+        }
+        void AbsorbBuffer(int slot)
+        {
+                var order=orders[slot];
                 for (int index = 0; index < 5 && order.Items.Count < 3; index++)
                 {
                     if (!buffer[index].HasValue) continue; var item = items[buffer[index].Value - 1];
@@ -334,10 +347,10 @@ namespace HotpotSort.Core
         {
             lock(gate) return status == GameStatus.Running ? items.Where(i=>i.Location=="ActiveAvailable" && orders.Any(o=>o.Enabled && o.Kind==i.Kind && o.Items.Count<3)).Select(i=>i.Id).DefaultIfEmpty(0).First() : 0;
         }
-        public bool CanClearBuffer { get { lock(gate) return status==GameStatus.Running && buffer.Any(i=>i.HasValue); } }
+        public bool CanClearBuffer { get { lock(gate) return !SwapOrderPending && status==GameStatus.Running && buffer.Any(i=>i.HasValue); } }
         public bool CanUnlockFourth => CanUnlockPot(3);
         public bool CanUnlockThird => CanUnlockPot(2);
-        public bool CanUnlockPot(int slot) { lock(gate) return (slot==2||slot==3) && status==GameStatus.Running && !orders[slot].Enabled; }
+        public bool CanUnlockPot(int slot) { lock(gate) return !SwapOrderPending && (slot==2||slot==3) && status==GameStatus.Running && !orders[slot].Enabled; }
         public CommandResult ClearBuffer(ulong logicalBoundary)
         {
             lock(gate)
@@ -418,7 +431,7 @@ namespace HotpotSort.Core
             lock(gate)
             {
                 if(Stage==ChallengeStage.Warmup || Guard(logicalBoundary)!=null || status!=GameStatus.Running || logicalBoundary<600000)return Reject("TimeoutRejected","NotDue",null);
-                Begin(logicalBoundary);status=GameStatus.Failed;failureCode="Timeout";
+                Begin(logicalBoundary);status=GameStatus.Failed;failureCode="Timeout";CancelSwapForTerminal();
                 Emit("ChallengeFailed",CanonicalJson.Object("reason",failureCode));Close();Record("Timeout",CanonicalJson.Object("logicalBoundary",CanonicalJson.U64(logicalBoundary)));return Publish(true,"Timeout");
             }
         }
@@ -531,6 +544,7 @@ namespace HotpotSort.Core
                 fields["revivalPending"]=revivalPending;fields["revivalUsed"]=revivalUsed;fields["revivalOfferId"]=revivalOfferId;fields["revivalTransfer"]=revivalTransfer;
             }
             if(Stage!=ChallengeStage.Legacy){var fields=CanonicalJson.Map(state);fields["challengeStage"]=(int)Stage;fields["inheritedPotMask"]=inheritedPotMask;}
+            if(SwapOrderPending)state["swapOrderTransfer"]=SwapTransferJson();
             return state;
         }
         string Hash() => CanonicalJson.Hash(CanonicalJson.Write(State()));

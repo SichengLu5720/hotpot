@@ -34,7 +34,7 @@ static class ProfileSyncQa
         public Task<ProfileSyncResponse> SyncAsync(ProfileDocument d)=>Exchange(d);
     }
     static ProfileStore Store(Memory m=null,Time t=null,IProfileSyncTransport transport=null,ProfileDocument legacy=null)=>new ProfileStore("test","account",m??new Memory(),(t??new Time()).Clock(),transport,legacy);
-    static RewardRequest Request(string day=Day,RewardKind kind=RewardKind.Hint,RewardRoute route=RewardRoute.SimulatedShare)=>new RewardRequest(1,kind,route,day,"session");
+    static RewardRequest Request(string day=Day,RewardKind kind=RewardKind.SwapOrder,RewardRoute route=RewardRoute.SimulatedShare)=>new RewardRequest(1,kind,route,day,"session");
     static void Award(ProfileStore store,RewardRequest request,DateTimeOffset utc)
     {
         if(request.Route==RewardRoute.SimulatedShare)Assert(store.TryReserveShare(request.QuotaChallengeDate,request.RequestId,utc),"reserve");

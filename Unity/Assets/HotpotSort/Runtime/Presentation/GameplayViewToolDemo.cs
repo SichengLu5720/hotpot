@@ -19,6 +19,10 @@ namespace HotpotSort.Presentation
         Vector2[] cluster=new Vector2[0];
         float[] clearAngles=new float[0];
         RectTransform clearTransport;
+        RectTransform swapDim,swapTarget;
+        RawImage swapTargetFood;
+        Text swapCount;
+        int swapFoodId;
         float age;
         public int Generation { get; private set; }
         public float CycleDuration=>CycleSeconds;
@@ -42,7 +46,7 @@ namespace HotpotSort.Presentation
                 float fadeOut=1-Mathf.SmoothStep(0,1,Mathf.Clamp01((age-3.52f)/.48f));
                 group.alpha=fadeIn*fadeOut;
             }
-            if(kind==RewardKind.Hint)AnimateHint(t);
+            if(kind==RewardKind.SwapOrder)AnimateSwap(t);
             else if(kind==RewardKind.ClearBuffer)AnimateClear(t);
             else AnimateShuffle(t);
         }
@@ -53,25 +57,37 @@ namespace HotpotSort.Presentation
             group=cycleRoot.gameObject.AddComponent<CanvasGroup>();group.interactable=false;group.blocksRaycasts=false;
             moving=new RectTransform[0];from=new Vector2[0];to=new Vector2[0];cluster=new Vector2[0];clearAngles=new float[0];clearTransport=null;
             int variant=Generation++%3;
-            if(kind==RewardKind.Hint)BuildHint(variant);
+            if(kind==RewardKind.SwapOrder)BuildSwap(variant);
             else if(kind==RewardKind.ClearBuffer)BuildClear(variant);
             else BuildShuffle(variant);
         }
-        void BuildHint(int variant)
+        void BuildSwap(int variant)
         {
-            var positions=new[]{new Vector2(22,30),new Vector2(116,24),new Vector2(210,34),new Vector2(68,137),new Vector2(173,139)};
-            for(int i=0;i<positions.Length;i++)PlateToken("HintPlate_"+i,positions[i],70,(i+variant*2)%16,(i+5+variant)%16);
-            int selected=(variant+1)%positions.Length;
-            // Tight highlight follows the primary food cutout rather than the whole plate.
-            var glow=Raw(cycleRoot,"HintHighlight",hint,new Rect(positions[selected].x+6,positions[selected].y+9,42,42));
-            glow.SetAsLastSibling();moving=new[]{glow};
+            swapFoodId=(variant*3)%16;
+            for(int i=0;i<5;i++)Raw(cycleRoot,"BufferDish_"+i,dish,new Rect(13+i*58,182,50,50));
+            PlateToken("SwapScenePlate",new Vector2(124,100),62,(swapFoodId+4)%16,(swapFoodId+6)%16);
+            var other=Node(cycleRoot,"SwapOtherOrder",new Rect(177,28,108,53));
+            Raw(other,"OrderCard",hint,new Rect(0,0,108,53));Raw(other,"Target",Food((swapFoodId+2)%16),new Rect(7,7,38,38),FoodUv((swapFoodId+2)%16));DemoText(other,"0/3",new Rect(49,8,55,36));
+            swapDim=Raw(cycleRoot,"SwapDemoDim",Texture2D.whiteTexture,new Rect(0,0,310,270));swapDim.GetComponent<RawImage>().color=new Color(0,0,0,.65f);swapDim.gameObject.SetActive(false);
+            swapTarget=Node(cycleRoot,"SwapSelectedOrder",new Rect(25,28,108,53));
+            Raw(swapTarget,"OrderCard",hint,new Rect(0,0,108,53));
+            swapTargetFood=Raw(swapTarget,"Target",Food(swapFoodId),new Rect(7,7,38,38),FoodUv(swapFoodId)).GetComponent<RawImage>();
+            swapCount=DemoText(swapTarget,"2/3",new Rect(49,8,55,36));
+            moving=new RectTransform[2];from=new[]{new Vector2(48,86),new Vector2(77,87)};to=new[]{new Vector2(21,190),new Vector2(79,190)};
+            for(int i=0;i<2;i++)moving[i]=Raw(cycleRoot,"SwapReturnFood_"+i,Food(swapFoodId),new Rect(from[i].x,from[i].y,34,34),FoodUv(swapFoodId));
         }
-        void AnimateHint(float t)
+        Text DemoText(Transform parent,string value,Rect rect)
         {
-            if(moving.Length==0||!moving[0])return;
-            float pulse=.94f+.10f*(.5f+.5f*Mathf.Sin(t*Mathf.PI*6));
-            moving[0].localScale=Vector3.one*pulse;
-            var image=moving[0].GetComponent<RawImage>();if(image)image.color=new Color(1,1,1,.58f+.28f*(.5f+.5f*Mathf.Sin(t*Mathf.PI*6)));
+            var node=Node(parent,"OrderCount",rect);node.sizeDelta=rect.size*4;node.localScale=Vector3.one*.25f;
+            var label=node.gameObject.AddComponent<Text>();label.font=TaskAssetValidation.LoadModernFont();label.fontSize=84;label.text=value;label.alignment=TextAnchor.MiddleCenter;label.color=new Color(.22f,.10f,.04f);label.raycastTarget=false;return label;
+        }
+        void AnimateSwap(float t)
+        {
+            swapDim.gameObject.SetActive(t>0&&t<.70f);
+            float travel=Mathf.Clamp01((t-.26f)/(.34f/3f));
+            for(int i=0;i<moving.Length;i++)SetTopLeft(moving[i],Vector2.Lerp(from[i],to[i],travel));
+            bool changed=t>=.70f;int id=changed?(swapFoodId+1)%16:swapFoodId;
+            swapTargetFood.texture=Food(id);swapTargetFood.uvRect=FoodUv(id);swapCount.text=changed?"0/3":"2/3";
         }
         void BuildClear(int variant)
         {
@@ -179,10 +195,10 @@ namespace HotpotSort.Presentation
             var stage=Skin(card,"ToolDemoStage",new Rect(25,82,310,270),"ui.panel");
             var stageImage=stage.GetComponent<Image>();if(stageImage)stageImage.raycastTarget=false;
             var uvs=new Rect[foods.Length];for(int i=0;i<uvs.Length;i++)uvs[i]=art.FoodUv(i);
-            var demo=stage.gameObject.AddComponent<ToolDemoLoop>();demo.Initialize(kind,plate,dish,art.Texture("fx.hint"),foods,uvs);
+            var demo=stage.gameObject.AddComponent<ToolDemoLoop>();demo.Initialize(kind,plate,dish,art.Texture("ui.order_card"),foods,uvs);
             Label(card,note,new Rect(28,370,304,52),17).color=ModernPalette.Muted;
-            VButton(card,action,new Rect(40,484,280,52),()=>{CloseModal();RewardRequested?.Invoke(kind,route);},true,21);
-            VButton(card,"取消",new Rect(40,552,280,48),CloseModal,false,20);
+            VButton(card,action,new Rect(40,484,280,52),()=>{CloseModal();if(kind==RewardKind.SwapOrder)RequestSwap(route);else RewardRequested?.Invoke(kind,route);},true,21);
+            VButton(card,"取消",new Rect(40,552,280,48),()=>{CloseModal();if(kind==RewardKind.SwapOrder)CancelSwapPresentation();},false,20);
         }
     }
 }

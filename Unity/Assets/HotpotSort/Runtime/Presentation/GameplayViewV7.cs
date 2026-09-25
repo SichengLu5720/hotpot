@@ -17,7 +17,7 @@ namespace HotpotSort.Presentation
         public void RefreshCollectionToolStock()
         {
             if(!board)return;
-            foreach(var kind in new[]{RewardKind.Hint,RewardKind.ClearBuffer,RewardKind.Shuffle})
+            foreach(var kind in new[]{RewardKind.SwapOrder,RewardKind.ClearBuffer,RewardKind.Shuffle})
             {var tool=board.Find("Tool_"+kind);if(!tool)continue;int stock=CollectionToolCount(kind);var label=tool.Find("ToolStock")?.GetComponent<Text>();if(label){label.text="×"+stock;label.gameObject.SetActive(stock>0);}var plus=tool.Find("ToolPlus");if(plus)plus.gameObject.SetActive(stock==0);}
         }
         V7Art art;
@@ -112,7 +112,7 @@ namespace HotpotSort.Presentation
                 PlateCrop=new Rect(0,292,420,536);Place(plateClip,PlateCrop);
                 var blocker=Node(board,"BufferInputBlock",new Rect(0,227,420,65)).gameObject.AddComponent<Image>();blocker.color=Color.clear;blocker.raycastTarget=true;
                 Skin(board,"BottomBar",new Rect(12,829,396,70),"ui.bottom_bar");
-                ToolButton("提示","hint",18,RewardKind.Hint);
+                ToolButton("换单","retry",18,RewardKind.SwapOrder);
                 ToolButton("清空暂存","clear_buffer",150,RewardKind.ClearBuffer);
                 ToolButton("打乱","shuffle",282,RewardKind.Shuffle);
                 feedback.SetBoard(board,plateLayer);
@@ -309,13 +309,13 @@ namespace HotpotSort.Presentation
                 // generous hero and matching counter plinth. Existing action hit boxes stay fixed.
                 Skin(frame,"RestaurantSign",new Rect(36,78,348,155),"ui.bottom_bar");
                 PictureContain(frame,art.Texture("brand.hotpot_seal"),new Rect(174,38,72,72),"RestaurantSeal");
-                var title=Label(frame,"火锅消消",new Rect(48,108,324,65),46);title.font=displayFont;title.color=ThemeIvory;
+                var title=Label(frame,"一锅又一锅",new Rect(48,108,324,65),46);title.font=displayFont;title.color=ThemeIvory;
                 PictureContain(frame,art.Texture(AssetKey.Entry),new Rect(-12,224,444,444),"EntryHero");
                 Skin(frame,"RestaurantCounter",new Rect(52,676,316,169),"ui.bottom_bar");
             }
             else
             {
-                var title=Label(frame,"火锅消消",new Rect(20,107,380,78),52);title.font=displayFont;title.color=ModernPalette.Paper;
+                var title=Label(frame,"一锅又一锅",new Rect(20,107,380,78),52);title.font=displayFont;title.color=ModernPalette.Paper;
                 Label(frame,"每 日 挑 战",new Rect(40,193,340,35),20).color=ModernPalette.Paper;
                 Picture(frame,art.Texture(AssetKey.Entry),new Rect(0,208,420,560),"EntryHero");
             }
@@ -434,7 +434,7 @@ namespace HotpotSort.Presentation
             var route=availability!=null&&availability.Available?RewardRoute.SimulatedShare:RewardRoute.SimulatedAd;
             if(route==RewardRoute.SimulatedAd&&offer!=null&&!offer.rewardedVideoAvailable)
             {DialogV7("广告暂不可用","分享暂不可用，激励视频未配置或未启用。\n没有发放奖励，也不会扣除分享次数。",new[]{"知道了"},_=>CloseModal());return;}
-            string item=kind==RewardKind.Hint?"提示":kind==RewardKind.ClearBuffer?"清空暂存":"打乱";
+            string item=kind==RewardKind.SwapOrder?"换单":kind==RewardKind.ClearBuffer?"清空暂存":"打乱";
             string note=route==RewardRoute.SimulatedShare?"今日分享剩余 "+availability.Remaining+" 次":"分享暂不可用，可通过广告领取。";
             ToolRewardOfferV7(kind,"领取"+item,note,route==RewardRoute.SimulatedShare?"分享领取":"看广告领取",route);
         }

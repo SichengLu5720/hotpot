@@ -8,12 +8,13 @@ using UnityEngine;
 
 namespace HotpotSort.Platform
 {
-    public sealed class WeChatBrothActivityService:IBrothActivityService,IDisposable
+    public sealed class WeChatBrothActivityService:IBrothActivityService,IBrothChallengeCompletion,IDisposable
     {
         [Serializable] public sealed class Command
         {
             public int protocolVersion=1;
             public string requestId,environment,account,action,operationId,invitationId,brothId;
+            public string sessionId,stage,outcome,completedUtc;
             public long expectedRevision;
         }
         [Serializable] public sealed class Response
@@ -42,6 +43,7 @@ namespace HotpotSort.Platform
         public Task<BrothResult> ConfirmAssistAsync(string requestId,string invitationId,string operationId)=>Call(new Command{requestId=requestId,invitationId=invitationId,operationId=operationId,action="brothConfirmAssist"});
         public Task<BrothResult> ClaimAsync(string requestId,string brothId,string operationId)=>Call(new Command{requestId=requestId,brothId=brothId,operationId=operationId,action="brothClaim"});
         public Task<BrothResult> SelectAsync(string requestId,string brothId,string operationId)=>Call(new Command{requestId=requestId,brothId=brothId,operationId=operationId,action="brothSelect"});
+        public Task<BrothResult> CompleteChallengeAsync(string requestId,string sessionId,string completedUtc,string operationId)=>Call(new Command{requestId=requestId,sessionId=sessionId,completedUtc=completedUtc,stage="formal",outcome="won",operationId=operationId,action="brothCompleteChallenge"});
         async Task<BrothResult> Call(Command command)
         {
             Func<BrothFailure,BrothResult> fail=f=>new BrothResult{requestId=command.requestId,failure=f};
@@ -65,7 +67,7 @@ namespace HotpotSort.Platform
                     }catch{return fail(BrothFailure.Failed);}
                 }
                 if(mutations.TryGetValue(command.operationId,out var original)){
-                    if(original.action!=command.action||(original.brothId??"")!=(command.brothId??"")||(original.invitationId??"")!=(command.invitationId??""))return fail(BrothFailure.OperationConflict);
+                    if(original.action!=command.action||(original.brothId??"")!=(command.brothId??"")||(original.invitationId??"")!=(command.invitationId??"")||(original.sessionId??"")!=(command.sessionId??"")||(original.completedUtc??"")!=(command.completedUtc??""))return fail(BrothFailure.OperationConflict);
                     command.expectedRevision=original.expectedRevision;
                 }else {
                     try{PlayerPrefs.SetString(pendingKey,JsonUtility.ToJson(command));PlayerPrefs.Save();}

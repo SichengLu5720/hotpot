@@ -13,6 +13,7 @@ const transaction=fn=>{const task=tail.then(async()=>{
 const handle=createHandler({environment,transaction,now:()=>clock});
 const call=(who,action,fields={})=>handle({protocolVersion:1,environment,requestId:'r'+(++counter),operationId:'op'+counter,action,...fields},context(who));
 const profile=who=>storage['profile:'+owner(who)];
+const win=(who,fields={})=>call(who,'brothCompleteChallenge',{sessionId:'session'+counter,stage:'formal',outcome:'won',completedUtc:new Date(clock).toISOString(),...fields});
 function reset(){storage={};failAt=0;clock=Date.parse('2026-09-25T15:59:59Z');}
 async function invite(who){const p=empty(environment,owner(who));p.entryUnlocked=true;storage['profile:'+owner(who)]=p;const r=await call(who,'brothCreateInvitation');assert.equal(r.status,'Synced');assert.match(r.invitation.invitationId,/^[a-f0-9]{64}$/);assert(!JSON.stringify(r.invitation).includes(owner(who)));return r.invitation.invitationId;}
 (async()=>{
@@ -22,11 +23,16 @@ async function invite(who){const p=empty(environment,owner(who));p.entryUnlocked
  assert.equal((await call('b','brothInspectInvitation',{invitationId:id})).invitation.canAssist,true);
  assert.equal(profile('b'),undefined); // inspecting never awards or creates inventory
  const fields={invitationId:id,operationId:'assist'};
- r=await call('b','brothConfirmAssist',fields);assert.equal(r.status,'Synced');assert.deepEqual(profile('b').tools,[1,1,1]);assert.equal(profile('b').entryUnlocked,false);assert(profile('a').brothActivityQualified);
+ r=await call('b','brothConfirmAssist',fields);assert.equal(r.status,'Synced');assert.deepEqual(profile('b').tools,[1,1,1]);assert.equal(profile('b').entryUnlocked,false);assert.equal(profile('a').brothActivityQualified,false);
+ assert.equal(profile('a').brothAssistExpiresAt-clock,72*3600000);
  assert.equal((await call('b','brothConfirmAssist',fields)).status,'Synced');assert.deepEqual(profile('b').tools,[1,1,1]);
  assert.equal((await call('b','brothConfirmAssist',{...fields,invitationId:'0'.repeat(64)})).error,'OperationConflict');
  assert.equal((await call('b','brothConfirmAssist',{invitationId:id})).error,'AlreadyAssisted');
- assert.equal((await call('c','brothConfirmAssist',{invitationId:id})).error,'ActivityComplete');assert.equal(profile('c'),undefined);
+ assert.equal((await call('c','brothConfirmAssist',{invitationId:id})).error,'AssistOccupied');assert.equal(profile('c'),undefined);
+ assert.equal((await win('b',{stage:'warmup'})).error,'InvalidChallenge');assert.equal((await win('b',{outcome:'lost'})).error,'InvalidChallenge');
+ await win('c');assert.equal(profile('a').brothActivityQualified,false);
+ await win('b');assert.equal(profile('a').brothActivityQualified,true);
+ assert.equal((await call('c','brothConfirmAssist',{invitationId:id})).error,'ActivityComplete');
  assert.equal((await call('b','brothInspectInvitation',{invitationId:id})).invitation.canAssist,false);
  const rev=profile('a').serverRevision;
  const claims=await Promise.all(['clear','tomato'].map(brothId=>call('a','brothClaim',{brothId,expectedRevision:rev})));
@@ -39,7 +45,7 @@ async function invite(who){const p=empty(environment,owner(who));p.entryUnlocked
  assert.equal((await call('a','brothSelect',{brothId:'red',expectedRevision:0})).error,'StaleRevision');
  assert.equal((await call('a','brothClaim',{brothId:'tomato',expectedRevision:profile('a').serverRevision})).error,'AlreadyChosen');
  reset();id=await invite('a');const race=await Promise.all(['b','c'].map(who=>call(who,'brothConfirmAssist',{invitationId:id})));
- assert.equal(race.filter(x=>x.status==='Synced').length,1);assert.equal(race.filter(x=>x.error==='ActivityComplete').length,1);
+ assert.equal(race.filter(x=>x.status==='Synced').length,1);assert.equal(race.filter(x=>x.error==='AssistOccupied').length,1);
  assert.equal(['b','c'].reduce((n,who)=>n+(profile(who)?profile(who).tools[0]:0),0),1);
  reset();const tokens=[];for(let i=0;i<4;i++)tokens.push(await invite('host'+i));
  for(let i=0;i<3;i++)assert.equal((await call('helper','brothConfirmAssist',{invitationId:tokens[i]})).status,'Synced');
@@ -58,9 +64,26 @@ async function invite(who){const p=empty(environment,owner(who));p.entryUnlocked
  assert.equal((await call('b','brothConfirmAssist',{invitationId:id,account:owner('a')})).error,'WrongPartition');
  assert.equal((await call('b','brothConfirmAssist',{invitationId:'bogus'})).error,'InvalidPayload');
  reset();id=await invite('a');await call('b','brothConfirmAssist',{invitationId:id});
+ await win('b');
  const claim={brothId:'mushroom',expectedRevision:profile('a').serverRevision,operationId:'claim'};
  const retries=await Promise.all([call('a','brothClaim',claim),call('a','brothClaim',claim)]);assert(retries.every(x=>x.status==='Synced'));
  assert.equal(profile('a').ownedBroths.filter(x=>x==='mushroom').length,1);
  assert.equal((await call('a','brothClaim',{...claim,brothId:'clear'})).error,'OperationConflict');
+ // Expiry at exactly 72 hours, lazy unbind, lifetime start receipt and no clawback.
+ reset();id=await invite('a');await call('b','brothStartAssist',{invitationId:id});clock+=72*3600000;
+ await win('b');assert.equal(profile('a').brothActivityQualified,false);
+ r=await call('a','brothRead');assert.equal(r.snapshot.brothAssistantAccount,'');assert.deepEqual(profile('b').tools,[1,1,1]);
+ assert.equal((await call('b','brothStartAssist',{invitationId:id})).error,'AlreadyAssisted');
+ assert.equal((await call('c','brothStartAssist',{invitationId:id})).status,'Synced');
+ const oldWin={sessionId:'old',completedUtc:new Date(clock-1).toISOString()};await win('c',oldWin);assert.equal(profile('a').brothActivityQualified,false);assert.equal(profile('c').brothHelping.length,1);
+ const currentWin={sessionId:'current',operationId:'complete',completedUtc:new Date(clock).toISOString()};
+ const complete=await Promise.all([win('c',currentWin),win('c',currentWin)]);assert(complete.every(x=>x.status==='Synced'));assert.equal(profile('a').brothActivityQualified,true);
+ const stable=profile('a').serverRevision;await win('c',{...currentWin,operationId:'different'});assert.equal(profile('a').serverRevision,stable);
+ assert.equal((await win('c',{...currentWin,completedUtc:new Date(clock-1).toISOString()})).error,'OperationConflict');
+ // Rollback of each completion write: owner, invitation, win receipt, helper, operation.
+ for(let write=1;write<=5;write++){
+  reset();id=await invite('a');await call('b','brothStartAssist',{invitationId:id});const before=copy(storage);failAt=write;
+  assert.equal((await win('b')).error,'ServerFailure');assert.deepEqual(storage,before);failAt=0;
+ }
  console.log('PASS: legacy red, opaque invitation, locked origin/new helper, self/repeat/receipt conflict, three tools, exhausted activity, concurrent assist/claim, permanent choice, future ownership, selection revision, Beijing midnight/limit, every-write rollback, old links, identity partition');
 })().catch(e=>{console.error(e);process.exitCode=1;});

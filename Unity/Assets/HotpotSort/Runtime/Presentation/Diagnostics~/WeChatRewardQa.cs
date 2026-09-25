@@ -9,7 +9,7 @@ static class WeChatRewardQa
     static int checks;
     static void Check(bool value,string name){if(!value)throw new Exception(name);checks++;}
     static void Outcome(Task<RewardOutcome> task,RewardOutcome expected,string name)=>Check(task.IsCompletedSuccessfully&&task.Result==expected,name);
-    static RewardRequest Request(RewardRoute route,RewardKind kind=RewardKind.Hint)=>new RewardRequest(1,kind,route,"2026-09-22");
+    static RewardRequest Request(RewardRoute route,RewardKind kind=RewardKind.SwapOrder)=>new RewardRequest(1,kind,route,"2026-09-22");
     static WeChatRuntimeConfig Config()=>new WeChatRuntimeConfig{rewardedAdUnitId="ad-test"};
     static int Main()
     {

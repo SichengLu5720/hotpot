@@ -10,12 +10,19 @@ namespace HotpotSort.Contracts
         public static bool IsValid(string id)=>id==Red||IsCandidate(id);
         public static bool HasClaimReminder(CollectionDocument document)=>document!=null&&document.brothActivityQualified&&string.IsNullOrEmpty(document.brothActivityChoice);
     }
-    public enum BrothFailure { None,Unavailable,Offline,Unauthenticated,InvalidRequest,NotFound,SelfAssist,AlreadyAssisted,ActivityComplete,DailyLimit,NotQualified,AlreadyChosen,NotOwned,OperationConflict,Stale,Failed }
+    public enum BrothFailure { None,Unavailable,Offline,Unauthenticated,InvalidRequest,NotFound,SelfAssist,AlreadyAssisted,ActivityComplete,DailyLimit,NotQualified,AlreadyChosen,NotOwned,OperationConflict,Stale,Failed,AssistOccupied,InvalidChallenge }
+    [Serializable] public sealed class BrothHelping {public string invitationId;public long expiresAt;}
+    public interface IBrothChallengeCompletion
+    {
+        Task<BrothResult> CompleteChallengeAsync(string requestId,string sessionId,string completedUtc,string operationId);
+    }
     [Serializable] public sealed class BrothInvitation
     {
         // Opaque server-generated link token; never a caller-supplied account identity.
         public string invitationId;
         public bool isInitiator,canAssist;
+        public bool isAssistant,qualified;
+        public long startedAt,expiresAt;
     }
     public sealed class BrothResult
     {

@@ -23,20 +23,21 @@ namespace HotpotSort.Presentation
                 art=new V7Art(V7Art.Root);
                 var foods=Enumerable.Range(0,16).Select(i=>art.Texture(AssetKey.Food(i))).ToArray();
                 var uvs=Enumerable.Range(0,16).Select(art.FoodUv).ToArray();
-                var kinds=new[]{RewardKind.Hint,RewardKind.ClearBuffer,RewardKind.Shuffle};
+                var kinds=new[]{RewardKind.SwapOrder,RewardKind.ClearBuffer,RewardKind.Shuffle};
                 for(int i=0;i<kinds.Length;i++)
                 {
                     roots[i]=new GameObject("ToolDemoFixture_"+kinds[i],typeof(RectTransform));var rt=(RectTransform)roots[i].transform;rt.sizeDelta=new Vector2(310,270);
-                    var demo=roots[i].AddComponent<ToolDemoLoop>();demo.Initialize(kinds[i],art.Texture(AssetKey.Plate),art.Texture(AssetKey.BufferDish),art.Texture("fx.hint"),foods,uvs);
+                    var demo=roots[i].AddComponent<ToolDemoLoop>();demo.Initialize(kinds[i],art.Texture(AssetKey.Plate),art.Texture(AssetKey.BufferDish),art.Texture("ui.order_card"),foods,uvs);
                     Check(demo.Generation==1&&Math.Abs(demo.CycleDuration-4)<.001,"one-second hold plus three-second motion cycle "+kinds[i]);
                     var names=roots[i].GetComponentsInChildren<Transform>(true).Select(t=>t.name).ToArray();
                     float advanced=0;var initial=roots[i].GetComponentsInChildren<RectTransform>(true).Where(n=>n.name.StartsWith("HintHighlight")||n.name.StartsWith("GatherFood_")||n.name.StartsWith("ShufflePlate_")).Select(n=>n.anchoredPosition).ToArray();
                     Tick(demo,.95f);advanced=.95f;var held=roots[i].GetComponentsInChildren<RectTransform>(true).Where(n=>n.name.StartsWith("HintHighlight")||n.name.StartsWith("GatherFood_")||n.name.StartsWith("ShufflePlate_")).Select(n=>n.anchoredPosition).ToArray();
                     Check(initial.SequenceEqual(held),"first second holds still "+kinds[i]);
-                    if(kinds[i]==RewardKind.Hint)
+                    if(kinds[i]==RewardKind.SwapOrder)
                     {
-                        var glow=roots[i].GetComponentsInChildren<RectTransform>(true).First(n=>n.name=="HintHighlight");
-                        Check(names.Contains("HintHighlight")&&!names.Any(n=>n.IndexOf("Line",StringComparison.OrdinalIgnoreCase)>=0)&&glow.sizeDelta.x<=45,"hint tightly highlights one food only");
+                        Check(names.Contains("SwapSelectedOrder")&&names.Contains("SwapOtherOrder")&&names.Count(n=>n.StartsWith("SwapReturnFood_"))==2,"swap demo has two orders and two returned foods");
+                        Tick(demo,.15f);advanced+=.15f;Check(roots[i].GetComponentsInChildren<Transform>().Any(n=>n.name=="SwapDemoDim"),"swap selection dims directly");
+                        Tick(demo,2.1f);advanced+=2.1f;Check(roots[i].GetComponentsInChildren<Text>().All(n=>n.text=="0/3"),"swap changes target after return without completion emphasis");
                     }
                     if(kinds[i]==RewardKind.ClearBuffer)
                     {

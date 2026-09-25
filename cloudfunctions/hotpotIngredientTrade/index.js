@@ -4,8 +4,8 @@ const {createHandler}=require('./trade');
 cloud.init({env:cloud.DYNAMIC_CURRENT_ENV});
 const db=cloud.database({throwOnNotFound:false});
 const handle=createHandler({environment:process.env.HOTPOT_PROFILE_ENVIRONMENT,
- // No reliable server-side WeChat friendship verifier is configured. Trade writes
- // fail closed until an independently authenticated verifier is implemented.
+ // Legacy account-targeted trades still require a friendship verifier. New
+ // createLink trades authorize the receiving account by an opaque share token.
  verifyFriend:null,
  transaction:run=>db.runTransaction(async transaction=>{
   const ref=key=>transaction.collection('hotpot_ingredient_trade_v1').doc(crypto.createHash('sha256').update(key).digest('hex'));

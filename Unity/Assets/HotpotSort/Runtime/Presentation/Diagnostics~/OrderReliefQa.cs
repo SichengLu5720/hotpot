@@ -11,6 +11,46 @@ static class OrderReliefQa
     static int checks;
     static ClickableObservation Observation(string session,string revision,IEnumerable<int> ids,IEnumerable<int> unknown=null,int policyVersion=3)=>new ClickableObservation(session,revision,ids,unknown,policyVersion);
     static void Check(bool value,string label){checks++;if(!value)throw new Exception(label);}
+    static DailySession PlayStage(DailySessionFactory factory,ChallengeContext context,ChallengeStage stage,int policy)
+    {
+        var session=factory.CreateStage(context,stage);ulong boundary=1,seq=1;
+        Check(session.CumulativeCompletedOrders==(stage==ChallengeStage.Formal?6:0),"stage initial cumulative count");
+        for(int p=0;p<(stage==ChallengeStage.Warmup?WarmupContent.Generate(context.ChallengeId,context.ContentVersion).Count:50);p++)
+            Check(session.Supply(new SupplyObservation(seq++,boundary++,true,true)).Accepted,"stage supply");
+        int protected29=0,base30=0;
+        for(int step=0;step<183&&session.Snapshot.Status==GameStatus.Running;step++)
+        {
+            var state=CanonicalJson.Map(CanonicalJson.Parse(session.Snapshot.CanonicalStateJson));
+            var live=CanonicalJson.Array(state["items"]).Select(CanonicalJson.Map).Where(i=>(string)i["location"]=="ActiveAvailable").ToArray();
+            var open=CanonicalJson.Array(state["orders"]).Select(CanonicalJson.Map).FirstOrDefault(o=>(string)o["state"]=="Active");
+            if(open==null)break;
+            var item=live.First(i=>(string)i["kind"]==(string)open["kind"]);
+            var otherKinds=CanonicalJson.Array(state["orders"]).Select(CanonicalJson.Map).Where(o=>(string)o["state"]=="Active").Select(o=>(string)o["kind"]).ToArray();
+            var visible=live.Where(i=>!otherKinds.Contains((string)i["kind"])).Select(i=>CanonicalJson.Int(i["itemId"]));
+            var result=session.Tap(new TapCommand(CanonicalJson.Int(item["itemId"]),seq++,boundary++,true,new ClickableObservation(session.Snapshot.SessionId,session.Snapshot.TransactionId,visible,policyVersion:policy)));
+            Check(result.Accepted,"stage completion tap");
+            foreach(var raw in result.Events.CanonicalEvents)
+            {
+                var e=CanonicalJson.Map(CanonicalJson.Parse(raw));if((string)e["type"]!="DirectorEvaluated")continue;
+                var d=CanonicalJson.Map(e["data"]);
+                if(stage==ChallengeStage.Formal&&policy==5)
+                {
+                    if(session.CumulativeCompletedOrders==29){Check(d.ContainsKey("clickableRelief"),"formal 23 + warmup 6 protected");protected29++;}
+                    if(session.CumulativeCompletedOrders==30){Check(!d.ContainsKey("clickableRelief"),"formal 24 + warmup 6 base");base30++;}
+                }
+                if(stage==ChallengeStage.Formal&&policy==4)
+                {
+                    if(session.CumulativeCompletedOrders==20){Check(d.ContainsKey("clickableRelief"),"archived formal14 still protected");protected29++;}
+                    if(session.CumulativeCompletedOrders==21){Check(!d.ContainsKey("clickableRelief"),"archived formal15 uses base");base30++;}
+                }
+            }
+        }
+        Check(session.CumulativeCompletedOrders==(stage==ChallengeStage.Warmup?6:67),"stage completed cumulative count");
+        if(stage==ChallengeStage.Formal)Check(protected29>0&&base30>0,"production stage boundary exercised policy "+policy);
+        var replay=DailyReplay.Run(factory,session.ExportReplay());
+        Check(replay.Success&&replay.Session.StateHash==session.StateHash&&replay.Session.CoreEventsJson==session.CoreEventsJson,"full stage exact replay policy "+policy);
+        return session;
+    }
     static void Main(string[] args)
     {
         var factory=DailySessionFactory.FromProductionJson(File.ReadAllText(args[0]));var director=new DailyDirector(factory.Content);
@@ -199,11 +239,45 @@ static class OrderReliefQa
             var done=all.Where(x=>x.kind!="A"&&x.kind!="B"&&x.kind!="C"&&x.kind!="D").GroupBy(x=>x.kind).SelectMany(g=>g.Take(g.Count()/3*3)).Take(39).Select(x=>x.id);
             var crossFixture=new DailyFixture(50,ids("C").Take(3).Select(id=>(int?)id).Concat(new int?[]{null,null}),new[]{new FixtureOrder("A",ids("A").Take(2)),new FixtureOrder("B",new int[0])},done);
             var cross=currentFactory.CreateFixtureSession(new ChallengeContext("2026-10-"+(trial+1).ToString("00"),currentFactory.Content.ContentVersion,currentFactory.ConfigurationDigest,"test",0),crossFixture);
-            cross.Tap(new TapCommand(ids("A")[2],1,1,true,new ClickableObservation(cross.Snapshot.SessionId,cross.Snapshot.TransactionId,ids("D").Take(3))));
+            cross.Tap(new TapCommand(ids("A")[2],1,1,true,new ClickableObservation(cross.Snapshot.SessionId,cross.Snapshot.TransactionId,ids("D").Take(3),policyVersion:4)));
             var evaluations=CanonicalJson.Array(CanonicalJson.Parse(cross.CoreEventsJson)).Select(CanonicalJson.Map).Where(e=>(string)e["type"]=="DirectorEvaluated").Select(e=>CanonicalJson.Map(e["data"])).ToArray();
             if(evaluations.Length>1){newCross=true;Check(evaluations[0].ContainsKey("clickableRelief")&&!evaluations[1].ContainsKey("clickableRelief"),"new same transaction14->15 disables protection");Check(DailyReplay.Run(archived,cross.ExportReplay()).Success,"new D1 replay resolves from legacy factory");}
         }
         Check(newCross,"new threshold chain exercised");
+        bool first30Cross=false;
+        for(int trial=0;trial<30&&!first30Cross;trial++)
+        {
+            var done=all.Where(x=>x.kind!="A"&&x.kind!="B"&&x.kind!="C"&&x.kind!="D").GroupBy(x=>x.kind).SelectMany(g=>g.Take(g.Count()/3*3)).Take(84).Select(x=>x.id);
+            var crossFixture=new DailyFixture(50,ids("C").Take(3).Select(id=>(int?)id).Concat(new int?[]{null,null}),new[]{new FixtureOrder("A",ids("A").Take(2)),new FixtureOrder("B",new int[0])},done);
+            var cross=currentFactory.CreateFixtureSession(new ChallengeContext("2026-10-"+(trial+1).ToString("00"),currentFactory.Content.ContentVersion,currentFactory.ConfigurationDigest,"test",0),crossFixture);
+            cross.Tap(new TapCommand(ids("A")[2],1,1,true,new ClickableObservation(cross.Snapshot.SessionId,cross.Snapshot.TransactionId,ids("D").Take(3))));
+            var evaluations=CanonicalJson.Array(CanonicalJson.Parse(cross.CoreEventsJson)).Select(CanonicalJson.Map).Where(e=>(string)e["type"]=="DirectorEvaluated").Select(e=>CanonicalJson.Map(e["data"])).ToArray();
+            if(evaluations.Length>1){first30Cross=true;Check((string)CanonicalJson.Map(evaluations[0]["clickableRelief"])["branch"]=="First30Guaranteed"&&!evaluations[1].ContainsKey("clickableRelief"),"same transaction29->30 disables protection");Check(DailyReplay.Run(archived,cross.ExportReplay()).Success,"policy5 replay resolves from legacy factory");}
+        }
+        Check(first30Cross,"first30 synchronous threshold chain exercised");
+        Check(new ClickableObservation("s","r",Array.Empty<int>()).PolicyVersion==5,"production default policy5");
+        int first30A=0,first30C=0;
+        for(int completed=0;completed<=31;completed++)for(ulong seed=1;seed<=100;seed++)
+        {
+            var x=new Pcg32(seed+(ulong)completed*100);var y=new Pcg32(seed+(ulong)completed*100);
+            var actual=currentDirector.Choose(0,items,orders,buffer,pending,x,clickable:visible,completedOrders:completed,policyVersion:5);
+            if(completed<30){Check(actual.Fallback=="VisibleReliefFirst30","0 through29 protected");if(actual.Kind=="A")first30A++;else if(actual.Kind=="C")first30C++;else Check(false,"first30 pool");}
+            else {var basic=currentDirector.Choose(0,items,orders,buffer,pending,y);Check(CanonicalJson.Write(actual.Diagnostic)==CanonicalJson.Write(basic.Diagnostic)&&CanonicalJson.Write(x.Snapshot())==CanonicalJson.Write(y.Snapshot()),"30 onwards exact base rng");}
+        }
+        Check(Math.Abs(first30A-first30C)<400,"first30 uniform pool");
+        foreach(var observedIds in new[]{new HashSet<int>(),visible})
+        {
+            var x=new Pcg32(13);var y=new Pcg32(13);
+            var actual=currentDirector.Choose(0,items,orders,buffer,pending,x,clickable:observedIds,unknown:observedIds.Count==0?null:new HashSet<int>{4,5,6},completedOrders:29,policyVersion:5);
+            var basic=currentDirector.Choose(0,items,orders,buffer,pending,y);
+            Check(CanonicalJson.Write(actual.Diagnostic)==CanonicalJson.Write(basic.Diagnostic)&&CanonicalJson.Write(x.Snapshot())==CanonicalJson.Write(y.Snapshot()),"first30 empty/unknown exact fallback");
+        }
+        var newContext=new ChallengeContext("2026-09-25",currentFactory.Content.ContentVersion,currentFactory.ConfigurationDigest,"test",0);
+        PlayStage(currentFactory,newContext,ChallengeStage.Warmup,5);
+        var formal=PlayStage(currentFactory,newContext,ChallengeStage.Formal,5);
+        var retry=PlayStage(currentFactory,newContext,ChallengeStage.Formal,5);
+        Check(formal.StateHash==retry.StateHash&&formal.CoreEventsJson==retry.CoreEventsJson,"same day policy5 deterministic");
+        PlayStage(currentFactory,newContext,ChallengeStage.Formal,4);
         Console.WriteLine("DIFFICULTY1 uniformA="+d1A+" uniformC="+d1C+" digest="+currentFactory.Content.Digest);
         Console.WriteLine(CanonicalJson.Write(CanonicalJson.Object("status","PASS","checks",checks,"protected",protectedCount,"original",originalCount,"poolA",a,"poolC",c,"weightedAOneBuffer",weightedA,"weightedCTwoBuffer",weightedC,"weightedDPlain",weightedD,"groupWeights",new[]{row[0],row[1]})));
     }

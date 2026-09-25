@@ -50,6 +50,7 @@ namespace HotpotSort.Presentation
             {
                 if(!button||!button.isActiveAndEnabled||!button.IsInteractable()||!CanPlayButtonHaptic)return;
                 if(WarmupControlsLocked&&(!warmupOverlay||!button.transform.IsChildOf(warmupOverlay)))return;
+                if(SwapPresentationLocked&&!(swapOverlay&&button.transform.IsChildOf(swapOverlay))&&!(modal&&button.transform.IsChildOf(modal)))return;
                 if(!acceptedStart)NotifyButtonAccepted();
                 action();
             });
@@ -225,7 +226,7 @@ namespace HotpotSort.Presentation
         public void SetForeground(bool value) { if(!value)CancelInteractionFeedback();foreground = value;Audio?.SetForeground(value); UpdateSimulation(); }
         public void Hide(bool hidden) { if(hidden)CancelInteractionFeedback();canvasRoot.gameObject.SetActive(!hidden); UpdateSimulation(); }
         private void UpdateSimulation() { World.SetSimulating(foreground && canvasRoot.gameObject.activeInHierarchy && !FriendBoardVisible && LastSnapshot.phase==ViewPhase.Running && LastSnapshot.pauseReasons==ViewPauseReasons.None); }
-        public void ResetView() { ResetCollectionTransientPresentation();CollectionSettlementPending=false;CancelWarmupPresentation();CancelScreenPress();CancelShuffleFeedback(); simulation?.TrySetResult(RewardOutcome.Cancelled);simulation=null;pending.Clear();Array.Clear(serving,0,4); LastEventSequence=0; LastTransactionId=null; feedback.ResetFeedback(); World.Clear(); LastSnapshot=new ViewSnapshot { phase=ViewPhase.Entry }; Render(); }
+        public void ResetView() { ClearSwapPresentation();ResetCollectionTransientPresentation();CollectionSettlementPending=false;CancelWarmupPresentation();CancelScreenPress();CancelShuffleFeedback(); simulation?.TrySetResult(RewardOutcome.Cancelled);simulation=null;pending.Clear();Array.Clear(serving,0,4); LastEventSequence=0; LastTransactionId=null; feedback.ResetFeedback(); World.Clear(); LastSnapshot=new ViewSnapshot { phase=ViewPhase.Entry }; Render(); }
         public void ShowError(string message)
         { CancelWarmupPresentation();CancelScreenPress();CancelShuffleFeedback(); feedback.ResetFeedback(); LastSnapshot = new ViewSnapshot { sessionId=LastSnapshot?.sessionId, phase=ViewPhase.Aborted, message=message }; World.Clear(); Render(); }
         public void DestroyView() { Destroy(gameObject); }
@@ -254,6 +255,7 @@ namespace HotpotSort.Presentation
         {
             TickSettlement(Time.unscaledDeltaTime);
             TickClickabilityCache();
+            TickSwapPresentation(Time.unscaledDeltaTime);
             TickShuffleFeedback(Time.unscaledDeltaTime);
             TickPressAndLanding(Time.unscaledDeltaTime);
             UpdateFriendBoardPresentation();
@@ -276,7 +278,7 @@ namespace HotpotSort.Presentation
         }
         private void Update()
         {
-            if(Input.GetKeyDown(KeyCode.Escape)&&HandleCollectionBack())return;
+            if(Input.GetKeyDown(KeyCode.Escape)&&(HandleSwapBack()||HandleCollectionBack()))return;
             if(art!=null&&Application.platform==RuntimePlatform.WindowsPlayer&&viewportScreenHeight<=0&&viewportAppliedAt!=new Vector2Int(Screen.width,Screen.height))
             {viewportAppliedAt=new Vector2Int(Screen.width,Screen.height);viewport=Screen.safeArea;Render();}
             if (!externalViewport && viewport != Screen.safeArea) { viewport=Screen.safeArea; Render(); }
@@ -298,6 +300,7 @@ namespace HotpotSort.Presentation
         }
         public bool SubmitScreenTap(Vector2 screen, int pointerId = -1)
         {
+            if(SwapPresentationLocked)return true;
             if(TryConfirmWarmupPrompt())return true;
             Vector2 point;string id;
             if(!TryScreenHit(screen,pointerId,out point,out id))return false;
@@ -307,6 +310,7 @@ namespace HotpotSort.Presentation
         }
         public bool BeginScreenPress(Vector2 screen,int pointerId=-1)
         {
+            if(SwapPresentationLocked)return false;
             if(TryConfirmWarmupPrompt())return true;
             if(pressedItem!=null)return false;
             Vector2 point;string id;
@@ -426,7 +430,7 @@ namespace HotpotSort.Presentation
             if(EventSystem.current)
             {
                 uiHits.Clear();EventSystem.current.RaycastAll(new PointerEventData(EventSystem.current){position=screen},uiHits);
-                if(uiHits.Count>0)return false;
+                if(uiHits.Any(hit=>!IsSwapOverlayObject(hit.gameObject)))return false;
             }
             return true;
         }
@@ -503,7 +507,7 @@ namespace HotpotSort.Presentation
                 Place(plateClip,PlateCrop);Place(plateLayer,new Rect(0,-bufferBottom,420,900));
                 var bufferBlock=Node(board,"BufferInputBlock",new Rect(0,228,420,bufferBottom-228));
                 var blocker=bufferBlock.gameObject.AddComponent<Image>();blocker.color=Color.clear;blocker.raycastTarget=true;
-                Button(board,"提示",new Rect(47,834,62,62),()=>ChooseReward(RewardKind.Hint));
+                Button(board,"换单",new Rect(47,834,62,62),()=>ChooseReward(RewardKind.SwapOrder));
                 Button(board,"清空暂存",new Rect(179,834,62,62),()=>ChooseReward(RewardKind.ClearBuffer));
                 Button(board,"打乱",new Rect(311,834,62,62),()=>ChooseReward(RewardKind.Shuffle));
                 feedback.SetBoard(board,plateLayer);
@@ -587,7 +591,7 @@ namespace HotpotSort.Presentation
             Food(content,4,new Rect(x+d*.34f,y+d*.54f,d*.35f,d*.35f));
             float bw=Mathf.Min(w-44,wide?420:300);
             Button(content,"开始下火锅",new Rect((w-bw)/2,h-90,bw,56),()=>Action(ViewAction.StartToday));
-            var title=Label(content,"火锅消消 · 每日挑战",new Rect(20,35,w-40,44),28);if(displayFont)title.font=displayFont;title.color=Cream;
+            var title=Label(content,"一锅又一锅 · 每日挑战",new Rect(20,35,w-40,44),28);if(displayFont)title.font=displayFont;title.color=Cream;
             Label(content,"北京时间06:00更新 · 本地开发模拟",new Rect(20,86,w-40,30),15).color=Cream;
             Button(content,"设置",new Rect(24,135,(w-60)/2,42),()=>SettingsRequested?.Invoke());
             Button(content,"好友榜",new Rect(w/2+6,135,(w-60)/2,42),()=>FriendsRequested?.Invoke());
@@ -885,6 +889,7 @@ namespace HotpotSort.Presentation
         }
         void ChooseReward(RewardKind kind)
         {
+            if(kind==RewardKind.SwapOrder){BeginSwapPresentation();return;}
             if(art!=null){ChooseRewardV7(kind);return;}
             ShowDialog("领取道具 · 开发模拟","三种道具共用每天3次分享额度。",new[]{"模拟激励","模拟分享","取消"},index=>{CloseModal();if(index<2)RewardRequested?.Invoke(kind,index==0?RewardRoute.SimulatedAd:RewardRoute.SimulatedShare);});
         }
@@ -955,9 +960,9 @@ namespace HotpotSort.Presentation
         {
             if(art!=null){VButton(parent,text,r,action);return;}
             var rt=Panel(parent,"Action_"+text,r,Coral);var button=rt.gameObject.AddComponent<Button>();button.targetGraphic=rt.GetComponent<Image>();BindButtonClick(button,action,text=="开始下火锅");
-            string icon=text=="暂停"?"pause":text=="提示"?"hint":text=="清空暂存"?"clear":text=="打乱"?"shuffle":text=="设置"?"settings":text=="好友榜"?"leaderboard":text=="退出"?"home":text=="重新挑战"?"retry":text.Contains("分享")?"share":text.Contains("音乐")?"music":text.Contains("音效")?"sound":text=="继续"||text=="开始下火锅"?"play":text=="模拟激励"||text=="提前开锅"?"ad":text=="取消"||text=="关闭"?"close":null;
+            string icon=text=="暂停"?"pause":text=="换单"?"hint":text=="清空暂存"?"clear":text=="打乱"?"shuffle":text=="设置"?"settings":text=="好友榜"?"leaderboard":text=="退出"?"home":text=="重新挑战"?"retry":text.Contains("分享")?"share":text.Contains("音乐")?"music":text.Contains("音效")?"sound":text=="继续"||text=="开始下火锅"?"play":text=="模拟激励"||text=="提前开锅"?"ad":text=="取消"||text=="关闭"?"close":null;
             bool round=r.width==r.height&&!string.IsNullOrEmpty(assetRoot);
-            bool rewardTool=text=="提示"||text=="清空暂存"||text=="打乱";
+            bool rewardTool=text=="换单"||text=="清空暂存"||text=="打乱";
             if(!round&&r.width<120)icon=null;
             float side=round?r.width*.65f:Mathf.Min(25,r.height*.55f);
             if(icon!=null)Icon(rt,icon,rewardTool?new Rect(12,24,30,30):new Rect(round?(r.width-side)/2:12,(r.height-side)/2,side,side));

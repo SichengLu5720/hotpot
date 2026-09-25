@@ -14,6 +14,9 @@ namespace HotpotSort.Presentation
         RectTransform brothEntry,brothOverlay,brothCard,brothConfirm,collectionBrothPage;
         Transform brothEntryParent;
         Text brothNotice;
+        Text brothCountdown;long brothCountdownDeadline;
+        static string BrothTimeLeft(long deadline){long seconds=Math.Max(0,(deadline-DateTimeOffset.UtcNow.ToUnixTimeMilliseconds())/1000);return seconds==0?"期限已到，等待云端刷新":"剩余 "+(seconds/3600).ToString("00")+":"+((seconds/60)%60).ToString("00")+":"+(seconds%60).ToString("00");}
+        public void RefreshBrothCountdown(){if(brothCountdown&&brothCountdownDeadline>0)brothCountdown.text=BrothTimeLeft(brothCountdownDeadline);}
         bool brothDevelopment,brothBusy,brothDetails,brothFriend,brothAssistSucceeded,collectionShowingBroths;
         BrothInvitation brothInvitation;
         string brothMessage="",brothClaimCandidate,brothTextureId;
@@ -41,7 +44,7 @@ namespace HotpotSort.Presentation
         {
             // Only an authenticated success callback may enter this state, never a page-open/share callback.
             if(!brothFriend||brothInvitation?.invitationId!=invitationId)return;
-            brothAssistSucceeded=true;brothBusy=false;brothMessage="助力成功，三项奖励已到账";RenderBrothActivity();
+            brothAssistSucceeded=true;brothBusy=false;brothMessage="已开始助力，三项道具已到账";RenderBrothActivity();
         }
         public void AttachBrothEntry(Transform frame){brothEntryParent=frame;RefreshBrothEntry();}
         void RefreshBrothEntry()
@@ -190,7 +193,7 @@ namespace HotpotSort.Presentation
         }
         void BrothRewards(float y)
         {
-            string[] titles={"提示","清空暂存","打乱"},icons={"hint","clear_buffer","shuffle"};
+            string[] titles={"换单","清空暂存","打乱"},icons={"retry","clear_buffer","shuffle"};
             for(int i=0;i<3;i++)
             {
                 var tile=CollectionBox(brothCard,"AssistReward_"+icons[i],new Rect(25+i*112,y,96,109),new Color32(55,39,26,255));
@@ -200,7 +203,7 @@ namespace HotpotSort.Presentation
         }
         void RenderBrothActivity()
         {
-            if(!brothCard)return;ClearChildren(brothCard);brothConfirm=null;
+            if(!brothCard)return;ClearChildren(brothCard);brothConfirm=null;brothCountdown=null;brothCountdownDeadline=0;
             CollectionText(brothCard,brothFriend?"好友助力":"锅底活动",new Rect(50,17,270,43),25);
             BrothButton(brothCard,"‹",new Rect(13,21,27,32),CloseBrothActivity,true,24);
             if(brothDevelopment)CollectionText(brothCard,"Development 模拟 · 不计真实奖励",new Rect(20,64,330,22),12).color=CollectionGold;
@@ -211,13 +214,15 @@ namespace HotpotSort.Presentation
         {
             var doc=BrothDocument;bool qualified=doc?.brothActivityQualified==true,chosen=!string.IsNullOrEmpty(doc?.brothActivityChoice);
             CollectionText(brothCard,"邀 1 位好友，锅底三选一",new Rect(18,96,334,36),20);
-            CollectionText(brothCard,chosen?"本活动已选定 "+BrothName(doc.brothActivityChoice):"成功助力后，任选一种永久拥有",new Rect(18,136,334,26),16).color=CollectionGold;
+            bool waiting=!qualified&&!string.IsNullOrEmpty(doc?.brothAssistantAccount);
+            CollectionText(brothCard,chosen?"本活动已选定 "+BrothName(doc.brothActivityChoice):waiting?"等待助力者完成一次正式挑战":"好友开始后，72 小时内通关生效",new Rect(18,136,334,26),16).color=CollectionGold;
             BrothCandidates(174,true);
             CollectionText(brothCard,"好友助力  "+(qualified?"1 / 1":"0 / 1"),new Rect(30,356,310,34),21);
             var track=CollectionBox(brothCard,"AssistProgress",new Rect(62,400,246,10),new Color32(40,27,18,255));
             if(qualified)CollectionBox(track,"Fill",new Rect(1,1,244,8),CollectionGold);
             CollectionText(brothCard,"助力者可获得",new Rect(30,423,310,30),18);BrothRewards(462);
-            if(!qualified)BrothButton(brothCard,"邀请好友助力",new Rect(59,612,252,46),()=>BrothInvitationShareRequested?.Invoke(),true,19);
+            if(waiting){brothCountdownDeadline=doc.brothAssistExpiresAt;brothCountdown=CollectionText(brothCard,BrothTimeLeft(brothCountdownDeadline),new Rect(25,613,320,44),17);}
+            else if(!qualified)BrothButton(brothCard,"邀请好友助力",new Rect(59,612,252,46),()=>BrothInvitationShareRequested?.Invoke(),true,19);
             else CollectionText(brothCard,chosen?"已永久拥有，不可改选":"资格永久保留，请选择一种锅底",new Rect(25,613,320,44),17);
             brothNotice=CollectionText(brothCard,string.IsNullOrEmpty(brothMessage)?"仅打开分享不计入有效助力":brothMessage,new Rect(20,671,330,32),14);
             BrothButton(brothCard,"活动详情 ﹀",new Rect(111,714,148,30),()=>{brothDetails=true;RenderBrothActivity();},true,16);
@@ -228,20 +233,22 @@ namespace HotpotSort.Presentation
             BrothCandidates(126,false);
             CollectionText(brothCard,"活动详情",new Rect(30,265,210,36),20).alignment=TextAnchor.MiddleLeft;
             BrothButton(brothCard,"收起 ∧",new Rect(278,270,66,30),()=>{brothDetails=false;RenderBrothActivity();},true,14);
-            string[] heads={"1  一位好友，永久三选一","2  好友进入并确认才有效","3  成功助力后，好友得奖励","4  同一好友只为你助力一次","5  选择确认后不可更改"};
-            string[] body={"清汤、番茄、菌锅中选择一种。\n资格永久保留，暂不设活动期限。","不同账号从专属分享进入小游戏并确认。\n不能给自己助力，仅打开页面不计数。","提示、清空暂存、打乱各 1 次。\n成功后到账，奖励可跨局、跨天保存。","北京时间每日最多帮助 3 位好友。\n你获 1 次有效助力后不再计数发奖。","选择需二次确认，本活动只能获得一种。\n未选两种可通过未来其他活动获得。"};
+            string[] heads={"1  一位好友，永久三选一","2  开始助力，立即领道具","3  连续 72 小时内正式通关","4  同一账号只能开始一次","5  选择确认后不可更改"};
+            string[] body={"清汤、番茄、菌锅中选择一种。\n完成挑战后的资格永久保留。","不同账号从专属链接主动开始。\n换单、清空暂存、打乱各 1 次。","需赢得一次正式挑战，热身不计入。\n过期自动解绑，已发道具不回收。","每天最多开始帮助 3 人，零点重置。\n过期后同一账号不能再次帮助你。","选择需二次确认，本活动只能获得一种。\n未选两种可通过未来其他活动获得。"};
             for(int i=0;i<5;i++){CollectionText(brothCard,heads[i],new Rect(34,308+i*85,308,31),17).alignment=TextAnchor.MiddleLeft;CollectionText(brothCard,body[i],new Rect(34,340+i*85,308,46),14).alignment=TextAnchor.UpperLeft;}
         }
         void RenderBrothFriend()
         {
             CollectionText(brothCard,"帮好友解锁一种新锅底",new Rect(20,87,330,36),20);BrothCandidates(126,false);
-            CollectionText(brothCard,"好友完成三选一，永久拥有",new Rect(20,274,330,30),16).color=CollectionGold;
-            CollectionText(brothCard,brothAssistSucceeded?"助力成功，奖励已到账":"助力成功后，你将获得",new Rect(20,337,330,36),20);BrothRewards(391);
+            CollectionText(brothCard,"开始后 72 小时内赢得正式挑战",new Rect(20,274,330,30),16).color=CollectionGold;
+            bool started=brothInvitation?.isAssistant==true||brothAssistSucceeded;
+            CollectionText(brothCard,started?"已开始，三项道具已到账":"开始助力，立即获得",new Rect(20,337,330,36),20);BrothRewards(391);
             CollectionText(brothCard,"同一好友只能为该发起者助力一次\n每日最多帮助 3 位好友",new Rect(22,521,326,58),15).color=CollectionGold;
             bool can=brothInvitation!=null&&brothInvitation.canAssist&&!brothInvitation.isInitiator&&!brothAssistSucceeded;
-            BrothButton(brothCard,brothAssistSucceeded?"已助力":"确认助力",new Rect(59,602,252,46),()=>BrothAssistConfirmRequested?.Invoke(brothInvitation.invitationId),can,20);
-            string fallback=brothAssistSucceeded?"提示、清空暂存、打乱各 +1":brothInvitation?.isInitiator==true?"不能给自己助力":!can?"该邀请当前无法助力":"成功助力后奖励才会到账";
+            BrothButton(brothCard,brothInvitation?.qualified==true?"任务已完成":started?"助力任务进行中":"开始助力",new Rect(59,602,252,46),()=>BrothAssistConfirmRequested?.Invoke(brothInvitation.invitationId),can,20);
+            string fallback=started?"返回主页开始挑战，胜利后助力生效":brothInvitation?.isInitiator==true?"不能给自己助力":!can?"该邀请当前无法助力":"仅打开分享不会开始任务或发奖";
             brothNotice=CollectionText(brothCard,string.IsNullOrEmpty(brothMessage)?fallback:brothMessage,new Rect(22,665,326,36),14);
+            if(started&&brothInvitation?.qualified!=true){brothCountdown=brothNotice;brothCountdownDeadline=brothInvitation.expiresAt;RefreshBrothCountdown();}
             BrothButton(brothCard,brothAssistSucceeded?"完成":"稍后再说",new Rect(119,710,132,32),CloseBrothActivity,true,16);
         }
         public void ShowBrothClaimConfirmation(string id)

@@ -166,7 +166,7 @@ namespace HotpotSort.Bootstrap
                 if(composition is DailyProductionComposition daily)
                 {
                     var config=WeChatRuntimeConfig.LoadPackaged();var account=silentLogin.Identity.AccountId;
-                    daily.ConfigureCollectionAuthority(new WeChatIngredientTradeService(config,account,daily.ApplyCollectionAuthority,new WeChatIngredientTradeBridge()));
+                    daily.ConfigureCollectionAuthority(new WeChatIngredientTradeService(config,account,daily.ApplyCollectionAuthority,new WeChatIngredientTradeBridge(),read:()=>daily.BrothCollection));
                     daily.ConfigureBrothActivity(new WeChatBrothActivityService(config,account,()=>daily.BrothCollection,daily.ApplyCollectionAuthority,new WeChatIngredientTradeBridge()),weChatServices?.ActivityLinks);
                 }
             }}

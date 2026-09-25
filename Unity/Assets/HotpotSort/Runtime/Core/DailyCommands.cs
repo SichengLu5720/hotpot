@@ -31,9 +31,11 @@ namespace HotpotSort.Core
         public string SnapshotRevision { get; }
         public IReadOnlyList<int> ItemIds { get; }
         public IReadOnlyList<int> UnknownItemIds { get; }
+        // Certified direct same-plate exposure after removing the currently clickable set; never recursive.
+        public IReadOnlyList<int> NextLayerItemIds { get; }
         public int PolicyVersion { get; }
-        public ClickableObservation(string sessionId,string snapshotRevision,IEnumerable<int> itemIds,IEnumerable<int> unknownItemIds=null,int policyVersion=4)
-        {SessionId=sessionId;SnapshotRevision=snapshotRevision;ItemIds=new ReadOnlyCollection<int>(new List<int>(itemIds??throw new ArgumentNullException(nameof(itemIds))));UnknownItemIds=new ReadOnlyCollection<int>(new List<int>(unknownItemIds??Array.Empty<int>()));PolicyVersion=policyVersion;}
+        public ClickableObservation(string sessionId,string snapshotRevision,IEnumerable<int> itemIds,IEnumerable<int> unknownItemIds=null,int policyVersion=6,IEnumerable<int> nextLayerItemIds=null)
+        {SessionId=sessionId;SnapshotRevision=snapshotRevision;ItemIds=new ReadOnlyCollection<int>(new List<int>(itemIds??throw new ArgumentNullException(nameof(itemIds))));UnknownItemIds=new ReadOnlyCollection<int>(new List<int>(unknownItemIds??Array.Empty<int>()));NextLayerItemIds=new ReadOnlyCollection<int>(new List<int>(nextLayerItemIds??Array.Empty<int>()));PolicyVersion=policyVersion;}
     }
     public sealed class SupplyObservation
     {

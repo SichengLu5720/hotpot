@@ -12,7 +12,7 @@ using UnityEngine;
 
 namespace HotpotSort.Bootstrap
 {
-    public sealed class DailyProductionComposition : ProductionComposition, IGameSessionFactory, IGameViewFactory, IGameView, IPresentationPort, IRevivalPresentationPort, IChallengeStageFactory, IWarmupPresentationPort
+    public sealed partial class DailyProductionComposition : ProductionComposition, IGameSessionFactory, IGameViewFactory, IGameView, IPresentationPort, IRevivalPresentationPort, IChallengeStageFactory, IWarmupPresentationPort, ISwapOrderActions
     {
         [SerializeField] private TextAsset dailyContent;
         [SerializeField] private Font playerFont;
@@ -104,6 +104,8 @@ namespace HotpotSort.Bootstrap
                 case BrothFailure.SelfAssist:return "不能为自己助力";
                 case BrothFailure.AlreadyAssisted:return "你已帮助过这位玩家，不会重复发奖";
                 case BrothFailure.ActivityComplete:return "对方已获得助力，无需再次帮助";
+                case BrothFailure.AssistOccupied:return "已有玩家正在助力，请等待任务结束";
+                case BrothFailure.InvalidChallenge:return "挑战结果暂未确认，请联网重试";
                 case BrothFailure.DailyLimit:return "今日已帮助 3 人，明天再来吧";
                 case BrothFailure.NotQualified:return "暂未获得选择资格，请先完成活动条件";
                 case BrothFailure.AlreadyChosen:return "本活动已选择锅底，不能改选";
@@ -138,7 +140,7 @@ namespace HotpotSort.Bootstrap
                 if(result.Succeeded){
                     PlayerPrefs.DeleteKey(key);PlayerPrefs.Save();
                     view.SetBrothOperationState(false,action=="share"?(service.IsDevelopmentSimulation?"Development 模拟：邀请已创建":"已打开分享，请等待对方确认助力"):"");
-                    if(action=="assist")view.ShowBrothAssistSuccess(argument);
+                    if(action=="assist"){if(result.invitation!=null)view.OpenBrothAssistConfirmation(result.invitation,service.IsDevelopmentSimulation);view.ShowBrothAssistSuccess(argument);}
                 }else{
                     if(result.failure==BrothFailure.Stale||result.failure==BrothFailure.OperationConflict){PlayerPrefs.DeleteKey(key);PlayerPrefs.Save();await service.ReadAsync(Guid.NewGuid().ToString("N"));}
                     if(Current())view.SetBrothOperationState(false,BrothError(result.failure));
@@ -151,7 +153,7 @@ namespace HotpotSort.Bootstrap
         async void TryPresentBrothInvitation()
         {
             if(!view||BrothActivity==null||PendingBrothInvitationId==null||brothBusy||brothInspecting||brothShownInvitation==PendingBrothInvitationId||Time.realtimeSinceStartupAsDouble<brothNextInspect)return;
-            if(shown.phase!=ViewPhase.Entry||friendSurfaceOpen||view.CollectionRewardVisible)return;
+            if(shown.phase!=ViewPhase.Entry||friendSurfaceOpen||view.CollectionRewardVisible||view.CollectionTradeVisible)return;
             var service=BrothActivity;string invitation=PendingBrothInvitationId,account=BrothCollection?.account;long generation=brothGeneration;
             brothInspecting=true;brothNextInspect=Time.realtimeSinceStartupAsDouble+3;
             try{
@@ -166,7 +168,7 @@ namespace HotpotSort.Bootstrap
         {
             var service=BrothActivity;if(service==null)return new BrothResult{failure=BrothFailure.Unavailable};
             var result=await service.ReadAsync(Guid.NewGuid().ToString("N"));
-            if(ReferenceEquals(service,BrothActivity))OnBrothActivityChanged();return result;
+            if(ReferenceEquals(service,BrothActivity)){OnBrothActivityChanged();if(result.Succeeded)RestoreBrothHelping();}return result;
         }
         public Task<BrothResult> InspectPendingBrothInvitationAsync()
             =>BrothActivity==null||PendingBrothInvitationId==null?Task.FromResult(new BrothResult{failure=BrothFailure.Unavailable}):BrothActivity.InspectInvitationAsync(Guid.NewGuid().ToString("N"),PendingBrothInvitationId);
@@ -190,15 +192,14 @@ namespace HotpotSort.Bootstrap
         string CollectionPendingKey=>"Hotpot.CollectionSelection."+collection.ReadCollection().environment+"."+collection.ReadCollection().account;
         [Serializable] sealed class PendingCollectionSelection {public List<string> selected;public string operation;public long revision;}
         public void ConfigureCollectionAuthority(HotpotSort.Platform.WeChatIngredientTradeService authority)
-        {collectionAuthority=authority;BindCollection();_=SyncCollectionAsync();}
+        {if(!ReferenceEquals(collectionAuthority,authority))collectionAuthority?.Dispose();collectionAuthority=authority;BindCollection();_=SyncCollectionAsync();_=FlushSwapCommit();}
         void BindCollection()
         {
             if(collection!=null)collection.CollectionChanged-=OnCollectionChanged;
             collection=(profile as LocalDevelopmentServices)?.Collection;
             collectionSelectionSignature=collection==null?null:string.Join(",",collection.ReadCollection().selected);
             if(collection!=null)collection.CollectionChanged+=OnCollectionChanged;
-            // No trusted friend selector exists yet. Keep trade UI fail-closed.
-            if(view)view.ConfigureCollection(collection,null);
+            if(view){view.ConfigureCollection(collection,collectionAuthority);BindSocialPresentation();}
             OnBrothActivityChanged();
             if((profile as LocalDevelopmentServices)?.IsDevelopmentSimulation==true)
                 ConfigureBrothActivity((profile as LocalDevelopmentServices).BrothActivity,null);
@@ -374,7 +375,7 @@ namespace HotpotSort.Bootstrap
             observedPauses=pauses;
             ValidatePendingReward();
         }
-        private void OnDestroy() { BindBrothPresentation(false);ConfigureBrothActivity(null,null);if(collection!=null)collection.CollectionChanged-=OnCollectionChanged;rewards?.InvalidateSession();CloseFriendSurface();FriendSurfaceChanged-=OnFriendPresentationChanged;if(profile is IAsyncProfileStore sync){sync.ProfileChanged-=OnProfileChanged;sync.InvalidateSyncCallbacks();}if(controller!=null)controller.ObservationChanged-=OnSessionObservation; }
+        private void OnDestroy() { if(view){view.CollectionTradeShareRequested-=ShareCollectionTrade;view.CollectionTradeClosed-=DismissCollectionTrade;}collectionAuthority?.Dispose();BindBrothPresentation(false);ConfigureBrothActivity(null,null);if(collection!=null)collection.CollectionChanged-=OnCollectionChanged;rewards?.InvalidateSession();CloseFriendSurface();FriendSurfaceChanged-=OnFriendPresentationChanged;if(profile is IAsyncProfileStore sync){sync.ProfileChanged-=OnProfileChanged;sync.InvalidateSyncCallbacks();}if(controller!=null)controller.ObservationChanged-=OnSessionObservation; }
         private void OnApplicationFocus(bool focused){if(focused){_=SyncProfileAsync();_=SyncCollectionAsync();PublishFriendScore();RefreshFriendSurface();}}
         public IGameSession CreateSession(ChallengeContext context)
             =>CreateStage(context,ChallengeStage.Warmup,0);
@@ -412,7 +413,7 @@ namespace HotpotSort.Bootstrap
             if(!bufferWarning&&tutorialStep==ViewTutorialStep.None&&snapshot.Status==GameStatus.Running&&update.snapshot.buffer.Count(i=>i!=null)==4&&profile is ITutorialProfileStore tutorialProfile&&!tutorialProfile.BufferWarningCompleted)pendingBufferWarning=true;
             update.snapshot.tutorialStep=tutorialStep;update.snapshot.tutorialItemId=tutorialItemId;update.snapshot.tutorialOrderSlot=tutorialOrderSlot;update.snapshot.bufferWarning=bufferWarning;
             if(snapshot.Status==GameStatus.Won && current.Stage!=ChallengeStage.Warmup && winRecordedSession!=snapshot.SessionId)
-            {profile.RecordFirstWin(snapshot.Challenge.ChallengeId);winRecordedSession=snapshot.SessionId;view.CollectionSettlementPending=true;}
+            {RecordBrothChallengeWin(snapshot.SessionId,rewards.UtcNow);profile.RecordFirstWin(snapshot.Challenge.ChallengeId);winRecordedSession=snapshot.SessionId;view.CollectionSettlementPending=true;}
             shown=update.snapshot; Updated?.Invoke(update);
             if(view.CollectionSettlementPending&&snapshot.Status==GameStatus.Won&&collectionRewardSession!=snapshot.SessionId)
             {collectionRewardSession=snapshot.SessionId;PresentCollectionWin(snapshot.SessionId,controller.Generation);}
@@ -435,6 +436,8 @@ namespace HotpotSort.Bootstrap
         public void ShowError(string code,string message) { showingError=true; view.ShowError(message); }
         public void ResetSession()
         {
+            CancelRemoteSwapReservation();
+            swapSelecting=swapBusy=false;
             view?.ResetCollectionTransientPresentation();if(view)view.CompleteCollectionSettlement();collectionRewardSession=null;
             rewards?.InvalidateSession();pendingRevivalRequest=null;
             CloseFriendSurface();revivalRouteOffer=null;
@@ -447,6 +450,7 @@ namespace HotpotSort.Bootstrap
         public ViewSnapshot Read() { return shown; }
         public void SessionAction(ViewAction action)
         {
+            if(SwapInputLocked){if(action==ViewAction.Exit&&!swapBusy&&current?.SwapOrderPending!=true)CancelSwapOrderSelection();return;}
             if(collectionToolBusy)return;
             if(action==ViewAction.Exit&&view.HandleCollectionBack())return;
             if(action==ViewAction.Exit||action==ViewAction.RetrySameDay||action==ViewAction.Resume)CloseFriendSurface();
@@ -475,7 +479,7 @@ namespace HotpotSort.Bootstrap
         }
         public void Tap(ViewTap command)
         {
-            if(friendSurfaceOpen || current==null || !controller.CanAcceptInput || bufferWarning || pendingBufferWarning ||
+            if(SwapInputLocked || friendSurfaceOpen || current==null || !controller.CanAcceptInput || bufferWarning || pendingBufferWarning ||
                 (tutorialStep!=ViewTutorialStep.None&&(tutorialStep!=ViewTutorialStep.SelectFood||command.itemId!=tutorialItemId))) { view.AcknowledgeTap(command.itemId);return; }
             int id;
             if(!int.TryParse(command.itemId,NumberStyles.None,CultureInfo.InvariantCulture,out id)) { view.AcknowledgeTap(command.itemId);return; }
@@ -490,7 +494,7 @@ namespace HotpotSort.Bootstrap
         {
             if(current==null||!view||view.LastSnapshot==null||view.LastSnapshot.sessionId!=current.Snapshot.SessionId||view.LastSnapshot.revision!=shown.revision||view.LastSnapshot.revision.ToString(CultureInfo.InvariantCulture)!=current.Snapshot.TransactionId)return null;
             var observed=view.CaptureClickability();if(observed==null)return null;
-            return new ClickableObservation(current.Snapshot.SessionId,current.Snapshot.TransactionId,observed.clickable.Select(id=>int.Parse(id,CultureInfo.InvariantCulture)),observed.unknown.Select(id=>int.Parse(id,CultureInfo.InvariantCulture)));
+            return new ClickableObservation(current.Snapshot.SessionId,current.Snapshot.TransactionId,observed.clickable.Select(id=>int.Parse(id,CultureInfo.InvariantCulture)),observed.unknown.Select(id=>int.Parse(id,CultureInfo.InvariantCulture)),nextLayerItemIds:(observed.nextLayer??Array.Empty<string>()).Select(id=>int.Parse(id,CultureInfo.InvariantCulture)));
         }
         public void ObserveSupply(ViewSupplyObservation observation)
         {
@@ -502,6 +506,7 @@ namespace HotpotSort.Bootstrap
         }
         private void Update()
         {
+            UpdateSocialActivity();
             TryPresentBrothInvitation();
             if(controller==null)return;
             if(current!=null&&tutorialStep==ViewTutorialStep.WaitingForBoard&&controller.CanAcceptInput&&DailyViewMapper.PendingHead(current.Snapshot)==0&&
@@ -550,14 +555,15 @@ namespace HotpotSort.Bootstrap
         {
             if(kind==RewardKind.Revival)return current!=null&&current.RevivalPending&&!current.RevivalUsed;
             if(current==null || !controller.CanAcceptInput || view.ShuffleFeedbackActive || tutorialStep!=ViewTutorialStep.None || bufferWarning || pendingBufferWarning)return false;
-            switch(kind){case RewardKind.Hint:return view.FindClickableHint()!=null;case RewardKind.ClearBuffer:return current.CanClearBuffer;case RewardKind.ThirdPot:return current.CanUnlockThird;case RewardKind.FourthPot:return current.CanUnlockFourth;case RewardKind.Shuffle:return view.World.TryShuffle(false);default:return false;}
+            if(SwapInputLocked)return false;
+            switch(kind){case RewardKind.SwapOrder:return current.GetSwapOrderTargets(CaptureOrderClickability()).Length>0;case RewardKind.ClearBuffer:return current.CanClearBuffer;case RewardKind.ThirdPot:return current.CanUnlockThird;case RewardKind.FourthPot:return current.CanUnlockFourth;case RewardKind.Shuffle:return view.World.TryShuffle(false);default:return false;}
         }
         bool ApplyReward(RewardKind kind)
         {
             if(!HasTarget(kind))return false;
             switch(kind)
             {
-                case RewardKind.Hint:var hint=view.FindClickableHint();if(hint==null)return false;view.HighlightItem(hint);return true;
+                case RewardKind.SwapOrder:return false; // Uses the selected, revalidated two-phase transaction.
                 case RewardKind.ClearBuffer:return current.ClearBuffer(Boundary).Reason==null;
                 case RewardKind.ThirdPot:return current.UnlockThird(Boundary,CaptureOrderClickability()).Reason==null;
                 case RewardKind.FourthPot:return current.UnlockFourth(Boundary,CaptureOrderClickability()).Reason==null;
@@ -567,6 +573,8 @@ namespace HotpotSort.Bootstrap
         }
         async void RequestReward(RewardKind kind,RewardRoute route)
         {
+            if(kind==RewardKind.SwapOrder){BeginSwapOrderSelection();return;}
+            if(SwapInputLocked)return;
             if(collectionToolBusy)return;
             if(kind==RewardKind.Revival){await RequestRevivalAsync();return;}
             if(!HasTarget(kind)){view.ShowNotice("暂无有效目标","当前没有可使用该道具的目标，不会领取奖励或扣除次数。");return;}
@@ -680,7 +688,7 @@ namespace HotpotSort.Bootstrap
                 case RewardKind.ClearBuffer:valid=shown.buffer.Any(i=>i!=null);break;
                 case RewardKind.ThirdPot:valid=shown.orders.Any(o=>o.slot==2&&!o.enabled);break;
                 case RewardKind.FourthPot:valid=shown.orders.Any(o=>o.slot==3&&!o.enabled);break;
-                case RewardKind.Hint:valid=shown.plates.Any(p=>p.items.Length>0);break;
+                case RewardKind.SwapOrder:valid=swapSelecting&&swapBusy&&!current.SwapOrderPending;break;
                 case RewardKind.Shuffle:valid=shown.plates.Length>1;break;
             }
             if(!valid)rewards.InvalidateTarget();

@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace HotpotSort.Contracts
 {
-    public enum RewardKind { Hint, ClearBuffer, Shuffle, FourthPot, Revival, ThirdPot }
+    public enum RewardKind { SwapOrder, ClearBuffer, Shuffle, FourthPot, Revival, ThirdPot }
     public enum RewardRoute { SimulatedAd, SimulatedShare, WeChatShare, WeChatRewardedVideo }
     public static class RewardRoutes
     {

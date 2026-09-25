@@ -125,7 +125,7 @@ namespace HotpotSort.Bootstrap
                 Assert(await restored.SyncAsync()==ProfileSyncStatus.NotConfigured&&restored.ReadSnapshot().pending.Count>0,"missing cloud fake success");
                 bool deviceFallback=false;try{await new ProfileTrustedTimeProvider(restored).GetUtcAsync();}catch(InvalidOperationException){deviceFallback=true;}Assert(deviceFallback,"false trusted clock");
                 results.Add(CanonicalJson.Object("case","UJ03","status","PASS","scope","Surface-only open/refresh/close/viewport/publish, no friend rows, isolated Unity durable profile/settings/outbox roundtrip, NotConfigured clock fallback"));
-                var pending=scope.Rewards.RequestAsync(new RewardRequest(99,RewardKind.Hint,RewardRoute.WeChatShare,"20260922"));composition.CloseFriendSurface();scope.Dispose();Assert(await pending==RewardOutcome.Cancelled&&runtime.Disposed&&runtime.Listeners==0,"scope disposal leaked request");scope=null;
+                var pending=scope.Rewards.RequestAsync(new RewardRequest(99,RewardKind.SwapOrder,RewardRoute.WeChatShare,"20260922"));composition.CloseFriendSurface();scope.Dispose();Assert(await pending==RewardOutcome.Cancelled&&runtime.Disposed&&runtime.Listeners==0,"scope disposal leaked request");scope=null;
                 results.Add(CanonicalJson.Object("case","UJ04","status","PASS","scope","Reward -> share -> runtime disposal completes pending request"));Debug.Log("JOINT_UNITY_PASS");
             }
             catch(Exception ex){exit=1;results.Add(CanonicalJson.Object("status","FAIL","error",ex.ToString()));Debug.LogException(ex);}

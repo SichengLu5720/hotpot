@@ -15,6 +15,11 @@ namespace HotpotSort.Presentation
         Text collectionTradeNotice,collectionOfferLabel,collectionReceiveLabel;
         string collectionOffer,collectionReceive,collectionTradeOperation,collectionTradeOperationKey;
         bool collectionTradeBusy;
+        long collectionTradeGeneration;
+        IngredientTradeRequest collectionLinkedRequest;
+        public event Action CollectionTradeClosed;
+        public bool CollectionTradeVisible=>collectionTradePanel;
+        public void SetCollectionTradeMessage(string message){if(collectionTradeNotice)collectionTradeNotice.text=message;}
         public event Action<IngredientTradeRequest> CollectionTradeShareRequested;
         RectTransform collectionEntry,collectionOverlay,collectionCard,collectionGrid,collectionRewardOverlay;
         Text collectionNotice;
@@ -28,6 +33,7 @@ namespace HotpotSort.Presentation
 
         public void ConfigureCollection(ICollectionStore store,IIngredientTradeService trade=null)
         {
+            if(!ReferenceEquals(store,collectionStore)||!ReferenceEquals(trade,collectionTrade)){ResetCollectionTransientPresentation();collectionTradeOperationKey=null;collectionTradeOperation=null;}
             if(collectionStore!=null)collectionStore.CollectionChanged-=RefreshCollection;
             collectionStore=store;collectionTrade=trade;
             if(store!=null)store.CollectionChanged+=RefreshCollection;
@@ -59,8 +65,10 @@ namespace HotpotSort.Presentation
             UpdateBrothPresentation(collectionStore?.ReadCollection(),brothDevelopment);
         }
         public void OpenCollection()
+            =>OpenCollectionCore(false);
+        void OpenCollectionCore(bool fromTradeLink)
         {
-            if(collectionStore==null||!collectionStore.ReadCollection().entryUnlocked||collectionOverlay)return;
+            if(collectionStore==null||(!fromTradeLink&&!collectionStore.ReadCollection().entryUnlocked)||collectionOverlay)return;
             brothMessage="";
             collectionDraft.Clear();foreach(var id in collectionStore.BeginSelectionDraft())collectionDraft.Add(id);
             collectionOverlay=CollectionLayer("Collection");modal=collectionOverlay;
@@ -136,18 +144,21 @@ namespace HotpotSort.Presentation
             RefreshTradeLabels();RefreshCollectionTrades();
         }
         public async void OpenCollectionTradeRequest(string requestId)
+            =>await OpenCollectionTradeRequestAsync(requestId);
+        public async Task<bool> OpenCollectionTradeRequestAsync(string requestId)
         {
-            if(collectionTrade==null||collectionStore==null||string.IsNullOrEmpty(requestId))return;
-            OpenCollection();if(!collectionOverlay)return;
+            if(collectionTrade==null||collectionStore==null||string.IsNullOrEmpty(requestId))return false;
+            OpenCollectionCore(true);if(!collectionOverlay)return false;
+            var service=collectionTrade;long generation=collectionTradeGeneration;
             try
             {
-                var result=await collectionTrade.RefreshAsync(requestId);if(!this||!collectionOverlay)return;
-                if(result==null||!result.Succeeded){collectionNotice.text=TradeFailureText(result);return;}
-                collectionStore.ApplyAuthoritativeSnapshot(result.collection);OpenCollectionTrade();
+                var result=await service.RefreshAsync(requestId);if(!this||!collectionOverlay||generation!=collectionTradeGeneration||!ReferenceEquals(service,collectionTrade))return false;
+                if(result==null||!result.Succeeded){collectionNotice.text=TradeFailureText(result);return false;}
+                collectionLinkedRequest=result.request;collectionStore.ApplyAuthoritativeSnapshot(result.collection);OpenCollectionTrade();RefreshCollectionTrades();return true;
             }
-            catch{if(this&&collectionNotice)collectionNotice.text="网络暂不可用，请重试";}
+            catch{if(this&&generation==collectionTradeGeneration&&collectionNotice)collectionNotice.text="网络暂不可用，请重试";return false;}
         }
-        void CloseCollectionTrade(){if(collectionTradeBusy)return;if(collectionTradeBackdrop){collectionTradeBackdrop.gameObject.SetActive(false);Destroy(collectionTradeBackdrop.gameObject);}collectionTradePanel=collectionTradeBackdrop=null;}
+        void CloseCollectionTrade(){if(collectionTradeBusy)return;collectionTradeGeneration++;collectionLinkedRequest=null;if(collectionTradeBackdrop){collectionTradeBackdrop.gameObject.SetActive(false);Destroy(collectionTradeBackdrop.gameObject);}collectionTradePanel=collectionTradeBackdrop=null;CollectionTradeClosed?.Invoke();}
         void RefreshTradeLabels(){if(collectionOfferLabel)collectionOfferLabel.text=CollectionCatalog.Name(collectionOffer);if(collectionReceiveLabel)collectionReceiveLabel.text=CollectionCatalog.Name(collectionReceive);}
         void OpenTradePicker(bool offer)
         {
@@ -181,22 +192,25 @@ namespace HotpotSort.Presentation
         async Task RunCollectionTrade(string key,Func<string,Task<IngredientTradeResult>> action,bool share=false)
         {
             if(collectionTradeBusy)return;collectionTradeBusy=true;
-            if(collectionTradeOperationKey!=key){collectionTradeOperationKey=key;collectionTradeOperation=Guid.NewGuid().ToString("N");}
+            long generation=collectionTradeGeneration;var store=collectionStore;var owner=collectionTradePanel;
+            var doc=store.ReadCollection();string durable="Hotpot.TradeIntent."+doc.environment+"."+doc.account+"."+key;
+            if(collectionTradeOperationKey!=key){collectionTradeOperationKey=key;collectionTradeOperation=PlayerPrefs.GetString(durable,"");if(collectionTradeOperation.Length==0){collectionTradeOperation=Guid.NewGuid().ToString("N");PlayerPrefs.SetString(durable,collectionTradeOperation);PlayerPrefs.Save();}}
             if(collectionTradeNotice)collectionTradeNotice.text="正在处理…";
             try
             {
-                var result=await action(collectionTradeOperation);if(!this)return;
+                var result=await action(collectionTradeOperation);if(!this||generation!=collectionTradeGeneration||!ReferenceEquals(store,collectionStore)||owner!=collectionTradePanel)return;
                 if(result!=null&&result.Succeeded)
                 {
                     collectionStore.ApplyAuthoritativeSnapshot(result.collection);collectionTradeOperationKey=null;
+                    PlayerPrefs.DeleteKey(durable);PlayerPrefs.Save();if(collectionLinkedRequest!=null&&result.request?.requestId==collectionLinkedRequest.requestId)collectionLinkedRequest=result.request;
                     if(collectionTradeNotice)collectionTradeNotice.text=share?"交换已创建，可分享给好友":"已更新";
                     if(share&&result.request!=null)CollectionTradeShareRequested?.Invoke(result.request);
                 }
                 else if(collectionTradeNotice)collectionTradeNotice.text=TradeFailureText(result);
             }
-            catch{if(collectionTradeNotice)collectionTradeNotice.text="网络暂不可用，请重试";}
-            finally{collectionTradeBusy=false;}
-            if(this&&collectionTradePanel)RefreshCollectionTrades();
+            catch{if(generation==collectionTradeGeneration&&collectionTradeNotice)collectionTradeNotice.text="网络暂不可用，请重试";}
+            finally{if(generation==collectionTradeGeneration)collectionTradeBusy=false;}
+            if(this&&generation==collectionTradeGeneration&&collectionTradePanel)RefreshCollectionTrades();
         }
         static string TradeFailureText(IngredientTradeResult result)
         {
@@ -205,12 +219,13 @@ namespace HotpotSort.Presentation
         }
         async void RefreshCollectionTrades()
         {
-            if(!collectionTradePanel||collectionTrade==null)return;var owner=collectionTradePanel;
+            if(!collectionTradePanel||collectionTrade==null)return;var owner=collectionTradePanel;long generation=collectionTradeGeneration;
             try
             {
-                var result=await collectionTrade.ListAsync();if(!this||!owner||owner!=collectionTradePanel)return;
+                var result=await collectionTrade.ListAsync();if(!this||!owner||owner!=collectionTradePanel||generation!=collectionTradeGeneration)return;
                 if(result==null||!result.Succeeded){collectionTradeNotice.text=TradeFailureText(result);return;}
                 collectionStore.ApplyAuthoritativeSnapshot(result.collection);
+                if(collectionLinkedRequest!=null&&!result.requests.Exists(r=>r.requestId==collectionLinkedRequest.requestId))result.requests.Insert(0,collectionLinkedRequest);
                 var old=owner.Find("TradeListViewport");if(old){old.gameObject.SetActive(false);Destroy(old.gameObject);}
                 var clip=Node(owner,"TradeListViewport",new Rect(12,366,282,374));clip.gameObject.AddComponent<RectMask2D>();var hit=clip.gameObject.AddComponent<Image>();hit.color=Color.clear;
                 var list=Node(clip,"Requests",new Rect(0,0,282,Mathf.Max(374,result.requests.Count*106)));
@@ -226,7 +241,7 @@ namespace HotpotSort.Presentation
                 }
                 if(result.requests.Count==0)CollectionText(list,"暂无交换请求",new Rect(10,65,262,36),15);
             }
-            catch{if(this&&collectionTradeNotice)collectionTradeNotice.text="网络暂不可用，请重试";}
+            catch{if(this&&generation==collectionTradeGeneration&&collectionTradeNotice)collectionTradeNotice.text="网络暂不可用，请重试";}
         }
 
         // Invoke before revealing settlement actions. The callback continues the existing flow.
@@ -248,7 +263,7 @@ namespace HotpotSort.Presentation
             }
             else
             {
-                string[] names={"提示","清空暂存","打乱"};
+                string[] names={"换单","清空暂存","打乱"};
                 for(int i=0;i<reward.tools.Count;i++){int tool=reward.tools[i];CollectionText(card,(tool>=0&&tool<3?names[tool]:"道具")+" ×1",new Rect(20,108+i*54,250,40),22);}
             }
             CollectionButton(card,"收下",new Rect(79,284,132,42),()=>{var next=collectionRewardContinue;collectionRewardContinue=null;collectionRewardOverlay.gameObject.SetActive(false);Destroy(collectionRewardOverlay.gameObject);collectionRewardOverlay=null;next?.Invoke();},20);
@@ -264,6 +279,7 @@ namespace HotpotSort.Presentation
         // For actual session teardown only; ordinary Back must use HandleCollectionBack.
         public void ResetCollectionTransientPresentation()
         {
+            collectionTradeGeneration++;collectionTradeBusy=false;collectionLinkedRequest=null;
             ResetBrothOverlay();collectionBrothPage=null;
             collectionRewardContinue=null;
             if(modal==collectionOverlay)modal=null;
