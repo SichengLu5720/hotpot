@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "migratedAt": "2026-09-23",
+  "source": "D:\\Harness调试\\gamedev-harness-lite-v1.0",
+  "backup": "D:\\火锅消消\\.harness\\backups\\harness-before-lite-v1.0-20260923",
+  "registeredAgents": [
+    "code_agent",
+    "visual_agent"
+  ],
+  "preservedLegacySpecs": [
+    "docs/GAME_SPEC.md",
+    "docs/ART_BIBLE.md"
+  ],
+  "currentTask": "tasks/TASK-011-wechat-integrated-candidate.md"
+}

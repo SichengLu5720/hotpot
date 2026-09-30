@@ -1,0 +1,1 @@
+{"name":"HotpotSort.Replay","rootNamespace":"HotpotSort.Replay","references":["HotpotSort.Contracts","HotpotSort.Core","HotpotSort.Determinism"],"autoReferenced":false,"noEngineReferences":true}

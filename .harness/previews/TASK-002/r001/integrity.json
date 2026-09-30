@@ -1,0 +1,69 @@
+{
+  "status": "Preview Ready",
+  "scope": "Glyph and geometry evidence only",
+  "runtimeFontSubset": "NOT PRODUCED",
+  "wechatDevice": "NOT TESTED",
+  "skinCandidate": false,
+  "relativeLinksValid": true,
+  "files": [
+    {
+      "path": "readability-board.png",
+      "width": 840,
+      "height": 810,
+      "sha256": "aae55c95b531032076e437f166848278c9b27acfef5a5bdea8fa20dd7032d9c0",
+      "role": "Superseded historical typography"
+    },
+    {
+      "path": "safe-area-360.png",
+      "width": 360,
+      "height": 640,
+      "sha256": "dd6b488b87eecd08c0e010897154d461e841ab0bafdad6d4a5ed602b3cd69911",
+      "role": "Geometry only, NOT new skin"
+    },
+    {
+      "path": "safe-area.png",
+      "width": 1080,
+      "height": 1920,
+      "sha256": "f96aafe152b9c57985ebc36f3129f1f90600f15df1ae6be2e86528ed1c50b1d1",
+      "role": "Geometry only, NOT new skin"
+    },
+    {
+      "path": "typography-360.png",
+      "width": 360,
+      "height": 640,
+      "sha256": "158e53af3c77009c5a785a4112423a5b05d8c9a76acf243874dde943844159f2",
+      "role": "Superseded historical typography"
+    },
+    {
+      "path": "typography-modern-360.png",
+      "width": 360,
+      "height": 640,
+      "sha256": "2390ee3da355e9456c62e8710b29e671f3f8ca625e1db0c1c6415fdda30f6ee3",
+      "role": "Current modern glyph evidence"
+    },
+    {
+      "path": "typography-modern.png",
+      "width": 1080,
+      "height": 1920,
+      "sha256": "fea31e1fc2d651edde5a7b4ddf03d0662c5bb22d326ca46c4677a29cba675f3c",
+      "role": "Current modern glyph evidence"
+    },
+    {
+      "path": "typography.png",
+      "width": 1080,
+      "height": 1920,
+      "sha256": "d87ef79371e415e832aacc2a9322b15f109d09a7c2b3d0f23a3e4052375df461",
+      "role": "Superseded historical typography"
+    }
+  ],
+  "fonts": [
+    {
+      "path": "D:/火锅消消/Unity/Assets/HotpotSort/Resources/Hotpot/TASK001/v7/r001/fonts/readable.otf",
+      "sha256": "2c76254f6fc379fddfce0a7e84fb5385bb135d3e399294f6eeb6680d0365b74b"
+    },
+    {
+      "path": "D:/火锅消消/Unity/Assets/HotpotSort/Resources/Hotpot/TASK001/v7/r001/fonts/NotoSansCJKsc-LICENSE.txt",
+      "sha256": "6a73f9541c2de74158c0e7cf6b0a58ef774f5a780bf191f2d7ec9cc53efe2bf2"
+    }
+  ]
+}

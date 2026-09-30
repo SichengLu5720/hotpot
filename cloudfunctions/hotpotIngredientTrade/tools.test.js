@@ -1,0 +1,31 @@
+'use strict';
+const assert=require('node:assert/strict');
+const {createHandler,account,empty}=require('./trade');
+const context={SOURCE:'wx_client',APPID:'app',OPENID:'tools',ENV:'env'},environment='development',actor=account(context,environment);
+let time=1000000,store={},tail=Promise.resolve(),seq=0;
+const clone=x=>JSON.parse(JSON.stringify(x));
+const transaction=fn=>{const run=tail.then(async()=>{const next=clone(store),result=await fn({get:async k=>next[k]?clone(next[k]):null,set:async(k,v)=>{next[k]=clone(v);}});store=next;return result;});tail=run.catch(()=>{});return run;};
+const handle=createHandler({environment,transaction,now:()=>time});
+const call=(action,operationId,extra={})=>handle({protocolVersion:1,requestId:'r'+(++seq),environment,action,operationId,sessionId:'session',tool:0,...extra},context);
+function seed(){const p=empty(environment,actor);p.tools=[1,2,3];store={['profile:'+actor]:p};}
+(async()=>{
+ seed();let r=await call('reserveTool','a');assert.equal(r.toolReservationStatus,'Reserved');assert.equal(r.snapshot.tools[0],1);
+ assert.equal((await call('reserveTool','a')).toolReservationStatus,'Reserved');
+ assert.equal((await call('reserveTool','b')).error,'InsufficientInventory');
+ assert.equal((await call('consume','plain')).error,'InsufficientInventory');
+ assert.equal((await call('cancelTool','a')).snapshot.tools[0],1);
+ assert.equal((await call('commitTool','a')).error,'ReservationClosed');
+ assert.equal((await call('reserveTool','a')).error,'ReservationClosed');
+ assert.equal((await call('reserveTool','b')).toolReservationStatus,'Reserved');
+ const commits=await Promise.all([call('commitTool','b'),call('commitTool','b')]);assert(commits.every(x=>x.snapshot.tools[0]===0&&x.toolReservationStatus==='Committed'));
+ assert.equal((await call('cancelTool','b')).snapshot.tools[0],0);
+ seed();await call('cancelTool','late');assert.equal((await call('reserveTool','late')).error,'ReservationClosed');
+ await call('reserveTool','expired');time+=120001;assert.equal((await call('commitTool','expired')).error,'ReservationClosed');
+ assert.equal((await call('reserveTool','new')).snapshot.tools[0],1);
+ assert.equal((await call('commitTool','new',{sessionId:'other'})).error,'OperationConflict');
+ assert.equal((await call('commitTool','new',{account:'wx_fake'})).error,'WrongPartition');
+ seed();const race=await Promise.all([call('reserveTool','one'),call('reserveTool','two')]);assert.equal(race.filter(x=>x.status==='Synced').length,1);
+ const winner=race[0].status==='Synced'?'one':'two';await call('cancelTool',winner);assert.equal(store['profile:'+actor].tools[0],1);
+ assert.equal((await call('reserveTool','wrongtool',{tool:1})).error,'InvalidPayload');
+ console.log('PASS TASK033 cloud tool reserve/commit/cancel, idempotency, expiry, stale session, cancellation tombstone, inventory race and direct consume exclusion');
+})().catch(e=>{console.error(e);process.exitCode=1;});

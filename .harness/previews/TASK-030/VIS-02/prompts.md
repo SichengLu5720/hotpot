@@ -1,0 +1,11 @@
+# VIS-02 generation prompts
+
+Mode: built-in image_gen. One separate generation call per ingredient. Existing v10 food_00 inspected as a style reference only; no existing image edited.
+
+## beef-paste.png
+
+Use case: stylized-concept. Generate one new mobile hotpot game food sprite: 牛肉滑, hand-beaten beef paste. A single compact irregular flattened oval dollop, deep warm beef-red, subtly folded surface with clearly readable coarse beef fibers, no long minced noodles, no meat roll, no round meatball. Refined appetizing realistic 2.5D painted rendering matching the viewed existing beef-roll sprite's saturated natural food colors, clean edges and volume. Strict directly overhead view, centered square canvas, approx 8-12% safe padding on all sides. Soft upper-left light, subtle warm dark contour and self shading only. Actual transparent RGBA background including corners, NO checkerboard baked in. No plate, pot, spoon, garnish, herbs, sauce, text, watermarks, cast shadow, background or extra objects. One unified ingredient portion with an unmistakable irregular beef-paste silhouette readable at 64px. Not photographic, not bloody. Existing image is style reference only, not an edit target.
+
+## duck-intestine.png
+
+Use case: stylized-concept. Generate one new mobile hotpot game food sprite: 鸭肠, cleaned duck intestine for hotpot. ONE continuous narrow pale rose-pink flattened ribbon with delicately ruffled edges, gently curled in a compact loose S-shaped overlapping coil, two identifiable tapered open ends. Natural soft folds and readable faint longitudinal ridges, creamy pink highlights, warm pale red creases. It must look like cleaned edible duck intestine, NOT squid rings, not smooth round tubing, not noodles, not blood vessels, not wide yellow throat strips. Refined appetizing realistic 2.5D painted rendering with natural saturated food colors, clean fine warm contour and gentle volume matching existing hotpot food sprite family. Strict directly overhead view, centered square canvas, approx 8-12% safe margin all sides. Soft upper-left lighting, self-shading only. Genuinely transparent RGBA background, also through coil openings, NO baked checkerboard. No plate, pot, spoon, garnish, herbs, sauce, text, watermark, cast shadow or extra objects. One unified recognizable food portion, clear silhouette at 64px, not photographic or bloody.

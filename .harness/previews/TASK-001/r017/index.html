@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TASK-001 v9 · r017 视觉候选</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f1ede5;color:#403931;font:16px/1.6 system-ui,"Microsoft YaHei",sans-serif}main{max-width:1220px;margin:auto;padding:30px 24px}h1{font-size:25px;margin:0 0 8px}p{margin:8px 0;color:#776f65}a{color:#487163}nav{display:flex;gap:8px;flex-wrap:wrap;margin:22px 0}button{border:1px solid #d8d1c5;border-radius:10px;background:#fffbf2;padding:8px 13px;color:#403931;cursor:pointer}button[aria-pressed=true]{background:#cc4c38;color:white;border-color:#cc4c38}.review{display:flex;align-items:flex-start;gap:30px;flex-wrap:wrap}.phone{width:360px;max-width:100%;display:block;box-shadow:0 8px 32px #40393125}.notes{max-width:620px;flex:1;min-width:250px}.small{font-size:13px}.board{display:block;width:100%;height:auto;margin:16px 0}details{margin-top:28px}summary{cursor:pointer;font-weight:600}.warning{padding:12px 16px;background:#fff2d6;border-radius:10px}h2{font-size:19px}
+</style>
+<main><h1>TASK-001 v9 · r017 视觉候选</h1>
+<p>实际 Unity 渲染截图。轻量暖白、珊瑚红与茶绿；降低边框和背景竞争，让食材成为第一视觉焦点。</p>
+<p class="small">保留 80% 食材几何、轻微重叠与 ±15° 旋转；盘子碰撞、点击范围、奖励规则和平台协议未更改。此页为候选，不代表人工验收。</p>
+<nav id="states" aria-label="状态选择"></nav>
+<div class="review"><a id="full" target="_blank"><img class="phone" id="screen" alt="Unity 状态截图"></a><section class="notes"><h2 id="label"></h2><p id="note"></p><p class="small">左图按 360px 宽展示；点击查看 1080×1920 原图。</p><h2>本轮收敛</h2><p>统一圆角卡片、轻阴影、线性图标与按钮按压反馈；收轻蒸汽和完成光效，保留汤底不变的入锅反馈。分享不再作为图片页面展示。</p><h2>检查范围</h2><p>三种比例：720×1280、1080×1920、1440×3200。完整状态与反馈自动检查 60 项通过；加载、图标网格、好友容器、真实可点目标遮挡及关闭恢复专项 30 项（含旧边框停用）通过。</p><p class="warning">好友榜彩条仅验证 RawImage 纹理绑定、Y 翻转与视口，不是真实好友数据或最终排行榜画面。Bootstrap / SharedTexture 平台接线仍由核心集成者完成。</p><p><a href="evidence.json">精确改动与校验清单</a> · <a href="../../../art-production/TASK-001/v9/r001/handoff.md">接入及回归交接</a></p></section></div>
+<details><summary>同一玩法状态：修改前 / 修改后</summary><img class="board" src="before-after.png" alt="同状态基线与 r017 对比"><p class="small">相同 fixture 的盘子及食材几何数据完全一致；差别来自表现层。</p></details>
+<details><summary>全状态联系表</summary><img class="board" src="all-states.png" alt="Unity 全状态联系表"></details>
+</main>
+<script>
+const states=[
+['entry','入口','保留火锅主插画，简化边缘装饰与标题层级。'],
+['gameplay-same-state','两锅玩法','同一状态对比：背景退后、食材保持原尺寸。'],
+['four-pots','四锅玩法','四锅布局、订单与底部工具栏。'],
+['crowded','拥挤状态','盘内食材密度与区分度检查。'],
+['pause','暂停','统一轻量弹窗和主次操作。'],
+['settings','设置','音量滑块及清晰的保留设置说明。'],
+['win','胜利','保留庆祝插画，控制装饰与按钮层级。'],
+['timeout','失败','倒计时结束状态与复活入口。'],
+['revival-share-offer','分享复活','额度与单一奖励方式展示；未改奖励规则。'],
+['revival-ad-offer','广告复活','广告方式展示；未改奖励规则。'],
+['friends-empty','好友空状态','开发环境空状态，不能替代真实微信开放数据域验证。'],
+['reward-share-simulation','分享开发模拟','保留明确开发标识与模拟结果控制；不显示分享图片页面。'],
+['reward-ad-simulation','广告开发模拟','开发环境结果控制，不是真实激励广告。'],
+['loading','加载中','中文进度提示，资源准备期间开始按钮不可用。'],
+['loading-failed','加载失败','明确重试操作，不显示内部枚举状态。'],
+['friend-surface-diagnostic','好友容器诊断','仅技术诊断彩条：验证真实 RawImage、UV 翻转、视口、模态遮挡和关闭回调。真实好友内容仍待平台集成。']];
+function select(i){const s=states[i];document.querySelector('#screen').src='screens/'+s[0]+'.png';document.querySelector('#full').href='screens/'+s[0]+'.png';document.querySelector('#label').textContent=s[1];document.querySelector('#note').textContent=s[2];document.querySelectorAll('nav button').forEach((b,j)=>b.setAttribute('aria-pressed',i===j));}
+states.forEach((s,i)=>{const b=document.createElement('button');b.textContent=s[1];b.onclick=()=>select(i);document.querySelector('#states').append(b)});select(0);
+</script></html>

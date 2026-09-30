@@ -1,0 +1,90 @@
+{
+  "schemaVersion": "daily_layout_recipe_v1",
+  "catalogVersion": "seven_day_layouts_v1",
+  "baseSkeletonSha256": "2d0cc7dc3061937efd09832b8635558d6b861bbdcbbc793a92d70f25c554ef54",
+  "generation": "skeleton_c_fixed_seed_recomposition_v1",
+  "layouts": [
+    {
+      "index": 0,
+      "layoutId": "layout_0_skeleton_c",
+      "formalMode": "preserve",
+      "warmup": {
+        "openingKinds": ["A", "B"],
+        "tutorialKind": "A",
+        "plates": [["A", "B", "C", "A", "B"], ["C", "A", "B", "C", "A"], ["B", "C", "A", "B"], ["C", "A", "B", "C"]]
+      }
+    },
+    {
+      "index": 1,
+      "layoutId": "layout_1_randomized",
+      "formalMode": "recompose",
+      "formalSeed": "task040-layout-1",
+      "formalPlateHistogram": [2, 6, 14, 13, 15],
+      "warmup": {
+        "openingKinds": ["A", "B"],
+        "tutorialKind": "A",
+        "plates": [["A", "C", "B", "A"], ["C", "B", "A", "C"], ["B", "A", "C", "B"], ["A", "C", "B"], ["A", "C", "B"]]
+      }
+    },
+    {
+      "index": 2,
+      "layoutId": "layout_2_randomized",
+      "formalMode": "recompose",
+      "formalSeed": "task040-layout-2",
+      "formalPlateHistogram": [3, 5, 14, 12, 16],
+      "warmup": {
+        "openingKinds": ["A", "B"],
+        "tutorialKind": "A",
+        "plates": [["A", "B", "C"], ["C", "B", "A"], ["A", "B", "C"], ["C", "B", "A"], ["A", "B", "C"], ["C", "B", "A"]]
+      }
+    },
+    {
+      "index": 3,
+      "layoutId": "layout_3_randomized",
+      "formalMode": "recompose",
+      "formalSeed": "task040-layout-3",
+      "formalPlateHistogram": [1, 8, 12, 15, 14],
+      "warmup": {
+        "openingKinds": ["A", "B"],
+        "tutorialKind": "A",
+        "plates": [["A", "A", "B"], ["B", "C", "C"], ["A", "A", "B"], ["B", "C", "C"], ["A", "A"], ["B", "B"], ["C", "C"]]
+      }
+    },
+    {
+      "index": 4,
+      "layoutId": "layout_4_randomized",
+      "formalMode": "recompose",
+      "formalSeed": "task040-layout-4",
+      "formalPlateHistogram": [1, 6, 16, 13, 14],
+      "warmup": {
+        "openingKinds": ["A", "B"],
+        "tutorialKind": "A",
+        "plates": [["A", "B", "C"], ["B", "A", "C"], ["A", "B"], ["C", "B"], ["A", "C"], ["A", "B"], ["C", "B"], ["A", "C"]]
+      }
+    },
+    {
+      "index": 5,
+      "layoutId": "layout_5_randomized",
+      "formalMode": "recompose",
+      "formalSeed": "task040-layout-5",
+      "formalPlateHistogram": [2, 7, 12, 14, 15],
+      "warmup": {
+        "openingKinds": ["A", "B"],
+        "tutorialKind": "A",
+        "plates": [["A", "C", "B", "B", "C"], ["A", "A", "C", "B"], ["B", "C", "A"], ["A", "C", "B"], ["B", "C", "A"]]
+      }
+    },
+    {
+      "index": 6,
+      "layoutId": "layout_6_randomized",
+      "formalMode": "recompose",
+      "formalSeed": "task040-layout-6",
+      "formalPlateHistogram": [2, 5, 16, 12, 15],
+      "warmup": {
+        "openingKinds": ["A", "B"],
+        "tutorialKind": "A",
+        "plates": [["A", "B", "A", "C"], ["B", "C", "A", "B"], ["A", "C", "B"], ["C", "A", "B"], ["A", "C"], ["B", "C"]]
+      }
+    }
+  ]
+}

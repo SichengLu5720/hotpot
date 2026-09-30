@@ -1,0 +1,9 @@
+{
+  "name": "HotpotSort.WeChat",
+  "references": [
+    "HotpotSort.Contracts",
+    "HotpotSort.Session",
+    "Wx"
+  ],
+  "autoReferenced": false
+}

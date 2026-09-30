@@ -1,0 +1,14 @@
+'use strict';
+const assert=require('assert');const fs=require('fs');const p=require('./profile');
+const fixture=JSON.parse(fs.readFileSync('.harness/qa/TASK-060/profile/profile-fixture.json','utf8'));
+const a=p.validateDocument(fixture,fixture.environment,fixture.account);
+assert(a.protectionAttempts.length>=5);assert(a.formalResults.some(r=>r.protectionVersion===2));
+const reverse=JSON.parse(JSON.stringify(a));reverse.protectionEntries.reverse();reverse.protectionAttempts.reverse();reverse.formalResults.reverse();
+const merged=p.merge(a,reverse),back=p.merge(reverse,a);assert.deepStrictEqual(merged,back);assert.deepStrictEqual(p.merge(merged,a),merged);
+assert.deepStrictEqual(p.facts(merged).protectionAttempts,merged.protectionAttempts);
+const conflict=JSON.parse(JSON.stringify(a));conflict.protectionAttempts[0].frozenPercent=0;assert.throws(()=>p.merge(a,conflict));
+const missing=JSON.parse(JSON.stringify(a));missing.protectionAttempts=[];assert.throws(()=>p.validateDocument(missing,a.environment,a.account));
+const wrong=JSON.parse(JSON.stringify(a));wrong.account='another';assert.throws(()=>p.merge(a,wrong));
+const map=new Map();const identity={SOURCE:'wx_client',APPID:'app',OPENID:'player',ENV:'cloud'};const account=p.trustedIdentity(identity,'development');
+const input={...a,account};let writes=0;const handler=p.createHandler({environment:'development',transaction:async(key,fn)=>{const result=fn(map.get(key)||null);if(result.changed){map.set(key,result.stored);writes++;}return result.snapshot;},now:()=>new Date('2026-10-24T00:00:00Z')});
+(async()=>{const event={protocolVersion:1,requestId:'0'.repeat(32),action:'sync',environment:'development',document:input};const first=await handler(event,identity);assert.equal(first.status,'Synced');assert.equal(first.snapshot.protectionAttempts.length,a.protectionAttempts.length);const second=await handler(event,identity);assert.equal(second.status,'Synced');assert.equal(first.confirmationCursor,second.confirmationCursor);assert.equal(writes,1);assert(first.acknowledgedOperations.includes('protection:lifecycle'));console.log('TASK060 CLOUD PASS fixture cross-language, reverse merge, idempotency, conflicts, account isolation, transaction and acknowledgement');})().catch(e=>{console.error(e);process.exitCode=1;});

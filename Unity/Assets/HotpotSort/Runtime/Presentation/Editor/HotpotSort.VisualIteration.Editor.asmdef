@@ -1,0 +1,1 @@
+{"name":"HotpotSort.VisualIteration.Editor","references":["HotpotSort.Task001V7.Editor","HotpotSort.Bootstrap","HotpotSort.Presentation","HotpotSort.Contracts","HotpotSort.Session","UnityEngine.UI"],"includePlatforms":["Editor"],"autoReferenced":true}

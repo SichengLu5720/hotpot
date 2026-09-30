@@ -1,0 +1,1 @@
+PASS: actual Unity PlayMode presentation fixture. Food pointer, arrival-gated order explanation, separate warning confirmation, hint without text, hidden warmup timer, background-frozen 0.8s message and clean exactly-once callback. Not device or full core-flow verification.

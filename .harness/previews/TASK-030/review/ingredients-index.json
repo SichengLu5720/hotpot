@@ -1,0 +1,562 @@
+[
+  {
+    "number": 1,
+    "name": "虾滑",
+    "source": "D:\\火锅消消\\.harness\\previews\\TASK-030\\VIS-01\\shrimp-paste.png",
+    "size": [
+      1254,
+      1254
+    ],
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "transparent_pixels": 799799,
+    "bbox": [
+      0,
+      19,
+      1232,
+      1254
+    ],
+    "visible_bbox": [
+      50,
+      180,
+      1205,
+      1066
+    ],
+    "visible_min_margin": 49,
+    "margins": [
+      0,
+      19,
+      22,
+      0
+    ],
+    "min_margin": 0,
+    "sha256": "56a291aaf4b8742365d4b2394980f3a7611d6e5f45f4526f872799e6165eddaf"
+  },
+  {
+    "number": 2,
+    "name": "牛肉丸",
+    "source": "D:\\火锅消消\\.harness\\previews\\TASK-030\\VIS-01\\beef-ball.png",
+    "size": [
+      1254,
+      1254
+    ],
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "transparent_pixels": 784125,
+    "bbox": [
+      0,
+      17,
+      1240,
+      1254
+    ],
+    "visible_bbox": [
+      123,
+      119,
+      1136,
+      1119
+    ],
+    "visible_min_margin": 118,
+    "margins": [
+      0,
+      17,
+      14,
+      0
+    ],
+    "min_margin": 0,
+    "sha256": "beda87f697e8ffc2b1c1c7e4b511834cb86a56646a275971a18758da71fffcf8"
+  },
+  {
+    "number": 3,
+    "name": "牛肉滑",
+    "source": "D:\\火锅消消\\.harness\\previews\\TASK-030\\VIS-02\\beef-paste.png",
+    "size": [
+      1254,
+      1254
+    ],
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "transparent_pixels": 908070,
+    "bbox": [
+      0,
+      21,
+      1238,
+      1254
+    ],
+    "visible_bbox": [
+      116,
+      187,
+      1147,
+      1067
+    ],
+    "visible_min_margin": 107,
+    "margins": [
+      0,
+      21,
+      16,
+      0
+    ],
+    "min_margin": 0,
+    "sha256": "de6bf583f1d85d463f7c70beea51e9b0f847f93f432c639300a68225f5d2dec6"
+  },
+  {
+    "number": 4,
+    "name": "鸭肠",
+    "source": "D:\\火锅消消\\.harness\\previews\\TASK-030\\VIS-02\\duck-intestine.png",
+    "size": [
+      1254,
+      1254
+    ],
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "transparent_pixels": 1047949,
+    "bbox": [
+      0,
+      21,
+      1192,
+      1206
+    ],
+    "visible_bbox": [
+      130,
+      175,
+      1122,
+      1082
+    ],
+    "visible_min_margin": 130,
+    "margins": [
+      0,
+      21,
+      62,
+      48
+    ],
+    "min_margin": 0,
+    "sha256": "a62bc387b7e820651db1877e9da532f561e2d55ca9f31f4eb8de8862021a14f8"
+  },
+  {
+    "number": 5,
+    "name": "黄喉",
+    "source": "D:\\火锅消消\\.harness\\previews\\TASK-030\\VIS-03\\yellow-throat.png",
+    "size": [
+      1254,
+      1254
+    ],
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "transparent_pixels": 774735,
+    "bbox": [
+      57,
+      53,
+      1248,
+      1206
+    ],
+    "visible_bbox": [
+      62,
+      64,
+      1201,
+      1199
+    ],
+    "visible_min_margin": 53,
+    "margins": [
+      57,
+      53,
+      6,
+      48
+    ],
+    "min_margin": 6,
+    "sha256": "52ca85aef5e8d5af9ce35bf6c449681a939f766e450532e186d7e326840d7695"
+  },
+  {
+    "number": 6,
+    "name": "响铃卷",
+    "source": "D:\\火锅消消\\.harness\\previews\\TASK-030\\VIS-03\\fried-beancurd-roll.png",
+    "size": [
+      1254,
+      1254
+    ],
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "transparent_pixels": 1022775,
+    "bbox": [
+      27,
+      19,
+      1202,
+      1228
+    ],
+    "visible_bbox": [
+      120,
+      139,
+      1151,
+      1120
+    ],
+    "visible_min_margin": 103,
+    "margins": [
+      27,
+      19,
+      52,
+      26
+    ],
+    "min_margin": 19,
+    "sha256": "8fbee0697222a4532cceedaede6bc221444fcfc6d802146820b122db2af1b36d"
+  },
+  {
+    "number": 7,
+    "name": "小郡肝",
+    "source": "D:\\火锅消消\\.harness\\previews\\TASK-030\\VIS-04\\chicken-gizzard.png",
+    "size": [
+      1254,
+      1254
+    ],
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "transparent_pixels": 669837,
+    "bbox": [
+      0,
+      21,
+      1240,
+      1254
+    ],
+    "visible_bbox": [
+      67,
+      68,
+      1187,
+      1183
+    ],
+    "visible_min_margin": 67,
+    "margins": [
+      0,
+      21,
+      14,
+      0
+    ],
+    "min_margin": 0,
+    "sha256": "d36f78352b50e250c6c1a1236a8d08ea6a37467511eab98d49fd620a3101f9bc"
+  },
+  {
+    "number": 8,
+    "name": "藕片",
+    "source": "D:\\火锅消消\\.harness\\previews\\TASK-030\\VIS-04\\lotus-root.png",
+    "size": [
+      1254,
+      1254
+    ],
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "transparent_pixels": 818234,
+    "bbox": [
+      0,
+      15,
+      1212,
+      1254
+    ],
+    "visible_bbox": [
+      78,
+      125,
+      1182,
+      1144
+    ],
+    "visible_min_margin": 72,
+    "margins": [
+      0,
+      15,
+      42,
+      0
+    ],
+    "min_margin": 0,
+    "sha256": "c9e8cce463dc971dcf569c7373493f30fb2b90dfa4c4e98ff92cf64735394065"
+  },
+  {
+    "number": 9,
+    "name": "娃娃菜",
+    "source": "D:\\火锅消消\\.harness\\previews\\TASK-030\\VIS-05\\baby-cabbage.png",
+    "size": [
+      1254,
+      1254
+    ],
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "transparent_pixels": 1092706,
+    "bbox": [
+      265,
+      173,
+      1199,
+      1230
+    ],
+    "visible_bbox": [
+      267,
+      175,
+      996,
+      1110
+    ],
+    "visible_min_margin": 144,
+    "margins": [
+      265,
+      173,
+      55,
+      24
+    ],
+    "min_margin": 24,
+    "sha256": "8a44b35d2564501a8083160fa8586f3a6f5c8fbcbfca48fdbe583fe745f8e7e0"
+  },
+  {
+    "number": 10,
+    "name": "豆皮",
+    "source": "D:\\火锅消消\\.harness\\previews\\TASK-030\\VIS-05\\tofu-skin.png",
+    "size": [
+      1254,
+      1254
+    ],
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "transparent_pixels": 975076,
+    "bbox": [
+      0,
+      21,
+      1234,
+      1228
+    ],
+    "visible_bbox": [
+      133,
+      194,
+      1119,
+      1082
+    ],
+    "visible_min_margin": 133,
+    "margins": [
+      0,
+      21,
+      20,
+      26
+    ],
+    "min_margin": 0,
+    "sha256": "dd7039b5c548ee124086c5bd32c8d0c5c86b1b5c0d51ae9ace0c92d288ba1c19"
+  },
+  {
+    "number": 11,
+    "name": "贡菜",
+    "source": "D:\\火锅消消\\.harness\\previews\\TASK-030\\VIS-06\\celtuce-stem.png",
+    "size": [
+      1254,
+      1254
+    ],
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "transparent_pixels": 1143954,
+    "bbox": [
+      41,
+      21,
+      1198,
+      1228
+    ],
+    "visible_bbox": [
+      319,
+      136,
+      941,
+      1121
+    ],
+    "visible_min_margin": 133,
+    "margins": [
+      41,
+      21,
+      56,
+      26
+    ],
+    "min_margin": 21,
+    "sha256": "6ce7af7554fc1a5f41afc47d6e81d65d9701ceb80742dd74b350787d41cdebb0"
+  },
+  {
+    "number": 12,
+    "name": "川粉",
+    "source": "D:\\火锅消消\\.harness\\previews\\TASK-030\\VIS-06\\wide-vermicelli.png",
+    "size": [
+      1254,
+      1254
+    ],
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "transparent_pixels": 949130,
+    "bbox": [
+      0,
+      20,
+      1232,
+      1254
+    ],
+    "visible_bbox": [
+      150,
+      172,
+      1121,
+      1083
+    ],
+    "visible_min_margin": 133,
+    "margins": [
+      0,
+      20,
+      22,
+      0
+    ],
+    "min_margin": 0,
+    "sha256": "685948931b34c837cbb9d365ec69bf6af7ba5574c0759556543ca11429d24f6f"
+  },
+  {
+    "number": 13,
+    "name": "冻豆腐",
+    "source": "D:\\火锅消消\\.harness\\previews\\TASK-030\\VIS-07\\frozen-tofu.png",
+    "size": [
+      1254,
+      1254
+    ],
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "transparent_pixels": 674979,
+    "bbox": [
+      0,
+      0,
+      1230,
+      1254
+    ],
+    "visible_bbox": [
+      145,
+      160,
+      1114,
+      1110
+    ],
+    "visible_min_margin": 140,
+    "margins": [
+      0,
+      0,
+      24,
+      0
+    ],
+    "min_margin": 0,
+    "sha256": "57fadd2e0096d6745ccdf00b2ae7af087571fb5afa2cfd576820d2fa38cb2893"
+  },
+  {
+    "number": 14,
+    "name": "海带结",
+    "source": "D:\\火锅消消\\.harness\\previews\\TASK-030\\VIS-07\\kelp-knot.png",
+    "size": [
+      1254,
+      1254
+    ],
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "transparent_pixels": 1020268,
+    "bbox": [
+      0,
+      53,
+      1224,
+      1230
+    ],
+    "visible_bbox": [
+      53,
+      152,
+      1218,
+      1117
+    ],
+    "visible_min_margin": 36,
+    "margins": [
+      0,
+      53,
+      30,
+      24
+    ],
+    "min_margin": 0,
+    "sha256": "d5d9279a100d71939e15bb7f04719389b884bd7c89633d6db4b9a66abf1b10df"
+  },
+  {
+    "number": 15,
+    "name": "香菇",
+    "source": "D:\\火锅消消\\.harness\\previews\\TASK-030\\VIS-08\\shiitake.png",
+    "size": [
+      1254,
+      1254
+    ],
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "transparent_pixels": 640163,
+    "bbox": [
+      0,
+      21,
+      1200,
+      1254
+    ],
+    "visible_bbox": [
+      79,
+      89,
+      1177,
+      1167
+    ],
+    "visible_min_margin": 77,
+    "margins": [
+      0,
+      21,
+      54,
+      0
+    ],
+    "min_margin": 0,
+    "sha256": "86a4610dbb92f4a3c5300aa083b6cbe63e9e50aaffb7540c9387a8d5acf13516"
+  },
+  {
+    "number": 16,
+    "name": "鲜竹笋",
+    "source": "D:\\火锅消消\\.harness\\previews\\TASK-030\\VIS-08\\bamboo-shoot.png",
+    "size": [
+      1254,
+      1254
+    ],
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "transparent_pixels": 1041325,
+    "bbox": [
+      97,
+      23,
+      1222,
+      1230
+    ],
+    "visible_bbox": [
+      122,
+      78,
+      1132,
+      1194
+    ],
+    "visible_min_margin": 60,
+    "margins": [
+      97,
+      23,
+      32,
+      24
+    ],
+    "min_margin": 23,
+    "sha256": "c0a6a503c0b5387ad9d1e8cabccacf95c0b1507ce7e9d0c42a6d4ebc838ff800"
+  }
+]

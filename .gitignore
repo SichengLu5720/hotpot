@@ -1,0 +1,88 @@
+# Harness：只排除大体积、可重建的过程产物；保留结构性文件与预览说明。
+.harness/art-production/
+.harness/research/
+.harness/qa/
+.harness/artifacts/*
+!.harness/artifacts/.gitkeep
+.harness/backups/
+# --- previews：只保留每个任务的最新一轮，历史迭代稿不入库 ---
+# 注意：git 无法在"父目录被排除"的前提下重新包含子项，
+# 因此每条规则都遵循「先放行父目录 → 再排除 → 再放行子项」的顺序。
+.harness/previews/*
+!.harness/previews/.gitkeep
+
+!.harness/previews/TASK-001/
+.harness/previews/TASK-001/*
+!.harness/previews/TASK-001/r017/
+.harness/previews/TASK-001/r017/__pycache__/
+
+!.harness/previews/TASK-002/
+!.harness/previews/TASK-006/
+!.harness/previews/TASK-007/
+!.harness/previews/TASK-008/
+
+!.harness/previews/TASK-009/
+.harness/previews/TASK-009/*
+!.harness/previews/TASK-009/masters/
+!.harness/previews/TASK-009/runtime-candidates/
+# 音乐母带（3 个 ~22MB WAV）不入库：属创作资产，需单独备份；
+# 游戏内音效走 Resources/.../Audio/TASK009/*.ogg 压缩版。
+.harness/previews/TASK-009/masters/Music_*.wav
+
+!.harness/previews/TASK-012/
+.harness/previews/TASK-012/*
+!.harness/previews/TASK-012/r002-start-transition/
+
+!.harness/previews/TASK-026/
+!.harness/previews/TASK-027/
+!.harness/previews/TASK-028/
+!.harness/previews/TASK-030/
+
+!.harness/previews/TASK-031/
+.harness/previews/TASK-031/*
+!.harness/previews/TASK-031/r004/
+
+# 预览目录下永不入库的缓存与日志
+**/previews/**/__pycache__/
+**/previews/**/*.log
+.harness/migrations/*/
+!.harness/migrations/*.md
+
+# 构建产物（可重建，历史上曾误提交导致仓库膨胀）
+/build/
+Builds/
+
+# Unity 生成目录
+Unity/[Ll]ibrary/
+Unity/[Tt]emp/
+Unity/[Oo]bj/
+Unity/[Ll]ogs/
+Unity/UserSettings/
+Unity/Bee/
+*.csproj
+*.sln
+
+# 日志
+*.log
+
+# 编译与缓存产物
+bin/
+obj/
+__pycache__/
+*.pyc
+
+# Diagnostics 下的 .NET 构建缓存
+**/Diagnostics~/**/bin/
+**/Diagnostics~/**/obj/
+**/Diagnostics~/**/net10.0/
+**/*.csproj.nuget.*
+**/project.assets.json
+**/project.nuget.cache
+
+# 本机备份数据（历史曾误提交）
+Unity/TextToolDatas/
+
+# 本机私密配置：AppID / 云环境 / 广告位不入库（见 SPEC Platform and Persistence）
+*.local.json
+.env
+.env.local

@@ -1,0 +1,338 @@
+{
+  "task": "TASK-001",
+  "version": 9,
+  "revision": "r017",
+  "status": "Completed visual candidate; human approval pending",
+  "input": "PM resolved autonomous modern UI direction; preserve accepted r013 geometry",
+  "actualRuntimeEvidence": [
+    "iteration-04",
+    "friend-loading-final-02"
+  ],
+  "geometryIdentical": true,
+  "foodUvSourceUnchanged": true,
+  "formalBitmapChanges": 0,
+  "newBitmapAssets": 0,
+  "productionChanges": [
+    {
+      "path": "Unity/Assets/HotpotSort/Runtime/Presentation/GameplayView.cs",
+      "beforeSha256": "AEBFCBB4FD255D85AFC93FD9897EB3FDB680674597A4768407B858F6CA70CA19",
+      "afterSha256": "ABB2F32FEDC47509613F86B61418EB7A9B32112B0B961713F9D1D9B39B044F99"
+    },
+    {
+      "path": "Unity/Assets/HotpotSort/Runtime/Presentation/GameplayViewV7.cs",
+      "beforeSha256": "07531776D5257EBCA5ED2D632E570521A2F20DF2A45855945D3D0F56B7A95155",
+      "afterSha256": "DBB6063B9FA3B76918EA43A90A7A39FD43FBA1A396B0F2E29FBFF992F18D6A22"
+    },
+    {
+      "path": "Unity/Assets/HotpotSort/Runtime/Presentation/GameplayFeedback.cs",
+      "beforeSha256": "313B5676AF92D44D2F79DDE14E27A7E5C550B1BD7BB10E491FCD7F010979F15E",
+      "afterSha256": "FE833EF8FA674213F48F9129E6C9E85CCAEBAB13612C81950D58322D36F4AF0A"
+    },
+    {
+      "path": "Unity/Assets/HotpotSort/Runtime/Presentation/ModernPresentation.cs",
+      "beforeSha256": null,
+      "afterSha256": "22DA55BF454FBA2372893F4C0EEA4CCD63C7C3B589C56C803D0CAAD4EE327ADA"
+    },
+    {
+      "path": "Unity/Assets/HotpotSort/Runtime/Presentation/GameplayViewFriendBoard.cs",
+      "beforeSha256": null,
+      "afterSha256": "60C0B272FF0A501A7EDCA8B6210B01AB2EA495B03255A42CFEDE09A2EEEB13BB"
+    },
+    {
+      "path": "Unity/Assets/HotpotSort/Runtime/Presentation/Editor/HotpotSort.VisualIteration.Editor.asmdef",
+      "beforeSha256": null,
+      "afterSha256": "84D70CC98D87A9F485EF54A010AFE6D45D8F0B828D7E27137C0EAE5482A18E12"
+    },
+    {
+      "path": "Unity/Assets/HotpotSort/Runtime/Presentation/Editor/R017VisualChecks.cs",
+      "beforeSha256": null,
+      "afterSha256": "40A118A6C57C8E317D7193B180A637BEE6154FE0909F21ED867B3E85BDAE9234"
+    }
+  ],
+  "generatedMetaPaths": [
+    "Unity/Assets/HotpotSort/Runtime/Presentation/ModernPresentation.cs.meta",
+    "Unity/Assets/HotpotSort/Runtime/Presentation/GameplayViewFriendBoard.cs.meta",
+    "Unity/Assets/HotpotSort/Runtime/Presentation/Editor.meta",
+    "Unity/Assets/HotpotSort/Runtime/Presentation/Editor/HotpotSort.VisualIteration.Editor.asmdef.meta",
+    "Unity/Assets/HotpotSort/Runtime/Presentation/Editor/R017VisualChecks.cs.meta"
+  ],
+  "formalBitmapHashes": [
+    {
+      "path": "Unity\\Assets\\HotpotSort\\Resources\\Hotpot\\TASK001\\v7\\r001\\background\\edge_cloth.png",
+      "sha256": "0906F4F99026F0F19A9B11BA430277412909047CCB77B381121E1B48BD5EE380"
+    },
+    {
+      "path": "Unity\\Assets\\HotpotSort\\Resources\\Hotpot\\TASK001\\v7\\r001\\background\\table.png",
+      "sha256": "8A224A08E36C33FFCB5E2B468E85508CAC803D86AC1C906D8B8901280A92570E"
+    },
+    {
+      "path": "Unity\\Assets\\HotpotSort\\Resources\\Hotpot\\TASK001\\v7\\r001\\brand\\hotpot_seal.png",
+      "sha256": "8F9566D8D0D53E9FECDBFB1BC73DB4D2BA7EC016D349A0F9988EDDB19D558BB0"
+    },
+    {
+      "path": "Unity\\Assets\\HotpotSort\\Resources\\Hotpot\\TASK001\\v7\\r001\\containers\\dish_buffer.png",
+      "sha256": "FAB6D2FA8C91098D1C8A760E089AC1CD05D8D45CE3F88F4F7A404B1451D64D3B"
+    },
+    {
+      "path": "Unity\\Assets\\HotpotSort\\Resources\\Hotpot\\TASK001\\v7\\r001\\containers\\plate_main.png",
+      "sha256": "F6BC0215104542669FA00B028A0D0FDE903737ABF84DAC99734043B2874895B4"
+    },
+    {
+      "path": "Unity\\Assets\\HotpotSort\\Resources\\Hotpot\\TASK001\\v7\\r001\\food\\food_00.png",
+      "sha256": "EA6578374AB38D7F5260FC098968C65B0612D4D3E0F09277CF72726E26CB1D54"
+    },
+    {
+      "path": "Unity\\Assets\\HotpotSort\\Resources\\Hotpot\\TASK001\\v7\\r001\\food\\food_01.png",
+      "sha256": "CAE4A04C56EC9C2634CDDA2BD8E48A6C5FC17A12C92B0034F9CA0F79A0B0D25E"
+    },
+    {
+      "path": "Unity\\Assets\\HotpotSort\\Resources\\Hotpot\\TASK001\\v7\\r001\\food\\food_02.png",
+      "sha256": "96FACBD896DD8E19076774A3EB16B9FEF33B561853E11BC4DAB5A58BB361A115"
+    },
+    {
+      "path": "Unity\\Assets\\HotpotSort\\Resources\\Hotpot\\TASK001\\v7\\r001\\food\\food_03.png",
+      "sha256": "1AD6AF070924824AB26AF70F16A6AC468339643C8379A81636AB9B2B0A096FAD"
+    },
+    {
+      "path": "Unity\\Assets\\HotpotSort\\Resources\\Hotpot\\TASK001\\v7\\r001\\food\\food_04.png",
+      "sha256": "1FFBABAF8BD87D9A1F2DF2918516B33CE65029E9192217123E4CF314B751E213"
+    },
+    {
+      "path": "Unity\\Assets\\HotpotSort\\Resources\\Hotpot\\TASK001\\v7\\r001\\food\\food_05.png",
+      "sha256": "9CE62CF963E7EC64786733FEC0D604E2D818F2F81FA4B84FEB4A48E429E16C48"
+    },
+    {
+      "path": "Unity\\Assets\\HotpotSort\\Resources\\Hotpot\\TASK001\\v7\\r001\\food\\food_06.png",
+      "sha256": "D9496B51F53E40AB5529FED719C1C4F630220B62050D3AB73F75547FFEDE1BF2"
+    },
+    {
+      "path": "Unity\\Assets\\HotpotSort\\Resources\\Hotpot\\TASK001\\v7\\r001\\food\\food_07.png",
+      "sha256": "AFFA12CDFF2A5312AE2C09245BC225EE2A674D728348DEFF91EBB8F84BCD27E6"
+    },
+    {
+      "path": "Unity\\Assets\\HotpotSort\\Resources\\Hotpot\\TASK001\\v7\\r001\\food\\food_08.png",
+      "sha256": "D0C357AB704CFC9293FF9AAFAD448F2003AAF76E5A7AD71931800A674505902B"
+    },
+    {
+      "path": "Unity\\Assets\\HotpotSort\\Resources\\Hotpot\\TASK001\\v7\\r001\\food\\food_09.png",
+      "sha256": "7FA24C3C087652820B3C47A6DD05E0BE8661DF7E9B0552C19C352B47F3C227EE"
+    },
+    {
+      "path": "Unity\\Assets\\HotpotSort\\Resources\\Hotpot\\TASK001\\v7\\r001\\food\\food_10.png",
+      "sha256": "458F61455E8FB8C028CD815384B3C589788445FEC6DD2A90DE8831C16ACF530E"
+    },
+    {
+      "path": "Unity\\Assets\\HotpotSort\\Resources\\Hotpot\\TASK001\\v7\\r001\\food\\food_11.png",
+      "sha256": "6F0DB0B594061573B6C83EE7152A5BD4A512FBCCFD918FCB6715AE4F8B602E6F"
+    },
+    {
+      "path": "Unity\\Assets\\HotpotSort\\Resources\\Hotpot\\TASK001\\v7\\r001\\food\\food_12.png",
+      "sha256": "9814C7F23C6E26BD9CC39DAC6AA81FA30AA20B5DA580615947624B04EA8F2723"
+    },
+    {
+      "path": "Unity\\Assets\\HotpotSort\\Resources\\Hotpot\\TASK001\\v7\\r001\\food\\food_13.png",
+      "sha256": "E557BE9EAE93E754CA3D7304DCCA913A1D63B164E281721321DF6F959C3A8B5A"
+    },
+    {
+      "path": "Unity\\Assets\\HotpotSort\\Resources\\Hotpot\\TASK001\\v7\\r001\\food\\food_14.png",
+      "sha256": "4AADDF0A3E6AFF913DA91CDBD225FA57843F6405E7CF545532A8215F480FCD4B"
+    },
+    {
+      "path": "Unity\\Assets\\HotpotSort\\Resources\\Hotpot\\TASK001\\v7\\r001\\food\\food_15.png",
+      "sha256": "55FF52137838760817C959F7207D3B2FCA8C7257304D764B1C0D6C31665C9250"
+    },
+    {
+      "path": "Unity\\Assets\\HotpotSort\\Resources\\Hotpot\\TASK001\\v7\\r001\\fx\\bubble.png",
+      "sha256": "66C863FAEE3DFBFD907F7097D46D720766B1C604D71ABE83151A34AE3BF44D68"
+    },
+    {
+      "path": "Unity\\Assets\\HotpotSort\\Resources\\Hotpot\\TASK001\\v7\\r001\\fx\\complete_glow.png",
+      "sha256": "036A8C8149B9FD7A8C892BA1FE6D4CA768542F83A1D2B2C0378EAA57A3686E2F"
+    },
+    {
+      "path": "Unity\\Assets\\HotpotSort\\Resources\\Hotpot\\TASK001\\v7\\r001\\fx\\hint.png",
+      "sha256": "F7A39E1B673A0B6E0595E9B89305EC019FE387C813B61EED3276B9CCF65B9029"
+    },
+    {
+      "path": "Unity\\Assets\\HotpotSort\\Resources\\Hotpot\\TASK001\\v7\\r001\\fx\\ignition.png",
+      "sha256": "101F19CC9D362C8D7EADB554594227B61A2A8CF74F0AEE2C07D9DD7C13E8C98F"
+    },
+    {
+      "path": "Unity\\Assets\\HotpotSort\\Resources\\Hotpot\\TASK001\\v7\\r001\\fx\\oil_glint.png",
+      "sha256": "5085B1FF52AA12F9847B876B02367E5C4F0D9C8064FB434BE2BD429D978F666F"
+    },
+    {
+      "path": "Unity\\Assets\\HotpotSort\\Resources\\Hotpot\\TASK001\\v7\\r001\\fx\\splash_ripple.png",
+      "sha256": "B2ADC23D0D2A565280206BE9C5A6091A113E452FA9E68E3CF76F0F998BBE1819"
+    },
+    {
+      "path": "Unity\\Assets\\HotpotSort\\Resources\\Hotpot\\TASK001\\v7\\r001\\fx\\steam.png",
+      "sha256": "1FF8E4A44E19DFD6B88FC58880B2CDE04C7FBB305D2EEBA3187CD6707114345C"
+    },
+    {
+      "path": "Unity\\Assets\\HotpotSort\\Resources\\Hotpot\\TASK001\\v7\\r001\\fx\\victory_accent.png",
+      "sha256": "89EEECF1EF95D6352B3E627ADCA94398FE95A4C0E97C03D9C314DF264BD31042"
+    },
+    {
+      "path": "Unity\\Assets\\HotpotSort\\Resources\\Hotpot\\TASK001\\v7\\r001\\hero\\entry.png",
+      "sha256": "0F6C08B9B504CC2E3EF8F9991D9AB433BFD5F1EE6473B2C8E98207DD5C6BA493"
+    },
+    {
+      "path": "Unity\\Assets\\HotpotSort\\Resources\\Hotpot\\TASK001\\v7\\r001\\hero\\share.png",
+      "sha256": "99DFCF7418715D68959DE447496330A2B746E6C954F205206B9037C8AD2D323B"
+    },
+    {
+      "path": "Unity\\Assets\\HotpotSort\\Resources\\Hotpot\\TASK001\\v7\\r001\\hero\\win.png",
+      "sha256": "0A7C73B49E49DCB867B2F80A12424255BC354EF0963BFFFF2B13E2384A582557"
+    },
+    {
+      "path": "Unity\\Assets\\HotpotSort\\Resources\\Hotpot\\TASK001\\v7\\r001\\icons\\clear_buffer.png",
+      "sha256": "E01E21D4303C7EDD88A22BF7B675FB9BB95B2045846BC457D9ECFB9911A5C7A0"
+    },
+    {
+      "path": "Unity\\Assets\\HotpotSort\\Resources\\Hotpot\\TASK001\\v7\\r001\\icons\\close.png",
+      "sha256": "8842780065A1E02111B9446AE440DBADC544002B88EAE9EFA924E9F860AB6BBF"
+    },
+    {
+      "path": "Unity\\Assets\\HotpotSort\\Resources\\Hotpot\\TASK001\\v7\\r001\\icons\\effects_off.png",
+      "sha256": "A78EA4CB4D2D2BD71ECB70358721C422095D06679247DA8B2A8845D1124A6395"
+    },
+    {
+      "path": "Unity\\Assets\\HotpotSort\\Resources\\Hotpot\\TASK001\\v7\\r001\\icons\\effects_on.png",
+      "sha256": "93213CF2DC1E9694D84A507D5B27826D91544F4B34B79C5238C9913C91EE8763"
+    },
+    {
+      "path": "Unity\\Assets\\HotpotSort\\Resources\\Hotpot\\TASK001\\v7\\r001\\icons\\fire.png",
+      "sha256": "B13922C4AC4E94C9D77E402069DFEA5B6D2FF8B0F822052D3FB419EFB2B5C36E"
+    },
+    {
+      "path": "Unity\\Assets\\HotpotSort\\Resources\\Hotpot\\TASK001\\v7\\r001\\icons\\friends.png",
+      "sha256": "963C6BD5DCBB265D54B9253642378B8AFABEACC91C83BBBF830CD2900369EF12"
+    },
+    {
+      "path": "Unity\\Assets\\HotpotSort\\Resources\\Hotpot\\TASK001\\v7\\r001\\icons\\hint.png",
+      "sha256": "224A797EF09BB0A41BEADB474DF3E7D731B9966F334A614AA359C2544EFA03FF"
+    },
+    {
+      "path": "Unity\\Assets\\HotpotSort\\Resources\\Hotpot\\TASK001\\v7\\r001\\icons\\home.png",
+      "sha256": "4613A8E130F35EE00A42813DAFB81C538D0BDD8134E1BBB8F12595CB6B52B646"
+    },
+    {
+      "path": "Unity\\Assets\\HotpotSort\\Resources\\Hotpot\\TASK001\\v7\\r001\\icons\\lock.png",
+      "sha256": "9FA8BDAE92AD735A34A6B1E65AEEC9FBC994906ABA41ADCE1A7B59E35DCB113A"
+    },
+    {
+      "path": "Unity\\Assets\\HotpotSort\\Resources\\Hotpot\\TASK001\\v7\\r001\\icons\\music_off.png",
+      "sha256": "324FB4240321FA03D09F7E08DAFF0F84F4AD5E2CC09D147E63C53A394D9A2418"
+    },
+    {
+      "path": "Unity\\Assets\\HotpotSort\\Resources\\Hotpot\\TASK001\\v7\\r001\\icons\\music_on.png",
+      "sha256": "5854F9FAA3291A329FBA18E06593CB842136B13B51762BDF158E5DC93A07883F"
+    },
+    {
+      "path": "Unity\\Assets\\HotpotSort\\Resources\\Hotpot\\TASK001\\v7\\r001\\icons\\pause.png",
+      "sha256": "A2FFD3EE2D24FEC9E2088886E66F997D05EBE0E8C7F6FB477FCED38E55506C2B"
+    },
+    {
+      "path": "Unity\\Assets\\HotpotSort\\Resources\\Hotpot\\TASK001\\v7\\r001\\icons\\play.png",
+      "sha256": "C164C63B4B15792ECB6BAECF687986BCE1812C65AC95600F419327D15CD65A8E"
+    },
+    {
+      "path": "Unity\\Assets\\HotpotSort\\Resources\\Hotpot\\TASK001\\v7\\r001\\icons\\retry.png",
+      "sha256": "82075DDBB3F119FC00CBEA42087D109D36256AFFA48ECA983DBB16D7EFEE1CEA"
+    },
+    {
+      "path": "Unity\\Assets\\HotpotSort\\Resources\\Hotpot\\TASK001\\v7\\r001\\icons\\rewarded_ad.png",
+      "sha256": "E900D04B1B73DD266DFA3CB2A63CB372BBE2C66D431A30FF17BA7577B5B84113"
+    },
+    {
+      "path": "Unity\\Assets\\HotpotSort\\Resources\\Hotpot\\TASK001\\v7\\r001\\icons\\settings.png",
+      "sha256": "5A1C2640502A632DF847E7CC175EBEEE803C97B0C8802E8ABAE466BB70601B11"
+    },
+    {
+      "path": "Unity\\Assets\\HotpotSort\\Resources\\Hotpot\\TASK001\\v7\\r001\\icons\\share.png",
+      "sha256": "4E61176C2512E8CBC6FBCBCD8942F2F82317FDED69E0B94E56B15B65535D4E7E"
+    },
+    {
+      "path": "Unity\\Assets\\HotpotSort\\Resources\\Hotpot\\TASK001\\v7\\r001\\icons\\shuffle.png",
+      "sha256": "055F2F2E23A8446AA42597939F20F304D9939AB4C0EB0DBCFA451F1697E874CF"
+    },
+    {
+      "path": "Unity\\Assets\\HotpotSort\\Resources\\Hotpot\\TASK001\\v7\\r001\\icons\\stopwatch.png",
+      "sha256": "BB5AF14FBD5F651AF0F972136B91C97503AB44C0FC64C24AC56C490CED17EC94"
+    },
+    {
+      "path": "Unity\\Assets\\HotpotSort\\Resources\\Hotpot\\TASK001\\v7\\r001\\pots\\body.png",
+      "sha256": "DD0B3F4C92A582E23B11326DC39D07C0B8B72EA5BDD2EE857F5CA7664A58914A"
+    },
+    {
+      "path": "Unity\\Assets\\HotpotSort\\Resources\\Hotpot\\TASK001\\v7\\r001\\pots\\broth.png",
+      "sha256": "811123FC1B10C2A986D475EFF4B96E69FAD8A60FAF21995D65274701A6FE8DA6"
+    },
+    {
+      "path": "Unity\\Assets\\HotpotSort\\Resources\\Hotpot\\TASK001\\v7\\r001\\pots\\rim.png",
+      "sha256": "1BF4BB532B0E6BA96EA89EAF56FFB75FF9AD04F7696BD61F707C66A12C102EB8"
+    },
+    {
+      "path": "Unity\\Assets\\HotpotSort\\Resources\\Hotpot\\TASK001\\v7\\r001\\pots\\unlit.png",
+      "sha256": "8A91631D76D14A2B6E40C89A510D51DCF81B03130C3377D11EDD8A76C443541E"
+    },
+    {
+      "path": "Unity\\Assets\\HotpotSort\\Resources\\Hotpot\\TASK001\\v7\\r001\\ui\\bottom_bar.png",
+      "sha256": "50DCAC03BDFECCEB3CDD8542F62456BBE8E9C2718E3AAA44765A8C3F3BA182A6"
+    },
+    {
+      "path": "Unity\\Assets\\HotpotSort\\Resources\\Hotpot\\TASK001\\v7\\r001\\ui\\button_primary.png",
+      "sha256": "15921720E59A26982AB047A24CF5EB56BDE7858961E8507200E0004D6E610251"
+    },
+    {
+      "path": "Unity\\Assets\\HotpotSort\\Resources\\Hotpot\\TASK001\\v7\\r001\\ui\\button_secondary.png",
+      "sha256": "CA43FE898281DAA4AF6200AB87C63706CECADFF1BA387DF81E4DECB62CFF7FFD"
+    },
+    {
+      "path": "Unity\\Assets\\HotpotSort\\Resources\\Hotpot\\TASK001\\v7\\r001\\ui\\icon_disc.png",
+      "sha256": "E79E8493F55B4A50D580C890866F9120AF115CEEF37A198C30CB60A286651872"
+    },
+    {
+      "path": "Unity\\Assets\\HotpotSort\\Resources\\Hotpot\\TASK001\\v7\\r001\\ui\\order_card.png",
+      "sha256": "341CADE544BC7F55F2197AC53B4F835877DD121FAF60B1A732AFE93D560613F9"
+    },
+    {
+      "path": "Unity\\Assets\\HotpotSort\\Resources\\Hotpot\\TASK001\\v7\\r001\\ui\\order_pointer.png",
+      "sha256": "033F7591EF0CC69F99C6AB625DC5A66D8BAF4151023A818674CEDD2938C89BA8"
+    },
+    {
+      "path": "Unity\\Assets\\HotpotSort\\Resources\\Hotpot\\TASK001\\v7\\r001\\ui\\panel.png",
+      "sha256": "C9ABF337B46C41CACF4C2CB789C6466D432480B67BA17E91B98FA1FDD240E933"
+    },
+    {
+      "path": "Unity\\Assets\\HotpotSort\\Resources\\Hotpot\\TASK001\\v7\\r001\\ui\\progress_fill.png",
+      "sha256": "F28EAF47F59DF176D07EE5B43C1BFB114DE9B4B10242A777B9A560AD973771A0"
+    },
+    {
+      "path": "Unity\\Assets\\HotpotSort\\Resources\\Hotpot\\TASK001\\v7\\r001\\ui\\progress_track.png",
+      "sha256": "EA4A30FAEC4D328685D592B1B9A2527FAFB7ADB0395B16E11EF75C29AF7C7FF9"
+    },
+    {
+      "path": "Unity\\Assets\\HotpotSort\\Resources\\Hotpot\\TASK001\\v7\\r001\\ui\\timer.png",
+      "sha256": "7DA9D23E798E5ED979EB37DAFFFFC13CAF3DA8A2B5C647C07DF9381B26CE52C7"
+    }
+  ],
+  "checks": [
+    60,
+    30
+  ],
+  "supportedCaptures": [
+    "720x1280",
+    "1080x1920",
+    "1440x3200"
+  ],
+  "notClaimed": [
+    "Human Accepted",
+    "WeChat true friend data",
+    "Bootstrap SharedTexture integration",
+    "device FPS",
+    "publication"
+  ],
+  "remainingDependency": "Core integrator binds SharedTexture getter, CloseFriendSurface, viewport callback and preserves session pause ownership via modal callback."
+}

@@ -1,0 +1,92 @@
+{
+  "source": ".harness/references/prototype-v0.1/HotpotSort_Prototype_v0.1/Unity/Assets/HotpotSort/Resources/Hotpot",
+  "method": "Byte-identical copy of original independent assets and import metadata; no preview crops.",
+  "foodIds": [
+    {
+      "id": 0,
+      "resource": "Hotpot/food_00",
+      "geometry": "ViewItem.radius supplied by authoritative adapter; food identity never controls item identity"
+    },
+    {
+      "id": 1,
+      "resource": "Hotpot/food_01",
+      "geometry": "ViewItem.radius supplied by authoritative adapter; food identity never controls item identity"
+    },
+    {
+      "id": 2,
+      "resource": "Hotpot/food_02",
+      "geometry": "ViewItem.radius supplied by authoritative adapter; food identity never controls item identity"
+    },
+    {
+      "id": 3,
+      "resource": "Hotpot/food_03",
+      "geometry": "ViewItem.radius supplied by authoritative adapter; food identity never controls item identity"
+    },
+    {
+      "id": 4,
+      "resource": "Hotpot/food_04",
+      "geometry": "ViewItem.radius supplied by authoritative adapter; food identity never controls item identity"
+    },
+    {
+      "id": 5,
+      "resource": "Hotpot/food_05",
+      "geometry": "ViewItem.radius supplied by authoritative adapter; food identity never controls item identity"
+    },
+    {
+      "id": 6,
+      "resource": "Hotpot/food_06",
+      "geometry": "ViewItem.radius supplied by authoritative adapter; food identity never controls item identity"
+    },
+    {
+      "id": 7,
+      "resource": "Hotpot/food_07",
+      "geometry": "ViewItem.radius supplied by authoritative adapter; food identity never controls item identity"
+    },
+    {
+      "id": 8,
+      "resource": "Hotpot/food_08",
+      "geometry": "ViewItem.radius supplied by authoritative adapter; food identity never controls item identity"
+    },
+    {
+      "id": 9,
+      "resource": "Hotpot/food_09",
+      "geometry": "ViewItem.radius supplied by authoritative adapter; food identity never controls item identity"
+    },
+    {
+      "id": 10,
+      "resource": "Hotpot/food_10",
+      "geometry": "ViewItem.radius supplied by authoritative adapter; food identity never controls item identity"
+    },
+    {
+      "id": 11,
+      "resource": "Hotpot/food_11",
+      "geometry": "ViewItem.radius supplied by authoritative adapter; food identity never controls item identity"
+    },
+    {
+      "id": 12,
+      "resource": "Hotpot/food_12",
+      "geometry": "ViewItem.radius supplied by authoritative adapter; food identity never controls item identity"
+    },
+    {
+      "id": 13,
+      "resource": "Hotpot/food_13",
+      "geometry": "ViewItem.radius supplied by authoritative adapter; food identity never controls item identity"
+    },
+    {
+      "id": 14,
+      "resource": "Hotpot/food_14",
+      "geometry": "ViewItem.radius supplied by authoritative adapter; food identity never controls item identity"
+    },
+    {
+      "id": 15,
+      "resource": "Hotpot/food_15",
+      "geometry": "ViewItem.radius supplied by authoritative adapter; food identity never controls item identity"
+    }
+  ],
+  "plate": "Hotpot/plate",
+  "data": "game-data.json retained for provenance only, not loaded as Daily rules",
+  "verification": {
+    "copiedFiles": 36,
+    "sha256Mismatches": 0
+  }
+}

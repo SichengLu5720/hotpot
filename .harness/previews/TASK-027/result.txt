@@ -1,0 +1,1 @@
+PASS: Unity PlayMode renderer with deterministic presentation fixture. Three terminal states, 1.5s smoothstep, hidden buttons, duplicate snapshots, background pause/resume, new session/reset and zero denominator. Screenshots are actual runtime UI; not device or human acceptance.

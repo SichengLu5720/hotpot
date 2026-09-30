@@ -1,0 +1,109 @@
+{
+  "task": "TASK-031",
+  "revision": "r004",
+  "status": "Completed",
+  "pm_overlap_decision": "Accepted by PM under existing SPEC: edge decoration may overlap behind UI without obscuring information. Icon outline and text remain complete; no vertical avoidance required. This is not final human art approval.",
+  "overlap_classification": "Expected Change",
+  "decision_update_scope": "README.md and checks.json only; all PNG files unchanged; generator not edited or rerun",
+  "red_cloth_edge_overlap_detected": true,
+  "ingredient_axis_x": 102,
+  "activity_axis_x": 102,
+  "x_translation": -52,
+  "y_translation": 0,
+  "new_activity_region": [
+    18,
+    698,
+    186,
+    838
+  ],
+  "old_activity_region": [
+    70,
+    698,
+    238,
+    838
+  ],
+  "badge_source": "r003 PNG reused unchanged; horizontal label retained",
+  "before_first_win_byte_identical": true,
+  "before_first_win_activity_pixels": 0,
+  "r001_r003_unchanged": true,
+  "image_checks": {
+    "home-after-first-win": {
+      "difference_bbox_from_r003": [
+        29,
+        703,
+        226,
+        826
+      ],
+      "outside_old_and_new_regions_changed_pixels": 0,
+      "outside_new_region_vs_base_changed_pixels": 0
+    },
+    "home-after-first-win-alert": {
+      "difference_bbox_from_r003": [
+        29,
+        703,
+        226,
+        826
+      ],
+      "outside_old_and_new_regions_changed_pixels": 0,
+      "outside_new_region_vs_base_changed_pixels": 0
+    }
+  },
+  "files": {
+    "alignment-detail.png": {
+      "size": [
+        1040,
+        540
+      ],
+      "sha256": "259db3e000fcdd23bf085c9b471b7a29a0b3e2d9ca80614f42beb422cdcc554a"
+    },
+    "home-after-first-win-360.png": {
+      "size": [
+        360,
+        640
+      ],
+      "sha256": "e00e198ae274c7b0e885b1cea00b58f919df4e031bd5e4ab38bdbb698352e833"
+    },
+    "home-after-first-win-alert-360.png": {
+      "size": [
+        360,
+        640
+      ],
+      "sha256": "2a40f64ea02a5fef6a1a72fe4a0d3d56c3ce72a8e01622e1e4eb71fa383c23ec"
+    },
+    "home-after-first-win-alert.png": {
+      "size": [
+        1080,
+        1920
+      ],
+      "sha256": "13ff8cf80136b2065b932df1df32d84a43a7ea277d09abccb9a354d59eb15cfb"
+    },
+    "home-after-first-win.png": {
+      "size": [
+        1080,
+        1920
+      ],
+      "sha256": "b1f27b47761cb73054c6efc07e481b5c63c5339b77ea8907fbc4cf4f006e1367"
+    },
+    "home-before-first-win-360.png": {
+      "size": [
+        360,
+        640
+      ],
+      "sha256": "019b0d402451540dda25005e96d23414d3306145a93e1aab2030b9b0e7d5d3fe"
+    },
+    "home-before-first-win.png": {
+      "size": [
+        1080,
+        1920
+      ],
+      "sha256": "b0691b9864490bcb2a716cef0cec64876608f5fc6beb8b3c00408d634f78c39a"
+    },
+    "home-three-states.png": {
+      "size": [
+        1080,
+        700
+      ],
+      "sha256": "f34670217e821cbe80d81987050e3b0c5adff7431f0743e972bde3d27a01dd48"
+    }
+  }
+}

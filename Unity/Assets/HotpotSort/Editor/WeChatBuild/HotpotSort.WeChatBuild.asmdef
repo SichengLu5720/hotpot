@@ -1,0 +1,15 @@
+{
+  "name": "HotpotSort.WeChatBuild",
+  "references": [
+    "HotpotSort.Contracts",
+    "Wx",
+    "WxEditor",
+    "HotpotSort.WeChat",
+    "HotpotSort.Task002V9.Editor",
+    "HotpotSort.FriendBoard.Editor"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "autoReferenced": false
+}

@@ -1,0 +1,7 @@
+{
+  "name": "HotpotSort.Contracts",
+  "rootNamespace": "HotpotSort.Contracts",
+  "references": [],
+  "autoReferenced": false,
+  "noEngineReferences": true
+}

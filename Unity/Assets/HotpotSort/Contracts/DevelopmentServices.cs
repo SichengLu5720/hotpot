@@ -1,0 +1,220 @@
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+namespace HotpotSort.Contracts
+{
+    public enum RewardKind { SwapOrder, ClearBuffer, Shuffle, FourthPot, Revival, ThirdPot }
+    public enum RewardRoute { SimulatedAd, SimulatedShare, WeChatShare, WeChatRewardedVideo }
+    public static class RewardRoutes
+    {
+        public static bool IsShare(RewardRoute route)=>route==RewardRoute.SimulatedShare||route==RewardRoute.WeChatShare;
+        public static bool IsVideo(RewardRoute route)=>route==RewardRoute.SimulatedAd||route==RewardRoute.WeChatRewardedVideo;
+        public static RewardRoute ForService(RewardRoute selected,bool simulation)
+        {
+            if(IsShare(selected))return simulation?RewardRoute.SimulatedShare:RewardRoute.WeChatShare;
+            if(IsVideo(selected))return simulation?RewardRoute.SimulatedAd:RewardRoute.WeChatRewardedVideo;
+            throw new ArgumentOutOfRangeException(nameof(selected));
+        }
+    }
+    public enum RewardOutcome { Success, Cancelled, Failed, Unavailable }
+    public enum RewardApplicationResult { Applied, Cancelled, Failed, Unavailable, Stale, Duplicate }
+    public sealed class RewardRequest
+    {
+        public string RequestId { get; } = Guid.NewGuid().ToString("N");
+        public long SessionGeneration { get; }
+        public RewardKind Kind { get; }
+        public RewardRoute Route { get; }
+        public string QuotaChallengeDate { get; }
+        public string SessionId { get; }
+        public string RevivalOfferId { get; }
+        public RewardRequest(long generation,RewardKind kind,RewardRoute route,string day,string sessionId=null,string revivalOfferId=null)
+        {SessionGeneration=generation;Kind=kind;Route=route;QuotaChallengeDate=day;SessionId=sessionId;RevivalOfferId=revivalOfferId;}
+    }
+    public interface IRewardService { bool IsDevelopmentSimulation { get; } Task<RewardOutcome> RequestAsync(RewardRequest request); }
+    public sealed class PlayerSettings
+    {
+        public bool MusicEnabled=true,EffectsEnabled=true;
+        public float MusicVolume=.6f,EffectsVolume=.8f;
+    }
+    public interface IProfileStore
+    {
+        bool IsDevelopmentSimulation { get; }
+        int TotalFirstWins { get; }
+        bool RecordFirstWin(string challengeDay);
+        int SharesUsed(string challengeDay);
+        bool TryConsumeShare(string challengeDay,string requestId);
+        PlayerSettings LoadSettings();
+        void SaveSettings(PlayerSettings value);
+    }
+    public interface ITutorialProfileStore
+    {
+        bool WarmupTutorialCompleted { get; }
+        bool BufferWarningCompleted { get; }
+        void CompleteTutorial(bool bufferWarning);
+    }
+    public enum ChallengeStage { Legacy, Warmup, Formal }
+    public interface IChallengeStageState
+    {
+        ChallengeStage Stage { get; }
+        int UnlockedExtraPotMask { get; }
+    }
+    public interface IChallengeStageFactory
+    {
+        IGameSession CreateStage(ChallengeContext context, ChallengeStage stage, int inheritedPotMask);
+    }
+    // Optional extension leaves existing profile implementations source compatible.
+    // Production storage durably tracks the challenge-day quota and reservations.
+    [Serializable] public sealed class ShareQuotaRecord
+    {
+        public string day, lastEffectiveUtc, committedRequestId;
+        public int used, dataVersion;
+    }
+    public sealed class ShareAvailability
+    {
+        public const int DailyLimit=7;
+        public string Day { get; }
+        public int Used { get; }
+        public int Remaining => Math.Max(0,DailyLimit-Used);
+        public DateTimeOffset? NextAvailableUtc { get; }
+        public bool Reserved { get; }
+        public bool Available { get; }
+        public ShareAvailability(string day,int used,DateTimeOffset? next,bool reserved,DateTimeOffset now)
+        {Day=day;Used=used;NextAvailableUtc=next;Reserved=reserved;Available=used<DailyLimit&&!reserved;}
+    }
+    public interface IShareQuotaStore
+    {
+        ShareAvailability ReadShareAvailability(string day,DateTimeOffset utc);
+        bool TryReserveShare(string day,string requestId,DateTimeOffset utc);
+        bool HasShareReservation(string day,string requestId);
+        bool TryCommitShare(string day,string requestId,DateTimeOffset effectiveUtc);
+        void ReleaseShare(string day,string requestId);
+    }
+    public enum ProfileTimeSource { DeviceTime, TrustedServer }
+    public enum ProfileSyncStatus { Synced, NotConfigured, Offline, Failed, Stale, Busy, Unavailable }
+    public sealed class ProfileTimeSnapshot
+    {
+        public DateTimeOffset Utc { get; }
+        public ProfileTimeSource Source { get; }
+        public ProfileTimeSnapshot(DateTimeOffset utc,ProfileTimeSource source){Utc=utc.ToUniversalTime();Source=source;}
+    }
+    [Serializable] public sealed class AppliedRewardRecord
+    {
+        public string requestId,quotaDay,effectiveUtc;
+        // -1 is an explicitly unknown kind migrated through the old share-only API.
+        public int rewardKind,route;
+        public ProfileTimeSource timeSource;
+    }
+    [Serializable] public sealed class ProfileSyncOperation { public string operationId,kind,entityId; }
+    public enum FormalChallengeResultKind { Won, FailedBufferFull, FailedTimeout }
+    [Serializable] public sealed class FormalChallengeResultRecord
+    {
+        public string resultId,sessionId,challengeDay,completedUtc;
+        public string protectionAttemptId;
+        public FormalChallengeResultKind result;
+        // Zero marks historical facts: never replay them into the new protection balance.
+        public int protectionVersion;
+        public ProfileTimeSource timeSource;
+    }
+    [Serializable] public sealed class SwapOrderRewardGrantRecord
+    {
+        public string grantId,effectiveUtc;
+        public int amount;
+        public ProfileTimeSource timeSource;
+    }
+    [Serializable] public sealed class SwapOrderRewardSpendRecord
+    {
+        public string spendId,creditId,effectiveUtc;
+        public ProfileTimeSource timeSource;
+    }
+    public enum AccountMutationResult { Applied, Duplicate, InsufficientInventory }
+    [Serializable] public sealed class ProtectionAttemptRecord
+    {
+        public string attemptId,startedUtc,cycleId;
+        public int frozenPercent;
+    }
+    [Serializable] public sealed class ProfileDocument
+    {
+        public int schemaVersion=1;
+        public bool warmupTutorialCompleted,bufferWarningCompleted;
+        public long localRevision;
+        public bool orderProtectionInitialized;
+        public int orderProtectionInitialPercent;
+        public int protectionLifecycleVersion;
+        public bool protectionLegacyPlayer;
+        public List<string> protectionEntries=new List<string>();
+        public List<ProtectionAttemptRecord> protectionAttempts=new List<ProtectionAttemptRecord>();
+        public string environment,account,confirmationCursor;
+        public List<string> firstWinDays=new List<string>(),legacyRequestIds=new List<string>();
+        public List<AppliedRewardRecord> rewards=new List<AppliedRewardRecord>();
+        public List<ShareQuotaRecord> legacyQuotas=new List<ShareQuotaRecord>();
+        public List<FormalChallengeResultRecord> formalResults=new List<FormalChallengeResultRecord>();
+        public List<SwapOrderRewardGrantRecord> swapOrderRewardGrants=new List<SwapOrderRewardGrantRecord>();
+        public List<SwapOrderRewardSpendRecord> swapOrderRewardSpends=new List<SwapOrderRewardSpendRecord>();
+        public List<ProfileSyncOperation> pending=new List<ProfileSyncOperation>();
+    }
+    public sealed class ProfileSyncResponse
+    {
+        public ProfileSyncStatus Status;
+        public ProfileDocument Snapshot;
+        public string ConfirmationCursor;
+        public string[] AcknowledgedOperations=new string[0];
+        public DateTimeOffset? ServerUtc;
+    }
+    public interface IProfileSyncTransport
+    { Task<ProfileSyncResponse> SyncAsync(ProfileDocument upload); }
+    public interface IAsyncProfileStore
+    {
+        ProfileDocument ReadSnapshot();
+        Task<ProfileSyncStatus> SyncAsync();
+        event Action ProfileChanged;
+        ProfileTimeSnapshot TimeSnapshot { get; }
+        void InvalidateSyncCallbacks();
+    }
+    // The coordinator invokes this only after the synchronous effect has applied.
+    // Implementations durably commit the fact and outbox together before returning true.
+    public interface IAppliedRewardStore
+    {
+        bool HasAppliedReward(string requestId);
+        bool TryCommitAppliedReward(RewardRequest request,DateTimeOffset effectiveUtc);
+    }
+    // Account-level facts are immutable and keyed by caller-provided operation IDs.
+    // A repeated ID never changes the result or inventory a second time.
+    public interface IOrderProtectionProfileStore { int OrderProtectionPercent { get; } }
+    public interface IOrderProtectionLifecycleStore : IOrderProtectionProfileStore
+    {
+        void RecordGameEntry(DateTimeOffset utc);
+        int BeginFormalChallenge(string attemptId,DateTimeOffset utc);
+        AccountMutationResult RecordProtectedFormalResult(string attemptId,string resultId,string sessionId,string challengeDay,FormalChallengeResultKind result,DateTimeOffset completedUtc);
+    }
+    public interface IAccountRewardProfileStore
+    {
+        int ConsecutiveFormalFailures { get; }
+        int SwapOrderRewardInventory { get; }
+        AccountMutationResult RecordFormalResult(string resultId,string sessionId,string challengeDay,FormalChallengeResultKind result,DateTimeOffset completedUtc);
+        AccountMutationResult GrantSwapOrderRewards(string grantId,int amount,DateTimeOffset effectiveUtc);
+        AccountMutationResult ConsumeSwapOrderReward(string spendId,DateTimeOffset effectiveUtc);
+    }
+    // Session observes this contract without depending on Core or presentation assemblies.
+    public interface IRevivalSessionState
+    {
+        bool RevivalPending { get; }
+        bool RevivalUsed { get; }
+        string RevivalOfferId { get; }
+        string RevivalTransferToken { get; }
+    }
+    public sealed class FriendRecord { public string DisplayName;public int FirstWins; }
+    public interface IFriendBoard { bool IsDevelopmentSimulation { get; } Task<IReadOnlyList<FriendRecord>> LoadAsync(); }
+    public interface IThemeShare { bool IsDevelopmentSimulation { get; } Task<RewardOutcome> ShareThemeAsync(string resourceAddress); }
+    // Optional extension: existing theme-share implementations remain source compatible.
+    public interface IResultThemeShare : IThemeShare { Task<RewardOutcome> ShareThemeAsync(string resourceAddress,string title); }
+    public static class SettlementShareText
+    {
+        public static string Title(bool won,int completedOrders,int totalOrders)
+        {
+            double ratio=totalOrders>0?Math.Max(0,Math.Min(1,(double)completedOrders/totalOrders)):0;
+            int percent=won?100:(int)Math.Floor(ratio*100+.5);
+            return "下锅喽！本局"+(won?"胜利":"失败")+"，完成进度 "+percent.ToString(System.Globalization.CultureInfo.InvariantCulture)+"%";
+        }
+    }
+}

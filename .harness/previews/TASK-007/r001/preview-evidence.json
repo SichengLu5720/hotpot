@@ -1,0 +1,77 @@
+{
+  "status": "STATIC_CHECKS_PASSED",
+  "checkedAt": "2026-09-22T11:23:19.909Z",
+  "linkCount": 29,
+  "summaries": [
+    {
+      "task": "reward",
+      "states": 12,
+      "ids": [
+        "share-offer",
+        "share-loading",
+        "share-failure",
+        "ad-offer",
+        "ad-loading",
+        "ad-failure",
+        "ad-cancel",
+        "ad-unconfigured",
+        "tool-failure",
+        "tool-loading",
+        "fourth-failure",
+        "sync-pending"
+      ],
+      "primaryButtons": 12
+    },
+    {
+      "task": "friend",
+      "states": 8,
+      "ids": [
+        "loading",
+        "normal",
+        "self",
+        "empty",
+        "failure",
+        "permission",
+        "login",
+        "refreshing"
+      ],
+      "primaryButtons": 8
+    }
+  ],
+  "issues": [],
+  "files": [
+    {
+      "path": ".harness/previews/TASK-007/r001/index.html",
+      "bytes": 1005,
+      "sha256": "56eb689482c995df6526f032bc84d7bf2ad14f13ab15b55ba231f6f36f474808"
+    },
+    {
+      "path": ".harness/previews/TASK-007/r001/preview.css",
+      "bytes": 6029,
+      "sha256": "67ce6c000e63188ce7c59f9449b6fc7093e546e6043b17ff7e0f88849a4e779d"
+    },
+    {
+      "path": ".harness/previews/TASK-007/r001/preview.js",
+      "bytes": 9877,
+      "sha256": "3d0c18fee381aee71c4ff2009db08b65564957ca046ebf8181368c02e7a03561"
+    },
+    {
+      "path": ".harness/previews/TASK-007/r001/state-contract.md",
+      "bytes": 5059,
+      "sha256": "57d0569fa0a448f5f7e944afff1726eba3e012b4bf742e97349c00f64af5a83c"
+    },
+    {
+      "path": ".harness/previews/TASK-008/r001/index.html",
+      "bytes": 1095,
+      "sha256": "69783dd2f8ae14e6914337f9489703f210dbaea80322cadfc426f580723481e3"
+    },
+    {
+      "path": ".harness/previews/TASK-008/r001/state-contract.md",
+      "bytes": 4420,
+      "sha256": "24d169e66bfe37c07c3fcaa26be4877440b54bdebd2c5897692ef3e6646e1331"
+    }
+  ],
+  "visualInspection": "Browser local file URL blocked by policy; no workaround attempted. New HTML render not visually inspected.",
+  "runtime": "NOT_RUN: Unity, WeChat, device, font subset, platform callbacks, performance.",
+  "scope": "Preview only; state labels are not fabricated friend records."
+}

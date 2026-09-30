@@ -1,0 +1,19 @@
+using UnityEngine;
+
+public sealed class MinimalUploadScreen : MonoBehaviour
+{
+    private void OnGUI()
+    {
+        var scale = Mathf.Min(Screen.width / 390f, Screen.height / 844f);
+        GUI.matrix = Matrix4x4.TRS(new Vector3((Screen.width - 390 * scale) / 2, (Screen.height - 844 * scale) / 2), Quaternion.identity, Vector3.one * scale);
+        var heading = new GUIStyle(GUI.skin.label) { fontSize = 34, alignment = TextAnchor.MiddleCenter };
+        heading.normal.textColor = new Color(1f, 0.9f, 0.65f);
+        var body = new GUIStyle(heading) { fontSize = 20, wordWrap = true };
+        GUI.Label(new Rect(15, 150, 360, 100), "HUOGUO XIAOXIAO", heading);
+        GUI.Label(new Rect(30, 260, 330, 110), "UPLOAD FLOW CHECK\nDevelopment 0.0.1", body);
+        GUI.color = new Color(1f, 0.55f, 0.2f);
+        GUI.DrawTexture(new Rect(90, 410, 210, 100), Texture2D.whiteTexture);
+        GUI.color = Color.white;
+        GUI.Label(new Rect(50, 540, 290, 100), "Startup ready\nPipeline validation package", body);
+    }
+}

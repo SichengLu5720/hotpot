@@ -1,0 +1,7 @@
+<Project>
+  <PropertyGroup>
+    <!-- Each executable has its own apphost and incremental inputs. -->
+    <BaseIntermediateOutputPath>obj/$(MSBuildProjectName)/</BaseIntermediateOutputPath>
+    <BaseOutputPath>bin/$(MSBuildProjectName)/</BaseOutputPath>
+  </PropertyGroup>
+</Project>

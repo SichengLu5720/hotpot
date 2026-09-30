@@ -1,0 +1,15 @@
+[agents]
+enabled = true
+max_concurrent_threads_per_session = 4
+
+[agents.code_agent]
+description = "Implements code after target behavior is confirmed; integrates when explicitly assigned."
+config_file = "./agents/code-agent.toml"
+
+[agents.visual_agent]
+description = "Creates style previews, Figma layouts, production assets and Unity presentation; integrates when assigned."
+config_file = "./agents/visual-agent.toml"
+
+[agents.explorer_agent]
+description = "Optionally investigates existing code and dependencies read-only, returning evidence and unknowns to PM."
+config_file = "./agents/explorer-agent.toml"

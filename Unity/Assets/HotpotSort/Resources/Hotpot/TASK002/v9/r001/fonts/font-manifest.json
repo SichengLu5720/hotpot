@@ -1,0 +1,425 @@
+{
+  "task": "TASK-002",
+  "version": 9,
+  "fontRole": "modern-sans",
+  "resourceAddress": "Hotpot/TASK002/v9/r001/fonts/modern-sans",
+  "generator": "Assets/HotpotSort/Editor/TASK002V9/build_font_subset.py",
+  "generatorSha256": "baf536dee3ddf90dedc331e42416405a2b52b1219a2ff6ec61c7978620abffbd",
+  "generationCommand": "python Unity/Assets/HotpotSort/Editor/TASK002V9/build_font_subset.py",
+  "source": "Assets/HotpotSort/Resources/Hotpot/TASK001/v7/r001/fonts/readable.otf",
+  "sourceSha256": "2c76254f6fc379fddfce0a7e84fb5385bb135d3e399294f6eeb6680d0365b74b",
+  "sourceNames": {
+    "0": "© 2014-2021 Adobe (http://www.adobe.com/).",
+    "1": "Noto Sans CJK SC",
+    "2": "Regular",
+    "4": "Noto Sans CJK SC",
+    "6": "NotoSansCJKsc-Regular",
+    "13": "This Font Software is licensed under the SIL Open Font License, Version 1.1. This Font Software is distributed on an \"AS IS\" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the SIL Open Font License for the specific language, permissions and limitations governing your use of this Font Software.",
+    "14": "http://scripts.sil.org/OFL"
+  },
+  "license": "SIL Open Font License 1.1",
+  "licenseSha256": "6a73f9541c2de74158c0e7cf6b0a58ef774f5a780bf191f2d7ec9cc53efe2bf2",
+  "fontToolsVersion": "4.60.1",
+  "glyphInventoryPolicy": "Retain checked-in glyph inventory; add ASCII 32-126, C# runtime/contracts literals and Resources JSON strings; Editor, Diagnostics~ and generated TASK002 evidence excluded; open-data nicknames use system fonts",
+  "glyphCount": 533,
+  "glyphsSha256": "216cba31f288987f5cfdb9e836f1f07d05c91caf4ac5fa475a0a9c155c94d079",
+  "fontSha256": "1cb404cde7deca7e50903b53ec4331632938f69e2aa06eeeaa175b0c8ab1bc9e",
+  "fontBytes": 228036,
+  "parameters": {
+    "recalc_timestamp": false,
+    "canonical_order": true,
+    "name_IDs": [
+      "*"
+    ],
+    "name_legacy": true,
+    "name_languages": [
+      "*"
+    ],
+    "layout_features": [
+      "*"
+    ],
+    "derivativeFamily": "Hotpot Modern Sans"
+  },
+  "sources": [
+    {
+      "path": "Assets/HotpotSort/Contracts/BrothContracts.cs",
+      "sha256": "c809d373c7eb9f4775759eb13cea0ce2bdb7587abc98432a3defa8d44fec3a73"
+    },
+    {
+      "path": "Assets/HotpotSort/Contracts/CollectionContracts.cs",
+      "sha256": "cc62e5c155e7fa647b6bee4cc50fab1c3718349d7dad87f8a18e6059af68ff5e"
+    },
+    {
+      "path": "Assets/HotpotSort/Contracts/DevelopmentServices.cs",
+      "sha256": "d32b33656b8da2fe3e27df8867c71305418f832379dc29dc13e6cc52c515c7fd"
+    },
+    {
+      "path": "Assets/HotpotSort/Contracts/DiagnosticContracts.cs",
+      "sha256": "243c75f82cca9e5988cbea1a66cb160b16d41436f5cbefae236fb1d968f32165"
+    },
+    {
+      "path": "Assets/HotpotSort/Contracts/RemoteAssetContracts.cs",
+      "sha256": "c526070ddc6c930b6418e03bb9d4f6619126d4bd1050a11f7cb7de1aa06c3976"
+    },
+    {
+      "path": "Assets/HotpotSort/Contracts/SessionContracts.cs",
+      "sha256": "05a3996af54119205ebf091303696ed4211530b41ff1dccc366abd3467ec45b1"
+    },
+    {
+      "path": "Assets/HotpotSort/Contracts/SwapOrderContracts.cs",
+      "sha256": "c96acaf60c9059a5c00de08802ac5d796a7cf25e86355608d021d03e4a204fa3"
+    },
+    {
+      "path": "Assets/HotpotSort/Contracts/WeChatFriendBoardContracts.cs",
+      "sha256": "fca40fca2cc50ba4941022981eef3b265ab807c00df8ada864032c755758e9c0"
+    },
+    {
+      "path": "Assets/HotpotSort/Contracts/WeChatRewardContracts.cs",
+      "sha256": "244593040e771cb7e51eeb8c9adea874e24415bafecf2b4da77df6699567c75b"
+    },
+    {
+      "path": "Assets/HotpotSort/Resources/Hotpot/game-data.json",
+      "sha256": "55930baff402fed70c618a52144a0d6d828858e7dfe7b78e204fbf5c5deb6982"
+    },
+    {
+      "path": "Assets/HotpotSort/Resources/Hotpot/TASK001/v10/r001/presentation-theme.json",
+      "sha256": "ab4534389b6691314e7dc6c91bdff5305c25ec8e8e61a2a2bfcdda5ea3dae12f"
+    },
+    {
+      "path": "Assets/HotpotSort/Resources/Hotpot/TASK001/v7/r001/presentation-theme.json",
+      "sha256": "6b89e6132f312894916a026c08f5d938078ed542fcb473a801c542e0302f1977"
+    },
+    {
+      "path": "Assets/HotpotSort/Resources/HotpotSort/Audio/TASK009/Provenance~/audio-manifest.json",
+      "sha256": "fadd45ee2fbc056fb1ab22cbb370aad860e667056ecccb21466772fa947b3017"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Audio/GameplayAudio.cs",
+      "sha256": "edd8b7cd4a4aa3d76752ae23b9d6f40451fac7639945001ed466da431d012b07"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Bootstrap/Bootstrap.cs",
+      "sha256": "7729185de7829713823766c90ab243266b791077ac721e6b35b5f74e81c71fad"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Bootstrap/DailyProductionComposition.cs",
+      "sha256": "9803905909b3567880ac3a8f63370fb6841c7d2b5e94ab95dddd143058e33dbb"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Bootstrap/DailyProductionSocial.cs",
+      "sha256": "12e84af3d1322e83b95386ec6e872201bc553d2422a01ce2a1c14a524f3d016d"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Bootstrap/DailyProductionSwapOrder.cs",
+      "sha256": "c3ed3b9b99b276729e738371cf6c79578782c8516d25ba6f6d4dcb9042f7978d"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Bootstrap/DailyViewMapper.cs",
+      "sha256": "280fb07dc6dd18890fa4e758841fb4824d7eac939f7880c5075b2a06b8a99e92"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Bootstrap/LocalDevelopmentServices.cs",
+      "sha256": "71c87f3fc5c2cc7b4fb7e939c7630c6d6129a404db5302bd6025ca53709e4019"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Bootstrap/ProductionComposition.cs",
+      "sha256": "bb25d609fe1a700fdc60aea5f00a7ef5e5ad4c901f3a777544c73b91ac92b69d"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Bootstrap/Task033IntegrationProbe.cs",
+      "sha256": "303458f3a98d1e5883853f02c2a008d3f1a24bf014a5460b42eb34127c74e053"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Bootstrap/WeChatGameplayTapInput.cs",
+      "sha256": "ceb836db83bc2b3c3272718e288dc4e735e3d418fc5e62ce09774d39dc84bca6"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Collection/BrothActivityStore.cs",
+      "sha256": "68e0bbe2d32b19f0c605f5b1280c7eef7245c6e5c0ad847f507dc822432f11c3"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Collection/CollectionPersistence.cs",
+      "sha256": "1ae246e68f87c78f5b1bc649d9590c49bd54bb7e17a7a48ae67d2777f0e22382"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Collection/CollectionStore.cs",
+      "sha256": "104c1ea5852ea2e3498ac92a48786254adf0e133c45e6f6dfabd973caf6b6d5b"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Core/ActiveSupplySchedule.cs",
+      "sha256": "a722719b828b51c30ca85ee5833aa65f2e75342aa870f924d0ad9322e4bc0b8c"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Core/AssemblyInfo.cs",
+      "sha256": "9526737f195f86c6f12d8859490146d100caefab31bd87f09b4001c85d9359ae"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Core/DailyCommands.cs",
+      "sha256": "51bc355c5f5c54e333a0b02bdc1a546abbd4f93cf4365c9b9186a4b3ae4ec049"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Core/DailyContent.cs",
+      "sha256": "3619a787eff24ca111809b203b5289dd6da4f7f421a730a33b6dce1b71c3693c"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Core/DailyDirector.cs",
+      "sha256": "c0005358f03b087b8108e8681fa87bbc97a4c7b16518896d7324f94f30a8448a"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Core/DailySession.cs",
+      "sha256": "4867a378bbacac1d83a6603e1db16e19df081da208480f8a9dbd37d809066f1f"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Core/DailySessionFactory.cs",
+      "sha256": "f5af4ac5f2407fbe9749762580a9f2fd411f68493105c1b7ce1813d56e1fb9bb"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Core/DailySessionSwapOrder.cs",
+      "sha256": "2a80946c7e8decf1b94d873c057bc72ae43f42e97eedf480f230861ff1c2edf5"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Core/KnownDailyProfiles.cs",
+      "sha256": "de11738fe57ac696c351b63edb2f5934dd437b56e542c619f739564c6a7a4472"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Core/Props/RecoveredProps.cs",
+      "sha256": "a1cba09d046443dcbb57e00e4f0384ae840ef97fc16b8329ca62419fc66defe3"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Core/WarmupContent.cs",
+      "sha256": "7cd8d2b9b9a6b2c138d6f8d6d236e5fc4258d5f5cc7b380e3e9c81261e66ff52"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Determinism/CanonicalJson.cs",
+      "sha256": "afcfb98476e3f538624db9f593d28849a7b08cfc57fb1a5e0c40b217665c3c22"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Determinism/Pcg32.cs",
+      "sha256": "c2507cbed7f18c796f25cfcc298fee41b5694309317156268f3b59c9de1a5a99"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Platform/Profile/EntryProfileTransport.cs",
+      "sha256": "a1654f5f050117621337bc1bdbbd6a1cbe65638ad54579779c6202b30b5b2503"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Platform/Profile/ProfileClock.cs",
+      "sha256": "d4d817ec8b097baa7a3b67da6a03f933c5fb98558a698af5d27fbede48529c6d"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Platform/Profile/ProfileStore.cs",
+      "sha256": "0111262a8140d3acba338aeed8c14858375f637cbf91f7e6feaa4d82ba867572"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Platform/Profile/ProfileTrustedTimeProvider.cs",
+      "sha256": "de0badf6215b14a3809a4dad21c75126a80311ed11d0e3dfc5394035ffdfaae4"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Platform/Profile/RecoverableProfileStorage.cs",
+      "sha256": "7ec36e40c5f5319adf2b03e8c7849fb3143c907d1ef6dcf8c76bcae696fb3077"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Platform/RemoteAssets/PresentationAssetProvider.cs",
+      "sha256": "903074bcefc505cef23daf02bef0ccefefa4981dabc30a7306ca1cecf14485d0"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Platform/RemoteAssets/RemoteAssetValidation.cs",
+      "sha256": "a8a8efa6f0d2ec8254f3a083f692d583499f169f7b3146773425fff95da33366"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Platform/RemoteAssets/TransactionalAssetCache.cs",
+      "sha256": "9d4b9447745e02b5cd5e403ab871abc28f71a5fe9f60ed1729d24086b9aec4ff"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Platform/RemoteAssets/UnityRemoteAssetAdapters.cs",
+      "sha256": "c550664fffc82aa691993872104378664267247c2a84e8a9a0a60c78f085266e"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Platform/WeChat/CloudAssetDownloadClient.cs",
+      "sha256": "90360a9eec31964de291d165d590f1c83964afbcd1d35d20acb4e28675beda07"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Platform/WeChat/LocalDiagnostics.cs",
+      "sha256": "517be655c694cec61c2ad3da767113eea35565bedbb03ebe0a75285e32556d6a"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Platform/WeChat/WeChatActivityLinkService.cs",
+      "sha256": "7448aafb7117570b8f193c5e0fa6b77e10f01530f1864882d67e0d667dbc50f7"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Platform/WeChat/WeChatAssetTransport.cs",
+      "sha256": "572c3017c70f873d277f04a2fd24b96d04fca92f0639fb50589885d11860a7d1"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Platform/WeChat/WeChatBrothActivityService.cs",
+      "sha256": "28694b4d70ed40d852e0013751e2bb0aa7ef1ceb126a0dd8d1be47958722eb7f"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Platform/WeChat/WeChatCapabilityState.cs",
+      "sha256": "eb9100bc3912a754755565de583f93b07a8ebbd5be6e12620b4f5fa936e4aec9"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Platform/WeChat/WeChatCloudAssetDownload.cs",
+      "sha256": "c0ed716777b4e69ff36816741e6886572a6113b75c18b51b7a380de29591cd86"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Platform/WeChat/WeChatCloudProfileFunction.cs",
+      "sha256": "11eb2d923f207851ddf5a2776cde96542c0b1ddf23deb6143c06f7ccda602939"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Platform/WeChat/WeChatFriendBoardSurface.cs",
+      "sha256": "d7cdddb1a6004a3669e1442ab823977ac812aab8ae49e5314d5f9dd1b4631a2c"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Platform/WeChat/WeChatIngredientTradeBridge.cs",
+      "sha256": "ec296b74439b794f89c1335b4d4ab6dcd46551196fb276decfe98c6465b5bc7e"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Platform/WeChat/WeChatIngredientTradeService.cs",
+      "sha256": "78b56bac5a530335e73ce4a68d9653301c57359291e598d358ea1b32ffe00bbb"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Platform/WeChat/WeChatPlatform.cs",
+      "sha256": "bc07cd4fb356b1a3f56393381ecc9ed9618e5eedb7e81ffd2df0df7e8fd0181e"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Platform/WeChat/WeChatProfileTransport.cs",
+      "sha256": "97556b869e42023d4c523acf3209ce65ce0c999c7fa68e2e7c9717628aa71c29"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Platform/WeChat/WeChatRewardLifecycle.cs",
+      "sha256": "de493b0c7492eb056ce4a176315bb1acfc738f7982e1c65e3ab2ae2fcc4154c1"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Platform/WeChat/WeChatRewardService.cs",
+      "sha256": "59ceb324aec287ac34357bcc6253094bc7bc371807100e7ba447934be292c26f"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Platform/WeChat/WeChatRuntimeConfig.cs",
+      "sha256": "bf09f9b6067a4c38ceafcff5eba212aa3fb5a69cc9f95a42916a0bc2dc78774e"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Platform/WeChat/WeChatServiceScope.cs",
+      "sha256": "b57370c05714a4fa9790fb24ed6922d4488e58b95266a9f18d6cfb237458cb0a"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Platform/WeChat/WeChatShareService.cs",
+      "sha256": "80427a4911dbb57424eb1128a9a2975dd8c86f38212cde75d23deda51764033f"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Platform/WeChat/WeChatSilentLogin.cs",
+      "sha256": "b01115ddce5ec188eb0949c0b67e1724a0c0bc3b67348b98c8a083150dc8d3ab"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Presentation/Contracts/PlateItemLayout.cs",
+      "sha256": "a6193c3d3a5253ddf26adc27da15135e934643b1026da77ba7af7a11cea4a1ba"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Presentation/Contracts/PresentationLifecycle.cs",
+      "sha256": "6a9a74d2c97d88c906d7618924f66eefc463bdba63dc6c9e331ede8c622cd16e"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Presentation/Contracts/RevivalTransferBatch.cs",
+      "sha256": "0a3fc99eac42c72694b045c8c1bddb5d75358fae527c2b44e8b027dd60fbae22"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Presentation/DevelopmentPresentationPort.cs",
+      "sha256": "e100f428b331c1a38c04ecafd91f1e31659f33bd4380f1a3da2b9a5891a46d0e"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Presentation/GameplayFeedback.cs",
+      "sha256": "a23d588a8c16d6e0d83415133e84eb7868e762b4c33bd6a75695045f55462b70"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Presentation/GameplayView.cs",
+      "sha256": "2064cf90b6c724148dc621a92a07e4ac8710d7b13a97403d527a12dbbe8eb81b"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Presentation/GameplayViewBroth.cs",
+      "sha256": "0a1eb396d5309eafe918b6c4763121f682dbb5aede03fff8b76285f9e368b57c"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Presentation/GameplayViewClickability.cs",
+      "sha256": "0e9de7b8c5c7ec07ea6ced4979f166b3db89385e37198a1b8bb634b62312de2f"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Presentation/GameplayViewCollection.cs",
+      "sha256": "7b1ea92f93737651f5258ed2ea3271cfd1dbdd2941ec2586c27e283668b2c8af"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Presentation/GameplayViewFriendBoard.cs",
+      "sha256": "60c0b272ff0a501a7edca8b6210b01ab2ea495b03255a42cfede09a2eeeb13bb"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Presentation/GameplayViewShuffle.cs",
+      "sha256": "e60998b7eb92840fa0592e46563d96ac2681bd15db4050083e31f901d3e17de2"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Presentation/GameplayViewSwapOrder.cs",
+      "sha256": "43d6653b0529d907d6c132e85a6b8d466e8f30fdae4cd8816796bfee845f9018"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Presentation/GameplayViewTheme.cs",
+      "sha256": "41b80b9a7247cd2e2c0113ea5530d469b9e84d96f7c5c426354e4286ae0fb988"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Presentation/GameplayViewToolDemo.cs",
+      "sha256": "0484208f0293c26b25eec350bd4c4541d5e60dd3f3c09686c94c230eea15f25e"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Presentation/GameplayViewV7.cs",
+      "sha256": "d4dec1c63d9fb5b094bfdfa354f05e0a816daf4eb83f10b2ada074a0632a1ba2"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Presentation/ModernPresentation.cs",
+      "sha256": "dcbec9df6bf4551032252b5289db613eace697194290e5c5f8d12aac729dd6a3"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Presentation/NativeTouchUiInput.cs",
+      "sha256": "712c0bf1e587917367c0795015942d3a2475eea67088f6738f6db7df9d58b852"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Presentation/PresentationPort.cs",
+      "sha256": "366cdd4d27514462b92c319f55f167e2950d3563d19bd316f81d556d4c22a669"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Presentation/PresentationThemeValidation.cs",
+      "sha256": "5ad2e976601f46ec97e8e55ab39e86664ee4e24c54cdd3e30ffd31adbf7d131c"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Presentation/TaskAssetValidation.cs",
+      "sha256": "cb4e30a60372757a43fe9205883880eb3097bd97e015c6032941e51dd97ea1e2"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Presentation/V7Art.cs",
+      "sha256": "070ac3ccb81a94307b64297456abfb364f0d1b6fb71f0f4e9c226c5875ad3f65"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Presentation/V7VisualLoadProbe.cs",
+      "sha256": "985e661586688aee460b7b6b656a2d4d6cf680586f29d53f00dd572bcd4d64a0"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Replay/DailyReplay.cs",
+      "sha256": "8f096f043e9a3db740b18d4f32cebe141e90e4c7dd87820d50257d39d17fcf6c"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Session/RewardCoordinator.cs",
+      "sha256": "56a854effadd606ff3c0b944a74860afea68ce02f388854d72ee665c90f39eab"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Session/SessionController.cs",
+      "sha256": "cd4fefe8bfd9a236147ccb84c4cf1000cc067d0cc0bfa2b0d16314e5bb381342"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Session/ShareQuotaLedger.cs",
+      "sha256": "a45f17a9991b94d3a9d9f2b7654de392f68b8c51f5b91b74c7cc39fee31e0e9b"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/Session/TimeResolver.cs",
+      "sha256": "6a95eb1738a3ade776d0a8a5b887ce87b417c8df542d275fd1b3e7af6bd7bcdb"
+    },
+    {
+      "path": "Assets/HotpotSort/Runtime/UnityPhysics/PlatePresentationWorld.cs",
+      "sha256": "74eb63485d3df4133cd51a5908eb8297b1b595b696fe4190ea1d36ccb2a75ae2"
+    }
+  ]
+}
